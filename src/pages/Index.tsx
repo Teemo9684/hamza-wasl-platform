@@ -55,17 +55,20 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 py-12">
-        {/* Logo Section */}
-        <div className="text-center mb-12 fade-in">
-          <div className="inline-flex items-center justify-center mb-4">
-            <GraduationCap className="w-20 h-20 text-white drop-shadow-lg" />
+        {/* Logo Section - Isolated with more spacing */}
+        <div className="text-center mb-20 fade-in">
+          <div className="inline-flex items-center justify-center mb-6">
+            <GraduationCap className="w-24 h-24 text-white drop-shadow-lg" />
           </div>
-          <h1 className="text-6xl font-bold text-white mb-2 drop-shadow-lg font-cairo">
-            {logoText}
-          </h1>
-          <p className="text-xl text-white/90 font-tajawal">
-            المدرسة الابتدائية العربي التبسي
-          </p>
+          <div className="glass-card inline-block px-12 py-8 rounded-3xl mb-6">
+            <h1 className="text-7xl font-bold text-white mb-4 drop-shadow-lg font-cairo">
+              {logoText}
+            </h1>
+            <div className="h-1 w-32 bg-gradient-primary mx-auto mb-4 rounded-full"></div>
+            <p className="text-2xl text-white/90 font-tajawal">
+              المدرسة الابتدائية العربي التبسي
+            </p>
+          </div>
         </div>
 
         {/* Features Section */}
@@ -103,9 +106,19 @@ const Index = () => {
 
         {/* Login Cards */}
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-white text-center mb-8 font-cairo">
-            اختر نوع الحساب
-          </h2>
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <h2 className="text-3xl font-bold text-white text-center font-cairo">
+              اختر نوع الحساب
+            </h2>
+            <Button
+              onClick={() => navigate("/register")}
+              size="lg"
+              variant="outline"
+              className="bg-white/10 text-white border-white/30 hover:bg-white/20 font-tajawal"
+            >
+              تسجيل حساب جديد
+            </Button>
+          </div>
           
           <div className="grid md:grid-cols-3 gap-6 slide-in-up">
             {/* Parents Login */}
