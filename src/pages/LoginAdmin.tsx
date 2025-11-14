@@ -7,26 +7,32 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Shield, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { adminLoginSchema } from "@/lib/validations";
+
 
 const LoginAdmin = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
+  // استخدام بريد إلكتروني ثابت للمسؤول في الخلفية
+  const ADMIN_EMAIL = "admin@system.local";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Validate input
-      const validatedData = adminLoginSchema.parse({ email, password });
+      // التحقق من الرقم السري
+      if (!pin || pin.trim().length === 0) {
+        toast.error("الرجاء إدخال الرقم السري");
+        setIsLoading(false);
+        return;
+      }
 
-      // Sign in with Supabase
+      // Sign in with Supabase using fixed admin email and PIN as password
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: validatedData.email,
-        password: validatedData.password,
+        email: ADMIN_EMAIL,
+        password: pin,
       });
 
       if (authError) throw authError;
@@ -56,10 +62,8 @@ const LoginAdmin = () => {
       navigate("/dashboard/admin");
     } catch (error: any) {
       console.error("Login error:", error);
-      if (error.name === "ZodError") {
-        toast.error(error.errors[0].message);
-      } else if (error.message?.includes("Invalid login credentials")) {
-        toast.error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+      if (error.message?.includes("Invalid login credentials")) {
+        toast.error("الرقم السري غير صحيح");
       } else {
         toast.error("حدث خطأ في تسجيل الدخول");
       }
@@ -96,28 +100,16 @@ const LoginAdmin = () => {
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="font-tajawal text-lg">البريد الإلكتروني</Label>
+                <Label htmlFor="pin" className="font-tajawal text-lg">الرقم السري</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="admin@school.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="pin"
+                  type="password"
+                  placeholder="أدخل الرقم السري"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
                   className="font-tajawal text-lg h-12"
                   required
                   autoFocus
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="font-tajawal text-lg">كلمة المرور</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="أدخل كلمة المرور"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="font-tajawal text-lg h-12"
-                  required
                 />
               </div>
             </CardContent>
