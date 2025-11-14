@@ -270,4 +270,43 @@
       transform: translateX(100%);
     }
   }
+
+  /* Magic Fade Animations */
+  @keyframes fadeInOut {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0.8) translateY(20px);
+    }
+    10%, 40% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    50%, 90% {
+      opacity: 0;
+      transform: scale(0.8) translateY(-20px);
+    }
+  }
+
+  @keyframes fadeInOutAlt {
+    0%, 50% {
+      opacity: 0;
+      transform: scale(0.8) translateY(20px);
+    }
+    60%, 90% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.8) translateY(-20px);
+    }
+  }
+
+  .magic-fade-1 {
+    animation: fadeInOut 6s ease-in-out infinite;
+  }
+
+  .magic-fade-2 {
+    animation: fadeInOutAlt 6s ease-in-out infinite;
+  }
 }
