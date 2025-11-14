@@ -1,10 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings } from "lucide-react";
+import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone } from "lucide-react";
+import { NewsTickerManager } from "@/components/NewsTickerManager";
+import { useState } from "react";
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   const handleLogout = () => {
     navigate("/");
@@ -38,8 +41,21 @@ const DashboardAdmin = () => {
             </p>
           </div>
 
-          {/* Statistics */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {activeSection === "news" ? (
+            <div className="mb-8">
+              <Button 
+                onClick={() => setActiveSection(null)} 
+                variant="ghost" 
+                className="mb-4 font-tajawal"
+              >
+                ← العودة إلى لوحة التحكم
+              </Button>
+              <NewsTickerManager />
+            </div>
+          ) : (
+            <>
+              {/* Statistics */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="glass-card hover-lift">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-cairo">
@@ -95,6 +111,23 @@ const DashboardAdmin = () => {
 
           {/* Management Sections */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("news")}>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
+                    <Megaphone className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 font-cairo">الشريط الإخباري</h3>
+                  <p className="text-sm text-muted-foreground font-tajawal mb-4">
+                    إدارة الأخبار والتنبيهات المدرسية
+                  </p>
+                  <Button className="w-full bg-gradient-primary text-white font-tajawal">
+                    إدارة
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="glass-card hover-lift hover-glow cursor-pointer">
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
@@ -180,6 +213,8 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
           </div>
+          </>
+          )}
         </main>
       </div>
     </div>

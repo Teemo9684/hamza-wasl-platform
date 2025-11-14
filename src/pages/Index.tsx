@@ -1,8 +1,36 @@
 import { useNavigate } from "react-router-dom";
 import { Users, GraduationCap, Shield } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  icon_type: string;
+  badge_color: string;
+  is_active: boolean;
+}
 
 const Index = () => {
   const navigate = useNavigate();
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+
+  useEffect(() => {
+    fetchNewsItems();
+  }, []);
+
+  const fetchNewsItems = async () => {
+    const { data } = await supabase
+      .from("news_ticker")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+
+    if (data) {
+      setNewsItems(data);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-accent">
@@ -16,18 +44,23 @@ const Index = () => {
       {/* News Ticker */}
       <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden">
         <div className="ticker-animation py-3 flex items-center gap-8 whitespace-nowrap">
-          <span className="text-white font-tajawal flex items-center gap-2">
-            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">جديد</span>
-            مرحباً بكم في منصة صلة وصل - جسر التواصل بين المدرسة والبيت
-          </span>
-          <span className="text-white font-tajawal flex items-center gap-2">
-            <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold">إعلان</span>
-            تابعوا التحديثات والإشعارات المهمة من خلال المنصة
-          </span>
-          <span className="text-white font-tajawal flex items-center gap-2">
-            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">نصيحة</span>
-            سجل الدخول الآن للاستفادة من جميع الخدمات التعليمية
-          </span>
+          {newsItems.map((item) => (
+            <span key={item.id} className="text-white font-tajawal flex items-center gap-2">
+              <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
+                {item.icon_type}
+              </span>
+              {item.content}
+            </span>
+          ))}
+          {/* Duplicate for seamless loop */}
+          {newsItems.map((item) => (
+            <span key={`duplicate-${item.id}`} className="text-white font-tajawal flex items-center gap-2">
+              <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
+                {item.icon_type}
+              </span>
+              {item.content}
+            </span>
+          ))}
         </div>
       </div>
 
