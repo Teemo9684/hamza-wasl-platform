@@ -12,7 +12,7 @@ const LoginAdmin = () => {
   const [pinCode, setPinCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  const ADMIN_PIN = "ADMIN2026@";
+  const ADMIN_PIN = "ADMIN2025@";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
