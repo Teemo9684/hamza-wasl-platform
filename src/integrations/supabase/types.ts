@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      news_ticker: {
+        Row: {
+          badge_color: string
+          content: string
+          created_at: string
+          display_order: number
+          icon_type: string
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          badge_color?: string
+          content: string
+          created_at?: string
+          display_order?: number
+          icon_type?: string
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          badge_color?: string
+          content?: string
+          created_at?: string
+          display_order?: number
+          icon_type?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
