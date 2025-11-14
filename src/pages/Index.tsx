@@ -44,8 +44,8 @@ const Index = () => {
       {/* News Ticker */}
       <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden">
         <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
-          {/* Repeat items 3 times for seamless scrolling */}
-          {[...Array(3)].map((_, repeatIndex) => (
+          {/* Repeat items 2 times for seamless scrolling */}
+          {[...Array(2)].map((_, repeatIndex) => (
             newsItems.map((item) => (
               <span key={`${repeatIndex}-${item.id}`} className="text-white font-tajawal flex items-center gap-2">
                 <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>

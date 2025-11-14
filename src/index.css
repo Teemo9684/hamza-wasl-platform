@@ -263,13 +263,13 @@
     will-change: transform;
   }
 
-  /* Right-to-left smooth scroll */
+  /* Right-to-left smooth scroll (duplicate content twice, move by -50%) */
   @keyframes ticker-rtl {
     0% {
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-33.333%);
+      transform: translateX(-50%);
     }
   }
 
