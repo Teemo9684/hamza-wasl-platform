@@ -43,7 +43,7 @@ const Index = () => {
 
       {/* News Ticker */}
       <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden">
-        <div className="ticker-animation py-3 flex items-center gap-8 whitespace-nowrap">
+        <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
           {/* Repeat items 3 times for seamless scrolling */}
           {[...Array(3)].map((_, repeatIndex) => (
             newsItems.map((item) => (
