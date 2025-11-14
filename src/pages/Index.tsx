@@ -100,8 +100,8 @@ const Index = () => {
           >
             <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500" />
+              <div className="relative icon-float">
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
                 <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
                   <Users className="w-16 h-16 text-white" strokeWidth={1.5} />
                 </div>
@@ -130,8 +130,8 @@ const Index = () => {
           >
             <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500" />
+              <div className="relative icon-float" style={{ animationDelay: "0.5s" }}>
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
                 <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
                   <GraduationCap className="w-16 h-16 text-white" strokeWidth={1.5} />
                 </div>
@@ -160,8 +160,8 @@ const Index = () => {
           >
             <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500" />
+              <div className="relative icon-float" style={{ animationDelay: "1s" }}>
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
                 <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
                   <Shield className="w-16 h-16 text-white" strokeWidth={1.5} />
                 </div>
