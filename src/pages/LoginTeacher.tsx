@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserCheck, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginTeacher = () => {
   const navigate = useNavigate();
@@ -17,15 +18,40 @@ const LoginTeacher = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (email && password) {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Check if user has teacher role
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .eq('role', 'teacher')
+          .maybeSingle();
+
+        if (roleError) throw roleError;
+
+        if (!roleData) {
+          toast.error("هذا الحساب ليس حساب معلم");
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+
         toast.success("تم تسجيل الدخول بنجاح");
         navigate("/dashboard/teacher");
-      } else {
-        toast.error("يرجى إدخال البريد الإلكتروني وكلمة المرور");
       }
+    } catch (error: any) {
+      toast.error(error.message || "خطأ في تسجيل الدخول");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
