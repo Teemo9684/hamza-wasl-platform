@@ -4,7 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { UserCheck, ArrowRight, Mail, Lock, User, Phone } from "lucide-react";
+import { UserCheck, ArrowRight, Mail, Lock, User, BookOpen, GraduationCap } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const RegisterTeacher = () => {
   const navigate = useNavigate();
@@ -12,15 +19,24 @@ const RegisterTeacher = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
-    phone: "",
+    subject: "",
+    gradeLevel: "",
     password: "",
     confirmPassword: "",
   });
 
+  // Define available grades based on subject
+  const allGrades = ["التحضيري", "السنة الأولى", "السنة الثانية", "السنة الثالثة", "السنة الرابعة", "السنة الخامسة"];
+  const foreignLanguageGrades = ["السنة الثالثة", "السنة الرابعة", "السنة الخامسة"];
+  
+  const availableGrades = formData.subject === "فرنسية" || formData.subject === "إنجليزية" 
+    ? foreignLanguageGrades 
+    : allGrades;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.password) {
+    if (!formData.fullName || !formData.email || !formData.subject || !formData.gradeLevel || !formData.password) {
       toast({
         title: "خطأ",
         description: "الرجاء ملء جميع الحقول",
@@ -128,21 +144,55 @@ const RegisterTeacher = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="font-tajawal">
-                  رقم الهاتف
+                <Label htmlFor="subject" className="font-tajawal">
+                  المادة
                 </Label>
                 <div className="relative">
-                  <Phone className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="0555 123456"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="pr-10 font-tajawal"
-                    dir="ltr"
-                  />
+                  <BookOpen className="absolute right-3 top-3 h-5 w-5 text-muted-foreground z-10 pointer-events-none" />
+                  <Select 
+                    value={formData.subject} 
+                    onValueChange={(value) => setFormData({ ...formData, subject: value, gradeLevel: "" })}
+                  >
+                    <SelectTrigger className="pr-10 font-tajawal" dir="rtl">
+                      <SelectValue placeholder="اختر المادة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="عربية">اللغة العربية</SelectItem>
+                      <SelectItem value="فرنسية">اللغة الفرنسية</SelectItem>
+                      <SelectItem value="إنجليزية">اللغة الإنجليزية</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gradeLevel" className="font-tajawal">
+                  القسم
+                </Label>
+                <div className="relative">
+                  <GraduationCap className="absolute right-3 top-3 h-5 w-5 text-muted-foreground z-10 pointer-events-none" />
+                  <Select 
+                    value={formData.gradeLevel} 
+                    onValueChange={(value) => setFormData({ ...formData, gradeLevel: value })}
+                    disabled={!formData.subject}
+                  >
+                    <SelectTrigger className="pr-10 font-tajawal" dir="rtl">
+                      <SelectValue placeholder="اختر القسم" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableGrades.map((grade) => (
+                        <SelectItem key={grade} value={grade}>
+                          {grade}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {!formData.subject && (
+                  <p className="text-xs text-muted-foreground font-tajawal">
+                    الرجاء اختيار المادة أولاً
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
