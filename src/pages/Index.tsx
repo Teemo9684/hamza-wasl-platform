@@ -13,15 +13,33 @@ const Index = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl" />
       </div>
 
+      {/* News Ticker */}
+      <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden">
+        <div className="ticker-animation py-3 flex items-center gap-8 whitespace-nowrap">
+          <span className="text-white font-tajawal flex items-center gap-2">
+            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">جديد</span>
+            مرحباً بكم في منصة صلة وصل - جسر التواصل بين المدرسة والبيت
+          </span>
+          <span className="text-white font-tajawal flex items-center gap-2">
+            <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold">إعلان</span>
+            تابعوا التحديثات والإشعارات المهمة من خلال المنصة
+          </span>
+          <span className="text-white font-tajawal flex items-center gap-2">
+            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">نصيحة</span>
+            سجل الدخول الآن للاستفادة من جميع الخدمات التعليمية
+          </span>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-24">
         {/* Logo and Title */}
         <div className="text-center mb-16 animate-fade-in">
           <h1 className="text-6xl font-bold text-white mb-4 font-cairo">
-            منصة صلة
+            صلة وصل
           </h1>
           <p className="text-2xl text-white/90 font-tajawal">
-            التواصل الذكي بين الأولياء والأساتذة
+            منصة التواصل التربوي الحديثة لربط المدرسة بالبيت
           </p>
         </div>
 
