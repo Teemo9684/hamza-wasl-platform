@@ -14,6 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          notes: string | null
+          recorded_by: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          status: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grades: {
+        Row: {
+          created_at: string | null
+          date: string
+          grade_type: string
+          grade_value: number
+          id: string
+          max_grade: number
+          notes: string | null
+          student_id: string
+          subject: string
+          teacher_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          grade_type: string
+          grade_value: number
+          id?: string
+          max_grade: number
+          notes?: string | null
+          student_id: string
+          subject: string
+          teacher_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          grade_type?: string
+          grade_value?: number
+          id?: string
+          max_grade?: number
+          notes?: string | null
+          student_id?: string
+          subject?: string
+          teacher_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          recipient_id: string
+          sender_id: string
+          student_id: string | null
+          subject: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          recipient_id: string
+          sender_id: string
+          student_id?: string | null
+          subject: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          recipient_id?: string
+          sender_id?: string
+          student_id?: string | null
+          subject?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news_ticker: {
         Row: {
           badge_color: string
@@ -50,6 +182,38 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_students: {
+        Row: {
+          created_at: string | null
+          id: string
+          parent_id: string
+          relationship: string | null
+          student_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          parent_id: string
+          relationship?: string | null
+          student_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          parent_id?: string
+          relationship?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_students_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -73,6 +237,71 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      students: {
+        Row: {
+          class_section: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          full_name: string
+          grade_level: string
+          id: string
+          national_school_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          class_section?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name: string
+          grade_level: string
+          id?: string
+          national_school_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          class_section?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string
+          grade_level?: string
+          id?: string
+          national_school_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      teacher_students: {
+        Row: {
+          created_at: string | null
+          id: string
+          student_id: string
+          subject: string | null
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          student_id: string
+          subject?: string | null
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          student_id?: string
+          subject?: string | null
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_students_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -106,6 +335,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      link_parent_to_student: {
+        Args: { _national_school_id: string; _parent_id: string }
+        Returns: string
       }
     }
     Enums: {
