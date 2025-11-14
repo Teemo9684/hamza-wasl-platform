@@ -3,11 +3,54 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone } from "lucide-react";
 import { NewsTickerManager } from "@/components/NewsTickerManager";
-import { useState } from "react";
+import { UserManagement } from "@/components/admin/UserManagement";
+import { StudentManagement } from "@/components/admin/StudentManagement";
+import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
+import { ReportsView } from "@/components/admin/ReportsView";
+import { SettingsManager } from "@/components/admin/SettingsManager";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    parents: 0,
+    teachers: 0,
+    students: 0,
+    pendingRequests: 0,
+  });
+
+  useEffect(() => {
+    fetchStatistics();
+  }, []);
+
+  const fetchStatistics = async () => {
+    try {
+      const { count: parentsCount } = await supabase
+        .from("user_roles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "parent");
+
+      const { count: teachersCount } = await supabase
+        .from("user_roles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "teacher");
+
+      const { count: studentsCount } = await supabase
+        .from("students")
+        .select("*", { count: "exact", head: true });
+
+      setStats({
+        parents: parentsCount || 0,
+        teachers: teachersCount || 0,
+        students: studentsCount || 0,
+        pendingRequests: 0,
+      });
+    } catch (error) {
+      console.error("Error fetching statistics:", error);
+    }
+  };
 
   const handleLogout = () => {
     navigate("/");
@@ -41,7 +84,7 @@ const DashboardAdmin = () => {
             </p>
           </div>
 
-          {activeSection === "news" ? (
+          {activeSection ? (
             <div className="mb-8">
               <Button 
                 onClick={() => setActiveSection(null)} 
@@ -50,7 +93,12 @@ const DashboardAdmin = () => {
               >
                 ← العودة إلى لوحة التحكم
               </Button>
-              <NewsTickerManager />
+              {activeSection === "news" && <NewsTickerManager />}
+              {activeSection === "users" && <UserManagement />}
+              {activeSection === "students" && <StudentManagement />}
+              {activeSection === "announcements" && <AnnouncementsManager />}
+              {activeSection === "reports" && <ReportsView />}
+              {activeSection === "settings" && <SettingsManager />}
             </div>
           ) : (
             <>
@@ -64,7 +112,7 @@ const DashboardAdmin = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">125</p>
+                <p className="text-3xl font-bold">{stats.parents}</p>
                 <p className="text-sm text-muted-foreground font-tajawal">مسجل</p>
               </CardContent>
             </Card>
@@ -77,7 +125,7 @@ const DashboardAdmin = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">18</p>
+                <p className="text-3xl font-bold">{stats.teachers}</p>
                 <p className="text-sm text-muted-foreground font-tajawal">معلم نشط</p>
               </CardContent>
             </Card>
@@ -90,7 +138,7 @@ const DashboardAdmin = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">342</p>
+                <p className="text-3xl font-bold">{stats.students}</p>
                 <p className="text-sm text-muted-foreground font-tajawal">تلميذ</p>
               </CardContent>
             </Card>
