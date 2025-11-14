@@ -1,49 +1,128 @@
 import { useNavigate } from "react-router-dom";
-import referenceDesign from "@/assets/reference-design.svg";
+import { Users, GraduationCap, Shield } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen w-full relative">
-      {/* Background SVG Design */}
-      <img 
-        src={referenceDesign} 
-        alt="تطبيق صلة للتواصل بين الأولياء والأساتذة" 
-        className="absolute inset-0 w-full h-full object-cover object-center"
-      />
-      
-      {/* Interactive overlay for login buttons - positioned to match the design */}
-      <div className="absolute inset-0">
-        <div className="container mx-auto h-full flex items-end justify-center pb-24">
-          <div className="grid grid-cols-3 gap-6 w-full max-w-5xl px-4">
-            {/* أولياء الأمور Button - Positioned over the left card */}
-            <div className="flex flex-col items-center">
-              <button
-                onClick={() => navigate("/login/parent")}
-                className="w-full h-52 rounded-3xl bg-transparent hover:bg-white/5 transition-all cursor-pointer border-2 border-transparent hover:border-white/20"
-                aria-label="تسجيل الدخول - أولياء الأمور"
-              />
-            </div>
-            
-            {/* المعلمين Button - Positioned over the middle card */}
-            <div className="flex flex-col items-center">
-              <button
-                onClick={() => navigate("/login/teacher")}
-                className="w-full h-52 rounded-3xl bg-transparent hover:bg-white/5 transition-all cursor-pointer border-2 border-transparent hover:border-white/20"
-                aria-label="تسجيل الدخول - المعلمين"
-              />
-            </div>
-            
-            {/* الإدارة Button - Positioned over the right card */}
-            <div className="flex flex-col items-center">
-              <button
-                onClick={() => navigate("/login/admin")}
-                className="w-full h-52 rounded-3xl bg-transparent hover:bg-white/5 transition-all cursor-pointer border-2 border-transparent hover:border-white/20"
-                aria-label="تسجيل الدخول - الإدارة"
-              />
+    <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-accent">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-700" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl" />
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8">
+        {/* Logo and Title */}
+        <div className="text-center mb-16 animate-fade-in">
+          <h1 className="text-6xl font-bold text-white mb-4 font-cairo">
+            منصة صلة
+          </h1>
+          <p className="text-2xl text-white/90 font-tajawal">
+            التواصل الذكي بين الأولياء والأساتذة
+          </p>
+        </div>
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
+          {/* Parent Card */}
+          <div 
+            onClick={() => navigate("/login/parent")}
+            className="group relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/20 border border-white/20 hover:border-white/40 animate-fade-in"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <div className="flex flex-col items-center text-center space-y-6">
+              {/* Icon Container */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500" />
+                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                  <Users className="w-16 h-16 text-white" strokeWidth={1.5} />
+                </div>
+              </div>
+              
+              {/* Text */}
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">أولياء الأمور</h2>
+                <p className="text-white/80 font-tajawal">تابع مستوى أبنائك الدراسي</p>
+              </div>
+
+              {/* Arrow Icon */}
+              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
             </div>
           </div>
+
+          {/* Teacher Card */}
+          <div 
+            onClick={() => navigate("/login/teacher")}
+            className="group relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/20 border border-white/20 hover:border-white/40 animate-fade-in"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <div className="flex flex-col items-center text-center space-y-6">
+              {/* Icon Container */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500" />
+                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                  <GraduationCap className="w-16 h-16 text-white" strokeWidth={1.5} />
+                </div>
+              </div>
+              
+              {/* Text */}
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">المعلمين</h2>
+                <p className="text-white/80 font-tajawal">إدارة الفصول والطلاب</p>
+              </div>
+
+              {/* Arrow Icon */}
+              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Admin Card */}
+          <div 
+            onClick={() => navigate("/login/admin")}
+            className="group relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/20 border border-white/20 hover:border-white/40 animate-fade-in"
+            style={{ animationDelay: "0.3s" }}
+          >
+            <div className="flex flex-col items-center text-center space-y-6">
+              {/* Icon Container */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500" />
+                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                  <Shield className="w-16 h-16 text-white" strokeWidth={1.5} />
+                </div>
+              </div>
+              
+              {/* Text */}
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">الإدارة</h2>
+                <p className="text-white/80 font-tajawal">لوحة التحكم الإدارية</p>
+              </div>
+
+              {/* Arrow Icon */}
+              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-16 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <p className="text-white/70 font-tajawal text-lg">
+            اختر نوع الحساب للدخول إلى المنصة
+          </p>
         </div>
       </div>
     </div>
