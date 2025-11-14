@@ -11,19 +11,30 @@ const LoginAdmin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [pinCode, setPinCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
+  const ADMIN_PIN = "ADMIN2026@";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     setTimeout(() => {
-      if (email && password) {
-        toast.success("تم تسجيل الدخول بنجاح");
-        navigate("/dashboard/admin");
-      } else {
-        toast.error("يرجى إدخال البريد الإلكتروني وكلمة المرور");
+      if (!email || !password || !pinCode) {
+        toast.error("يرجى إدخال جميع الحقول المطلوبة");
+        setIsLoading(false);
+        return;
       }
+      
+      if (pinCode !== ADMIN_PIN) {
+        toast.error("الرقم السري غير صحيح");
+        setIsLoading(false);
+        return;
+      }
+      
+      toast.success("تم تسجيل الدخول بنجاح");
+      navigate("/dashboard/admin");
       setIsLoading(false);
     }, 1000);
   };
@@ -76,6 +87,19 @@ const LoginAdmin = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="font-tajawal"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="pinCode" className="font-tajawal">الرقم السري للإدارة</Label>
+                <Input
+                  id="pinCode"
+                  type="password"
+                  placeholder="أدخل الرقم السري"
+                  value={pinCode}
+                  onChange={(e) => setPinCode(e.target.value)}
                   className="font-tajawal"
                   required
                 />
