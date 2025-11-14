@@ -25,18 +25,20 @@ const RegisterTeacher = () => {
     confirmPassword: "",
   });
 
-  // Define available grades based on subject
+  // Define available grades for Arabic only
   const allGrades = ["التحضيري", "السنة الأولى", "السنة الثانية", "السنة الثالثة", "السنة الرابعة", "السنة الخامسة"];
-  const foreignLanguageGrades = ["السنة الثالثة", "السنة الرابعة", "السنة الخامسة"];
   
-  const availableGrades = formData.subject === "فرنسية" || formData.subject === "إنجليزية" 
-    ? foreignLanguageGrades 
-    : allGrades;
+  // Check if subject is foreign language
+  const isForeignLanguage = formData.subject === "فرنسية" || formData.subject === "إنجليزية";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.fullName || !formData.email || !formData.subject || !formData.gradeLevel || !formData.password) {
+    // For foreign languages, gradeLevel is not required
+    const isGradeLevelRequired = formData.subject !== "فرنسية" && formData.subject !== "إنجليزية";
+    
+    if (!formData.fullName || !formData.email || !formData.subject || !formData.password || 
+        (isGradeLevelRequired && !formData.gradeLevel)) {
       toast({
         title: "خطأ",
         description: "الرجاء ملء جميع الحقول",
@@ -165,35 +167,47 @@ const RegisterTeacher = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="gradeLevel" className="font-tajawal">
-                  القسم
-                </Label>
-                <div className="relative">
-                  <GraduationCap className="absolute right-3 top-3 h-5 w-5 text-muted-foreground z-10 pointer-events-none" />
-                  <Select 
-                    value={formData.gradeLevel} 
-                    onValueChange={(value) => setFormData({ ...formData, gradeLevel: value })}
-                    disabled={!formData.subject}
-                  >
-                    <SelectTrigger className="pr-10 font-tajawal" dir="rtl">
-                      <SelectValue placeholder="اختر القسم" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableGrades.map((grade) => (
-                        <SelectItem key={grade} value={grade}>
-                          {grade}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {!isForeignLanguage && (
+                <div className="space-y-2">
+                  <Label htmlFor="gradeLevel" className="font-tajawal">
+                    القسم
+                  </Label>
+                  <div className="relative">
+                    <GraduationCap className="absolute right-3 top-3 h-5 w-5 text-muted-foreground z-10 pointer-events-none" />
+                    <Select 
+                      value={formData.gradeLevel} 
+                      onValueChange={(value) => setFormData({ ...formData, gradeLevel: value })}
+                      disabled={!formData.subject}
+                    >
+                      <SelectTrigger className="pr-10 font-tajawal" dir="rtl">
+                        <SelectValue placeholder="اختر القسم" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allGrades.map((grade) => (
+                          <SelectItem key={grade} value={grade}>
+                            {grade}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!formData.subject && (
+                    <p className="text-xs text-muted-foreground font-tajawal">
+                      الرجاء اختيار المادة أولاً
+                    </p>
+                  )}
                 </div>
-                {!formData.subject && (
-                  <p className="text-xs text-muted-foreground font-tajawal">
-                    الرجاء اختيار المادة أولاً
-                  </p>
-                )}
-              </div>
+              )}
+
+              {isForeignLanguage && (
+                <div className="space-y-2">
+                  <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                    <p className="text-sm font-tajawal text-foreground">
+                      سيتم تسجيلك تلقائياً لتدريس المستويات الثلاثة: السنة الثالثة، السنة الرابعة، والسنة الخامسة
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="font-tajawal">
