@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Users, ArrowRight, Mail, Lock, User, Phone } from "lucide-react";
+import { Users, ArrowRight, Mail, Lock, User, Phone, Hash } from "lucide-react";
 
 const RegisterParent = () => {
   const navigate = useNavigate();
@@ -13,6 +13,7 @@ const RegisterParent = () => {
     fullName: "",
     email: "",
     phone: "",
+    nationalSchoolId: "",
     password: "",
     confirmPassword: "",
   });
@@ -20,7 +21,7 @@ const RegisterParent = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.password) {
+    if (!formData.fullName || !formData.email || !formData.phone || !formData.nationalSchoolId || !formData.password) {
       toast({
         title: "خطأ",
         description: "الرجاء ملء جميع الحقول",
@@ -139,6 +140,24 @@ const RegisterParent = () => {
                     placeholder="0555 123456"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="pr-10 font-tajawal"
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="nationalSchoolId" className="font-tajawal">
+                  الرقم الوطني المدرسي
+                </Label>
+                <div className="relative">
+                  <Hash className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="nationalSchoolId"
+                    type="text"
+                    placeholder="أدخل الرقم الوطني المدرسي"
+                    value={formData.nationalSchoolId}
+                    onChange={(e) => setFormData({ ...formData, nationalSchoolId: e.target.value })}
                     className="pr-10 font-tajawal"
                     dir="ltr"
                   />
