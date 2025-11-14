@@ -273,42 +273,42 @@
     }
   }
 
-  /* Magic Fade Animations */
-  @keyframes fadeInOut {
+  /* Magic Rotate Animations */
+  @keyframes magicRotate1 {
     0%, 100% {
       opacity: 0;
-      transform: scale(0.8) translateY(20px);
+      transform: scale(0.5) rotate(180deg);
     }
     10%, 40% {
       opacity: 1;
-      transform: scale(1) translateY(0);
+      transform: scale(1) rotate(360deg);
     }
     50%, 90% {
       opacity: 0;
-      transform: scale(0.8) translateY(-20px);
+      transform: scale(0.5) rotate(540deg);
     }
   }
 
-  @keyframes fadeInOutAlt {
+  @keyframes magicRotate2 {
     0%, 50% {
       opacity: 0;
-      transform: scale(0.8) translateY(20px);
+      transform: scale(0.5) rotate(180deg);
     }
     60%, 90% {
       opacity: 1;
-      transform: scale(1) translateY(0);
+      transform: scale(1) rotate(360deg);
     }
     100% {
       opacity: 0;
-      transform: scale(0.8) translateY(-20px);
+      transform: scale(0.5) rotate(540deg);
     }
   }
 
-  .magic-fade-1 {
-    animation: fadeInOut 6s ease-in-out infinite;
+  .magic-rotate-1 {
+    animation: magicRotate1 6s ease-in-out infinite;
   }
 
-  .magic-fade-2 {
-    animation: fadeInOutAlt 6s ease-in-out infinite;
+  .magic-rotate-2 {
+    animation: magicRotate2 6s ease-in-out infinite;
   }
 }
