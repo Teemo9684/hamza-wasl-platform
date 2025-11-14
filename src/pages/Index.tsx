@@ -64,16 +64,16 @@ const Index = () => {
         <div className="text-center mb-8 animate-fade-in">
           <div className="relative h-24 mb-6">
             {/* همزة وصل */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center magic-fade-1">
-              <h1 className="text-3xl font-bold text-white font-ruqaa leading-tight">
+            <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
+              <h1 className="text-3xl font-bold text-white font-ruqaa leading-[0.9]">
                 <div>همزة</div>
                 <div>وصل</div>
               </h1>
             </div>
             
             {/* العربي التبسي */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center magic-fade-2">
-              <h1 className="text-3xl font-bold text-white font-ruqaa leading-tight">
+            <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
+              <h1 className="text-3xl font-bold text-white font-ruqaa leading-[0.9]">
                 <div>العربي</div>
                 <div>التبسي</div>
               </h1>
