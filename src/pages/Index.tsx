@@ -80,9 +80,14 @@ const Index = () => {
             </div>
           </div>
           
-          <p className="text-2xl text-white/90 font-tajawal">
-            منصة التواصل التربوي الحديثة لربط المدرسة بالبيت
-          </p>
+          <div>
+            <p className="text-2xl text-white/90 font-tajawal mb-2">
+              منصة التواصل التربوي
+            </p>
+            <p className="text-sm text-white/70 font-tajawal">
+              المدرسة الابتدائية العربي التبسي
+            </p>
+          </div>
         </div>
 
         {/* Cards Grid */}
