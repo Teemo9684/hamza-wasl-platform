@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Save, X, MoveUp, MoveDown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { newsTickerSchema } from "@/lib/validations";
 import {
   Select,
   SelectContent,
@@ -76,60 +77,73 @@ export const NewsTickerManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.content) {
-      toast({
-        title: "خطأ",
-        description: "الرجاء ملء جميع الحقول",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (editingId) {
-      const { error } = await supabase
-        .from("news_ticker")
-        .update(formData)
-        .eq("id", editingId);
-
-      if (error) {
-        toast({
-          title: "خطأ",
-          description: "فشل تحديث الخبر",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "نجاح",
-        description: "تم تحديث الخبر بنجاح",
-      });
-    } else {
+    try {
+      // Get display order for validation
       const maxOrder = newsItems.length > 0 
         ? Math.max(...newsItems.map(item => item.display_order))
         : 0;
+      
+      const dataToValidate = editingId 
+        ? { ...formData, display_order: newsItems.find(n => n.id === editingId)?.display_order || 0 }
+        : { ...formData, display_order: maxOrder + 1 };
 
-      const { error } = await supabase
-        .from("news_ticker")
-        .insert([{ ...formData, display_order: maxOrder + 1 }]);
+      // Validate form data using zod schema
+      const validatedData = newsTickerSchema.parse(dataToValidate);
 
-      if (error) {
+      if (editingId) {
+        const { error } = await supabase
+          .from("news_ticker")
+          .update({
+            title: validatedData.title,
+            content: validatedData.content,
+            icon_type: validatedData.icon_type,
+            badge_color: validatedData.badge_color,
+            is_active: validatedData.is_active,
+          })
+          .eq("id", editingId);
+
+        if (error) {
+          toast({
+            title: "خطأ",
+            description: "فشل تحديث الخبر",
+            variant: "destructive",
+          });
+          return;
+        }
+
         toast({
-          title: "خطأ",
-          description: "فشل إضافة الخبر",
-          variant: "destructive",
+          title: "نجاح",
+          description: "تم تحديث الخبر بنجاح",
         });
-        return;
+      } else {
+        const { error } = await supabase
+          .from("news_ticker")
+          .insert([validatedData]);
+
+        if (error) {
+          toast({
+            title: "خطأ",
+            description: "فشل إضافة الخبر",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "نجاح",
+          description: "تم إضافة الخبر بنجاح",
+        });
       }
 
+      resetForm();
+      fetchNewsItems();
+    } catch (error: any) {
       toast({
-        title: "نجاح",
-        description: "تم إضافة الخبر بنجاح",
+        title: "خطأ",
+        description: error.errors?.[0]?.message || error.message || "فشل حفظ البيانات",
+        variant: "destructive",
       });
     }
-
-    resetForm();
-    fetchNewsItems();
   };
 
   const handleDelete = async (id: string) => {

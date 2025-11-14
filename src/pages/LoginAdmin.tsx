@@ -6,35 +6,66 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { adminLoginSchema } from "@/lib/validations";
 
 const LoginAdmin = () => {
   const navigate = useNavigate();
-  const [pinCode, setPinCode] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
-  const ADMIN_PIN = "ADMIN2025@";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (!pinCode) {
-        toast.error("يرجى إدخال الرقم السري");
+    try {
+      // Validate input
+      const validatedData = adminLoginSchema.parse({ email, password });
+
+      // Sign in with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: validatedData.email,
+        password: validatedData.password,
+      });
+
+      if (authError) throw authError;
+
+      if (!authData.user) {
+        throw new Error("لم يتم العثور على المستخدم");
+      }
+
+      // Check if user has admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", authData.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (roleError) throw roleError;
+
+      if (!roleData) {
+        await supabase.auth.signOut();
+        toast.error("ليس لديك صلاحية المسؤول");
         setIsLoading(false);
         return;
       }
-      
-      if (pinCode !== ADMIN_PIN) {
-        toast.error("الرقم السري غير صحيح");
-        setIsLoading(false);
-        return;
-      }
-      
+
       toast.success("تم تسجيل الدخول بنجاح");
       navigate("/dashboard/admin");
+    } catch (error: any) {
+      console.error("Login error:", error);
+      if (error.name === "ZodError") {
+        toast.error(error.errors[0].message);
+      } else if (error.message?.includes("Invalid login credentials")) {
+        toast.error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+      } else {
+        toast.error("حدث خطأ في تسجيل الدخول");
+      }
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -65,16 +96,28 @@ const LoginAdmin = () => {
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="pinCode" className="font-tajawal text-lg">الرقم السري</Label>
+                <Label htmlFor="email" className="font-tajawal text-lg">البريد الإلكتروني</Label>
                 <Input
-                  id="pinCode"
-                  type="password"
-                  placeholder="أدخل الرقم السري للإدارة"
-                  value={pinCode}
-                  onChange={(e) => setPinCode(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="admin@school.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="font-tajawal text-lg h-12"
                   required
                   autoFocus
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="font-tajawal text-lg">كلمة المرور</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="أدخل كلمة المرور"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="font-tajawal text-lg h-12"
+                  required
                 />
               </div>
             </CardContent>

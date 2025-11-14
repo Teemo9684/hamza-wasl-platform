@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { UserCheck, ArrowRight, Mail, Lock, User, BookOpen, GraduationCap } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { teacherRegistrationSchema } from "@/lib/validations";
 import {
   Select,
   SelectContent,
@@ -31,49 +33,64 @@ const RegisterTeacher = () => {
   // Check if subject is foreign language
   const isForeignLanguage = formData.subject === "فرنسية" || formData.subject === "إنجليزية";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // For foreign languages, gradeLevel is not required
-    const isGradeLevelRequired = formData.subject !== "فرنسية" && formData.subject !== "إنجليزية";
-    
-    if (!formData.fullName || !formData.email || !formData.subject || !formData.password || 
-        (isGradeLevelRequired && !formData.gradeLevel)) {
+    try {
+      // Validate form data
+      const validatedData = teacherRegistrationSchema.parse({
+        full_name: formData.fullName,
+        email: formData.email,
+        subject: formData.subject,
+        grade_level: isForeignLanguage ? "جميع المستويات" : formData.gradeLevel,
+        password: formData.password,
+      });
+
+      if (formData.password !== formData.confirmPassword) {
+        toast({
+          title: "خطأ",
+          description: "كلمتا المرور غير متطابقتين",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email: validatedData.email,
+        password: validatedData.password,
+        options: {
+          data: {
+            full_name: validatedData.full_name,
+            subject: validatedData.subject,
+            grade_level: validatedData.grade_level,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard/teacher`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Insert user role
+        await supabase.from('user_roles').insert({
+          user_id: data.user.id,
+          role: 'teacher',
+        });
+
+        toast({
+          title: "تم التسجيل بنجاح",
+          description: "يمكنك الآن تسجيل الدخول",
+        });
+        
+        navigate("/login/teacher");
+      }
+    } catch (error: any) {
       toast({
-        title: "خطأ",
-        description: "الرجاء ملء جميع الحقول",
+        title: "خطأ في التسجيل",
+        description: error.errors?.[0]?.message || error.message || "حدث خطأ أثناء التسجيل",
         variant: "destructive",
       });
-      return;
     }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "خطأ",
-        description: "كلمتا المرور غير متطابقتين",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast({
-        title: "خطأ",
-        description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Simulate registration
-    toast({
-      title: "تم إرسال الطلب بنجاح",
-      description: "سيتم مراجعة طلبك من قبل الإدارة وسيتم إشعارك عند الموافقة",
-    });
-
-    setTimeout(() => {
-      navigate("/");
-    }, 2000);
   };
 
   return (

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Users, ArrowRight, Mail, Lock, User, Phone, Hash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { parentRegistrationSchema } from "@/lib/validations";
 
 const RegisterParent = () => {
   const navigate = useNavigate();
@@ -22,34 +23,25 @@ const RegisterParent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.nationalSchoolId || !formData.password) {
-      toast({
-        title: "خطأ",
-        description: "الرجاء ملء جميع الحقول",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "خطأ",
-        description: "كلمتا المرور غير متطابقتين",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast({
-        title: "خطأ",
-        description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
+      // Validate form data
+      const validatedData = parentRegistrationSchema.parse({
+        full_name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        national_school_id: formData.nationalSchoolId,
+        password: formData.password,
+      });
+
+      if (formData.password !== formData.confirmPassword) {
+        toast({
+          title: "خطأ",
+          description: "كلمتا المرور غير متطابقتين",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -96,7 +88,7 @@ const RegisterParent = () => {
     } catch (error: any) {
       toast({
         title: "خطأ في التسجيل",
-        description: error.message || "حدث خطأ أثناء التسجيل",
+        description: error.errors?.[0]?.message || error.message || "حدث خطأ أثناء التسجيل",
         variant: "destructive",
       });
     }

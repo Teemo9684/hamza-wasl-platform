@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { GraduationCap, Plus, Edit, Trash2, Save, X, Search } from "lucide-react";
+import { studentSchema } from "@/lib/validations";
 import {
   Table,
   TableBody,
@@ -95,20 +96,14 @@ export const StudentManagement = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.full_name || !formData.national_school_id || !formData.grade_level) {
-      toast({
-        title: "خطأ",
-        description: "الرجاء ملء جميع الحقول المطلوبة",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
+      // Validate form data using zod schema
+      const validatedData = studentSchema.parse(formData);
+
       if (editingStudent) {
         const { error } = await supabase
           .from("students")
-          .update(formData)
+          .update(validatedData)
           .eq("id", editingStudent.id);
 
         if (error) throw error;
@@ -120,7 +115,7 @@ export const StudentManagement = () => {
       } else {
         const { error } = await supabase
           .from("students")
-          .insert([formData]);
+          .insert([validatedData]);
 
         if (error) throw error;
 
@@ -135,7 +130,7 @@ export const StudentManagement = () => {
     } catch (error: any) {
       toast({
         title: "خطأ",
-        description: error.message || "فشل حفظ البيانات",
+        description: error.errors?.[0]?.message || error.message || "فشل حفظ البيانات",
         variant: "destructive",
       });
     }
