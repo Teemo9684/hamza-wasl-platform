@@ -16,7 +16,7 @@ export default {
       fontFamily: {
         cairo: ['Cairo', 'sans-serif'],
         tajawal: ['Tajawal', 'sans-serif'],
-        diwani: ['Amiri', 'Rakkas', 'serif'],
+        diwani: ['Lateef', 'Amiri', 'serif'],
         ruqaa: ['Reem Kufi', 'Tajawal', 'sans-serif'],
       },
       colors: {
