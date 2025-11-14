@@ -145,6 +145,7 @@
     );
     background-size: 400% 400%;
     animation: gradient-shift 15s ease infinite;
+    pointer-events: none; /* Ensure background never blocks clicks */
   }
 
   @keyframes gradient-shift {
@@ -180,6 +181,7 @@
     mask-composite: exclude;
     opacity: 0;
     transition: var(--transition-smooth);
+    pointer-events: none; /* Do not block clicks on inner elements */
   }
 
   .hover-glow:hover::before {
