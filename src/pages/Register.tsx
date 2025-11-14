@@ -59,13 +59,14 @@ const Register = () => {
                     التواصل مع أولياء الأمور
                   </li>
                 </ul>
-                <Button
-                  onClick={() => navigate("/register/teacher")}
-                  size="lg"
-                  className="w-full bg-gradient-secondary hover:opacity-90 text-white font-tajawal text-lg"
-                >
-                  إنشاء حساب معلم
-                </Button>
+              <Button
+                onClick={() => navigate("/register/teacher")}
+                size="lg"
+                type="button"
+                className="w-full bg-gradient-secondary hover:opacity-90 text-white font-tajawal text-lg"
+              >
+                إنشاء حساب معلم
+              </Button>
               </div>
             </div>
 
@@ -93,13 +94,14 @@ const Register = () => {
                     التواصل مع المعلمين
                   </li>
                 </ul>
-                <Button
-                  onClick={() => navigate("/register/parent")}
-                  size="lg"
-                  className="w-full bg-gradient-primary hover:opacity-90 text-white font-tajawal text-lg"
-                >
-                  إنشاء حساب ولي أمر
-                </Button>
+              <Button
+                onClick={() => navigate("/register/parent")}
+                size="lg"
+                type="button"
+                className="w-full bg-gradient-primary hover:opacity-90 text-white font-tajawal text-lg"
+              >
+                إنشاء حساب ولي أمر
+              </Button>
               </div>
             </div>
           </div>
