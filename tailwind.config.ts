@@ -17,6 +17,7 @@ export default {
         cairo: ['Cairo', 'sans-serif'],
         tajawal: ['Tajawal', 'sans-serif'],
         diwani: ['Amiri', 'Rakkas', 'serif'],
+        ruqaa: ['Reem Kufi', 'Tajawal', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
