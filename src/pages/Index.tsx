@@ -35,8 +35,8 @@ const Index = () => {
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-24">
         {/* Logo and Title */}
         <div className="text-center mb-16 animate-fade-in">
-          <h1 className="text-6xl font-bold text-white mb-4 font-cairo">
-            صلة وصل
+          <h1 className="text-7xl font-bold text-white mb-4 font-diwani animate-pulse">
+            همزة وصل
           </h1>
           <p className="text-2xl text-white/90 font-tajawal">
             منصة التواصل التربوي الحديثة لربط المدرسة بالبيت

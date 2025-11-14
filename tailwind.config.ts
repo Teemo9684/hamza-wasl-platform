@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         cairo: ['Cairo', 'sans-serif'],
         tajawal: ['Tajawal', 'sans-serif'],
+        diwani: ['Amiri', 'Rakkas', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
