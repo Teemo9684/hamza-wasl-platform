@@ -9,8 +9,6 @@ import { toast } from "sonner";
 
 const LoginAdmin = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [pinCode, setPinCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
@@ -21,8 +19,8 @@ const LoginAdmin = () => {
     setIsLoading(true);
 
     setTimeout(() => {
-      if (!email || !password || !pinCode) {
-        toast.error("يرجى إدخال جميع الحقول المطلوبة");
+      if (!pinCode) {
+        toast.error("يرجى إدخال الرقم السري");
         setIsLoading(false);
         return;
       }
@@ -60,48 +58,23 @@ const LoginAdmin = () => {
             </div>
             <CardTitle className="text-3xl font-cairo">تسجيل دخول المدير</CardTitle>
             <CardDescription className="font-tajawal">
-              أدخل بياناتك للوصول إلى لوحة التحكم الإدارية
+              أدخل الرقم السري للوصول إلى لوحة التحكم الإدارية
             </CardDescription>
           </CardHeader>
           
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="font-tajawal">البريد الإلكتروني</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="admin@school.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="font-tajawal"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password" className="font-tajawal">كلمة المرور</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="font-tajawal"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="pinCode" className="font-tajawal">الرقم السري للإدارة</Label>
+                <Label htmlFor="pinCode" className="font-tajawal text-lg">الرقم السري</Label>
                 <Input
                   id="pinCode"
                   type="password"
-                  placeholder="أدخل الرقم السري"
+                  placeholder="أدخل الرقم السري للإدارة"
                   value={pinCode}
                   onChange={(e) => setPinCode(e.target.value)}
-                  className="font-tajawal"
+                  className="font-tajawal text-lg h-12"
                   required
+                  autoFocus
                 />
               </div>
             </CardContent>
