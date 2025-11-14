@@ -10,8 +10,8 @@ import RegisterTeacher from "./pages/RegisterTeacher";
 import LoginParent from "./pages/LoginParent";
 import LoginTeacher from "./pages/LoginTeacher";
 import LoginAdmin from "./pages/LoginAdmin";
-import DashboardParent from "./pages/DashboardParent";
-import DashboardTeacher from "./pages/DashboardTeacher";
+import DashboardParent from "./pages/DashboardParentNew";
+import DashboardTeacher from "./pages/DashboardTeacherNew";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import NotFound from "./pages/NotFound";
 

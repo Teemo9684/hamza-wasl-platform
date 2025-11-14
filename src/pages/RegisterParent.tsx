@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Users, ArrowRight, Mail, Lock, User, Phone, Hash } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const RegisterParent = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const RegisterParent = () => {
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.fullName || !formData.email || !formData.phone || !formData.nationalSchoolId || !formData.password) {
@@ -48,15 +49,57 @@ const RegisterParent = () => {
       return;
     }
 
-    // Simulate registration
-    toast({
-      title: "تم إرسال الطلب بنجاح",
-      description: "سيتم مراجعة طلبك من قبل الإدارة وسيتم إشعارك عند الموافقة",
-    });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            phone: formData.phone,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard/parent`,
+        },
+      });
 
-    setTimeout(() => {
-      navigate("/");
-    }, 2000);
+      if (error) throw error;
+
+      if (data.user) {
+        // Link parent to student using national school ID
+        const { error: linkError } = await supabase.rpc('link_parent_to_student', {
+          _parent_id: data.user.id,
+          _national_school_id: formData.nationalSchoolId,
+        });
+
+        if (linkError) {
+          toast({
+            title: "خطأ",
+            description: "رقم التعريف المدرسي غير صحيح أو التلميذ غير موجود",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Insert user role
+        await supabase.from('user_roles').insert({
+          user_id: data.user.id,
+          role: 'parent',
+        });
+
+        toast({
+          title: "تم التسجيل بنجاح",
+          description: "تم ربط حسابك بابنك بنجاح",
+        });
+        
+        navigate("/dashboard/parent");
+      }
+    } catch (error: any) {
+      toast({
+        title: "خطأ في التسجيل",
+        description: error.message || "حدث خطأ أثناء التسجيل",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
