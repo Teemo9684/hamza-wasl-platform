@@ -259,17 +259,17 @@
 
   /* Ticker Animation for News */
   .ticker-animation {
-    animation: ticker-rtl 12s linear infinite;
+    animation: ticker-ltr 16s linear infinite;
     will-change: transform;
   }
 
-  /* Right-to-left smooth scroll (duplicate content twice, move by -50%) */
-  @keyframes ticker-rtl {
+  /* Left-to-right smooth scroll (repeat 3x, move by +33.333%) */
+  @keyframes ticker-ltr {
     0% {
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-50%);
+      transform: translateX(33.333%);
     }
   }
 
