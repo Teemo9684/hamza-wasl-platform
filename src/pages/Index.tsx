@@ -34,24 +34,26 @@ const Index = () => {
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-24">
         {/* Logo and Title */}
-        <div className="text-center mb-16 animate-fade-in relative h-64">
-          {/* همزة وصل */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center magic-fade-1">
-            <h1 className="text-7xl font-bold text-white font-ruqaa leading-tight">
-              <div>همزة</div>
-              <div>وصل</div>
-            </h1>
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="relative h-32 mb-6">
+            {/* همزة وصل */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center magic-fade-1">
+              <h1 className="text-4xl font-bold text-white font-ruqaa leading-tight">
+                <div>همزة</div>
+                <div>وصل</div>
+              </h1>
+            </div>
+            
+            {/* العربي التبسي */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center magic-fade-2">
+              <h1 className="text-4xl font-bold text-white font-ruqaa leading-tight">
+                <div>العربي</div>
+                <div>التبسي</div>
+              </h1>
+            </div>
           </div>
           
-          {/* العربي التبسي */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center magic-fade-2">
-            <h1 className="text-7xl font-bold text-white font-ruqaa leading-tight">
-              <div>العربي</div>
-              <div>التبسي</div>
-            </h1>
-          </div>
-          
-          <p className="text-2xl text-white/90 font-tajawal absolute bottom-0 left-0 right-0">
+          <p className="text-2xl text-white/90 font-tajawal">
             منصة التواصل التربوي الحديثة لربط المدرسة بالبيت
           </p>
         </div>
