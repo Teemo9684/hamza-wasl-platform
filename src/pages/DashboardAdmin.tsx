@@ -151,8 +151,8 @@ const DashboardAdmin = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">7</p>
-                <p className="text-sm text-muted-foreground font-tajawal">طلب جديد</p>
+                <p className="text-3xl font-bold">{stats.pendingRequests}</p>
+                <p className="text-sm text-muted-foreground font-tajawal">بانتظار الموافقة</p>
               </CardContent>
             </Card>
           </div>
@@ -176,7 +176,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer">
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("users")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
@@ -184,7 +184,7 @@ const DashboardAdmin = () => {
                   </div>
                   <h3 className="text-xl font-bold mb-2 font-cairo">إدارة المستخدمين</h3>
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
-                    اعتماد، رفض وإدارة حسابات المستخدمين
+                    إدارة حسابات المعلمين وأولياء الأمور
                   </p>
                   <Button className="w-full bg-gradient-primary text-white font-tajawal">
                     إدارة
@@ -193,7 +193,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer">
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("students")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mb-4">
@@ -201,7 +201,7 @@ const DashboardAdmin = () => {
                   </div>
                   <h3 className="text-xl font-bold mb-2 font-cairo">إدارة التلاميذ</h3>
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
-                    تصنيف وإدارة التلاميذ حسب الفصول
+                    إضافة وتعديل وحذف بيانات التلاميذ
                   </p>
                   <Button className="w-full bg-gradient-secondary text-white font-tajawal">
                     إدارة
@@ -210,7 +210,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer">
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("announcements")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
@@ -218,7 +218,7 @@ const DashboardAdmin = () => {
                   </div>
                   <h3 className="text-xl font-bold mb-2 font-cairo">الإعلانات</h3>
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
-                    نظام إعلانات متقدم مع أولويات
+                    نشر إعلانات للمعلمين وأولياء الأمور
                   </p>
                   <Button className="w-full bg-accent text-white font-tajawal">
                     إدارة
@@ -227,7 +227,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer">
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("reports")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
@@ -235,7 +235,7 @@ const DashboardAdmin = () => {
                   </div>
                   <h3 className="text-xl font-bold mb-2 font-cairo">التقارير والإحصائيات</h3>
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
-                    تقارير تفاعلية وإحصائيات شاملة
+                    عرض تقارير الأداء والإحصائيات الشاملة
                   </p>
                   <Button variant="outline" className="w-full font-tajawal">
                     عرض
@@ -244,7 +244,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer">
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("settings")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
@@ -252,7 +252,7 @@ const DashboardAdmin = () => {
                   </div>
                   <h3 className="text-xl font-bold mb-2 font-cairo">الإعدادات</h3>
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
-                    إعدادات النظام والصلاحيات
+                    إعدادات النظام والتخصيص
                   </p>
                   <Button variant="outline" className="w-full font-tajawal">
                     إعدادات
