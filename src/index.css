@@ -259,7 +259,7 @@
 
   /* Ticker Animation for News */
   .ticker-animation {
-    animation: ticker 40s linear infinite;
+    animation: ticker 25s linear infinite;
   }
 
   @keyframes ticker {
