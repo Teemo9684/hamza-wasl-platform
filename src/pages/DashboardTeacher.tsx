@@ -30,6 +30,15 @@ const DashboardTeacher = () => {
     status: "present",
     notes: "",
   });
+  const [replyMessage, setReplyMessage] = useState({
+    messageId: "",
+    recipientId: "",
+    recipientName: "",
+    originalSubject: "",
+    studentId: "",
+    content: "",
+  });
+  const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchTeacherData();
@@ -222,6 +231,61 @@ const DashboardTeacher = () => {
     }
   };
 
+  const handleOpenReply = (message: any) => {
+    setReplyMessage({
+      messageId: message.id,
+      recipientId: message.sender_id,
+      recipientName: message.sender?.full_name || 'غير معروف',
+      originalSubject: message.subject,
+      studentId: message.student_id,
+      content: "",
+    });
+    setIsReplyDialogOpen(true);
+  };
+
+  const handleSendReply = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          sender_id: user.id,
+          recipient_id: replyMessage.recipientId,
+          subject: `رد: ${replyMessage.originalSubject}`,
+          content: replyMessage.content,
+          student_id: replyMessage.studentId,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم إرسال الرد بنجاح",
+      });
+
+      setIsReplyDialogOpen(false);
+      setReplyMessage({
+        messageId: "",
+        recipientId: "",
+        recipientName: "",
+        originalSubject: "",
+        studentId: "",
+        content: "",
+      });
+
+      // Mark original message as read
+      await handleMarkAsRead(replyMessage.messageId);
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -374,15 +438,25 @@ const DashboardTeacher = () => {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <h4 className="font-bold font-cairo">{message.subject}</h4>
-                          {!message.is_read && (
+                          <div className="flex gap-2">
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={() => handleMarkAsRead(message.id)}
+                              variant="default"
+                              onClick={() => handleOpenReply(message)}
                             >
-                              تحديد كمقروء
+                              <MessageSquare className="ml-2 h-4 w-4" />
+                              رد
                             </Button>
-                          )}
+                            {!message.is_read && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleMarkAsRead(message.id)}
+                              >
+                                تحديد كمقروء
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         <p className="text-sm text-muted-foreground font-tajawal">
                           من: {message.sender?.full_name || 'غير معروف'}
@@ -407,6 +481,54 @@ const DashboardTeacher = () => {
                 )}
               </div>
             </TabsContent>
+
+            <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
+              <DialogContent className="font-cairo" dir="rtl">
+                <DialogHeader>
+                  <DialogTitle>الرد على الرسالة</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>إلى</Label>
+                    <Input
+                      value={replyMessage.recipientName}
+                      disabled
+                      className="text-right bg-muted"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الموضوع</Label>
+                    <Input
+                      value={`رد: ${replyMessage.originalSubject}`}
+                      disabled
+                      className="text-right bg-muted"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الرسالة</Label>
+                    <Textarea
+                      value={replyMessage.content}
+                      onChange={(e) => setReplyMessage({ ...replyMessage, content: e.target.value })}
+                      className="text-right font-tajawal min-h-[150px]"
+                      placeholder="اكتب رسالتك هنا..."
+                      dir="rtl"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSendReply} className="flex-1">
+                      إرسال
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsReplyDialogOpen(false)}
+                      className="flex-1"
+                    >
+                      إلغاء
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <TabsContent value="attendance" className="space-y-6">
               <h3 className="text-2xl font-bold font-cairo">تسجيل الحضور</h3>
