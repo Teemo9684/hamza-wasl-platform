@@ -27,6 +27,9 @@ const DashboardParent = () => {
     subject: "",
     content: "",
   });
+  const [receivedMessages, setReceivedMessages] = useState<any[]>([]);
+  const [selectedMessage, setSelectedMessage] = useState<any>(null);
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchParentData();
@@ -83,6 +86,20 @@ const DashboardParent = () => {
 
       if (teachersError) throw teachersError;
       setTeachers(teachersData || []);
+
+      // Fetch received messages
+      const { data: messagesData, error: messagesError } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:profiles!messages_sender_id_fkey(full_name),
+          student:students(full_name)
+        `)
+        .eq('recipient_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (messagesError) throw messagesError;
+      setReceivedMessages(messagesData || []);
     } catch (error: any) {
       toast({
         title: "خطأ",
@@ -154,12 +171,43 @@ const DashboardParent = () => {
       });
 
       setNewMessage({ recipient_id: "", subject: "", content: "" });
+      fetchParentData();
     } catch (error: any) {
       toast({
         title: "خطأ",
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const handleViewMessage = (message: any) => {
+    setSelectedMessage(message);
+    setIsMessageDialogOpen(true);
+    
+    // Mark as read
+    if (!message.is_read) {
+      handleMarkAsRead(message.id);
+    }
+  };
+
+  const handleMarkAsRead = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('id', messageId);
+
+      if (error) throw error;
+      
+      // Update local state
+      setReceivedMessages(prev =>
+        prev.map(msg =>
+          msg.id === messageId ? { ...msg, is_read: true } : msg
+        )
+      );
+    } catch (error: any) {
+      console.error('Error marking message as read:', error);
     }
   };
 
@@ -470,10 +518,104 @@ const DashboardParent = () => {
                   </Card>
                 ))}
               </div>
+
+              <div className="space-y-4 mt-8">
+                <h4 className="font-bold font-cairo">
+                  الرسائل المستلمة
+                  {receivedMessages.filter(m => !m.is_read).length > 0 && (
+                    <span className="mr-2 bg-destructive text-destructive-foreground rounded-full px-2 py-0.5 text-xs">
+                      {receivedMessages.filter(m => !m.is_read).length} جديدة
+                    </span>
+                  )}
+                </h4>
+                {receivedMessages.map((message) => (
+                  <Card 
+                    key={message.id} 
+                    className={`glass-card hover-lift cursor-pointer ${!message.is_read ? 'border-primary' : ''}`}
+                    onClick={() => handleViewMessage(message)}
+                  >
+                    <CardContent className="p-6">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h5 className="font-bold font-cairo">{message.subject}</h5>
+                          {!message.is_read && (
+                            <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs">
+                              جديد
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground font-tajawal">
+                          من: {message.sender?.full_name || 'غير معروف'}
+                        </p>
+                        {message.student && (
+                          <p className="text-sm text-muted-foreground font-tajawal">
+                            حول التلميذ: {message.student.full_name}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground font-tajawal">
+                          {new Date(message.created_at).toLocaleDateString('ar-DZ')}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {receivedMessages.length === 0 && (
+                  <p className="text-center text-muted-foreground font-tajawal py-8">
+                    لا توجد رسائل
+                  </p>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </main>
       </div>
+
+      <Dialog open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen}>
+        <DialogContent className="font-cairo" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>{selectedMessage?.subject}</DialogTitle>
+          </DialogHeader>
+          {selectedMessage && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">من</Label>
+                <p className="font-tajawal">{selectedMessage.sender?.full_name || 'غير معروف'}</p>
+              </div>
+              {selectedMessage.student && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">حول التلميذ</Label>
+                  <p className="font-tajawal">{selectedMessage.student.full_name}</p>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">التاريخ</Label>
+                <p className="font-tajawal">
+                  {new Date(selectedMessage.created_at).toLocaleDateString('ar-DZ', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">الرسالة</Label>
+                <div className="bg-muted p-4 rounded-md">
+                  <p className="font-tajawal whitespace-pre-wrap">{selectedMessage.content}</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => setIsMessageDialogOpen(false)} 
+                variant="outline"
+                className="w-full"
+              >
+                إغلاق
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
