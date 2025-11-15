@@ -56,16 +56,16 @@ const Index = () => {
                 </span>
                 
                 {/* Logo separator */}
-                <div className="relative h-10 w-16 flex-shrink-0">
+                <div className="relative h-8 w-12 flex-shrink-0">
                   <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
-                    <span className="text-base font-bold text-white/80 font-ruqaa leading-[0.8]">
+                    <span className="text-sm font-bold text-white/80 font-ruqaa leading-[0.8]">
                       <div>همزة</div>
                       <div>وصل</div>
                     </span>
                   </div>
                   
                   <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
-                    <span className="text-base font-bold text-white/80 font-ruqaa leading-[0.8]">
+                    <span className="text-sm font-bold text-white/80 font-ruqaa leading-[0.8]">
                       <div>العربي</div>
                       <div>التبسي</div>
                     </span>
