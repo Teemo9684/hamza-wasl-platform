@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ParentSidebar } from "@/components/parent/ParentSidebar";
 import { ParentOverview } from "@/components/parent/ParentOverview";
@@ -23,6 +24,36 @@ const DashboardParent = () => {
 
   useEffect(() => {
     fetchParentData();
+
+    // Subscribe to new messages in real-time
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('parent-messages')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `recipient_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('New message received:', payload);
+            sonnerToast.success("رسالة جديدة من المعلم");
+            fetchParentData(); // Refresh messages
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    setupRealtimeSubscription();
   }, []);
 
   useEffect(() => {
