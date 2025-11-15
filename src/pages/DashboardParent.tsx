@@ -151,21 +151,22 @@ const DashboardParent = () => {
 
         <div className="flex-1 flex flex-col">
           <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex h-16 items-center justify-between px-6">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger />
-                <div>
-                  <h1 className="text-xl font-bold">مرحباً، {parentName}</h1>
-                  <p className="text-sm text-muted-foreground">لوحة تحكم ولي الأمر</p>
+            <div className="flex h-16 items-center justify-between px-4 md:px-6">
+              <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                <SidebarTrigger className="shrink-0" />
+                <div className="min-w-0">
+                  <h1 className="text-lg md:text-xl font-bold truncate">مرحباً، {parentName}</h1>
+                  <p className="text-xs md:text-sm text-muted-foreground truncate">لوحة تحكم ولي الأمر</p>
                 </div>
               </div>
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="gap-2"
+                className="gap-2 shrink-0"
+                size="sm"
               >
                 <LogOut className="h-4 w-4" />
-                تسجيل الخروج
+                <span className="hidden sm:inline">تسجيل الخروج</span>
               </Button>
             </div>
           </header>
