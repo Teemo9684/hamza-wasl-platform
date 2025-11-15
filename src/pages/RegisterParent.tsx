@@ -72,12 +72,6 @@ const RegisterParent = () => {
           return;
         }
 
-        // Insert user role
-        await supabase.from('user_roles').insert({
-          user_id: data.user.id,
-          role: 'parent',
-        });
-
         toast({
           title: "تم التسجيل بنجاح",
           description: "تم ربط حسابك بابنك بنجاح",

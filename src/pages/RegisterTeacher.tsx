@@ -71,12 +71,6 @@ const RegisterTeacher = () => {
       if (error) throw error;
 
       if (data.user) {
-        // Insert user role
-        await supabase.from('user_roles').insert({
-          user_id: data.user.id,
-          role: 'teacher',
-        });
-
         toast({
           title: "تم التسجيل بنجاح",
           description: "يمكنك الآن تسجيل الدخول",
