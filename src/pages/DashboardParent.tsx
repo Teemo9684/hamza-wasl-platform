@@ -21,6 +21,7 @@ const DashboardParent = () => {
   const [grades, setGrades] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [parentName, setParentName] = useState<string>("");
   const [newMessage, setNewMessage] = useState({
     recipient_id: "",
     subject: "",
@@ -44,6 +45,15 @@ const DashboardParent = () => {
         navigate("/login/parent");
         return;
       }
+
+      // Fetch parent profile info
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      setParentName(profileData?.full_name || "ولي الأمر");
 
       // Fetch children
       const { data: childrenData, error: childrenError } = await supabase
@@ -195,7 +205,7 @@ const DashboardParent = () => {
 
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2 font-cairo">مرحباً بك</h2>
+            <h2 className="text-3xl font-bold mb-2 font-cairo">مرحباً {parentName}</h2>
             <p className="text-muted-foreground font-tajawal">
               تابع تقدم أبنائك الدراسي من هنا
             </p>

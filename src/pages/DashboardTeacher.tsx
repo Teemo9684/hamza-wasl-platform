@@ -18,6 +18,7 @@ const DashboardTeacher = () => {
   const [students, setStudents] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
   const [newStudent, setNewStudent] = useState({
     full_name: "",
     national_school_id: "",
@@ -41,6 +42,18 @@ const DashboardTeacher = () => {
         navigate("/login/teacher");
         return;
       }
+
+      // Fetch teacher profile info
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      setTeacherInfo({
+        name: profileData?.full_name || "المعلم",
+        subject: user.user_metadata?.subject || "المادة غير محددة"
+      });
 
       // Fetch students
       const { data: studentsData, error: studentsError } = await supabase
@@ -237,9 +250,9 @@ const DashboardTeacher = () => {
 
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2 font-cairo">مرحباً بك</h2>
+            <h2 className="text-3xl font-bold mb-2 font-cairo">مرحباً {teacherInfo.name}</h2>
             <p className="text-muted-foreground font-tajawal">
-              إدارة التلاميذ والتواصل مع الأولياء
+              {teacherInfo.subject} • إدارة التلاميذ والتواصل مع الأولياء
             </p>
           </div>
 
