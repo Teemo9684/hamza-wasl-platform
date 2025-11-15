@@ -30,14 +30,14 @@ export const ParentSidebar = ({ children, selectedChild, onChildChange }: Parent
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className={isCollapsed ? "w-14" : "w-60"}>
-      <SidebarContent>
+    <Sidebar className={isCollapsed ? "w-14" : "w-60"} style={{ "--sidebar-background": "hsl(var(--background))" } as React.CSSProperties}>
+      <SidebarContent className="bg-background/95 backdrop-blur-xl border-r">
         <SidebarGroup>
           <SidebarGroupLabel className="text-lg font-bold px-4 py-6">
-            {!isCollapsed && "لوحة الولي"}
+            لوحة الولي
           </SidebarGroupLabel>
 
-          {!isCollapsed && children.length > 0 && (
+          {children.length > 0 && (
             <div className="px-4 mb-4">
               <Select value={selectedChild} onValueChange={onChildChange}>
                 <SelectTrigger className="w-full">
@@ -72,7 +72,7 @@ export const ParentSidebar = ({ children, selectedChild, onChildChange }: Parent
                       }}
                     >
                       <item.icon className="h-5 w-5 text-primary" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
