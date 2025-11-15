@@ -49,6 +49,7 @@
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 60%), hsl(142, 76%, 36%));
     --gradient-secondary: linear-gradient(135deg, hsl(142, 76%, 36%), hsl(25, 95%, 53%));
+    --gradient-accent: linear-gradient(135deg, hsl(25, 95%, 53%), hsl(217, 91%, 60%));
     --gradient-hero: linear-gradient(135deg, hsl(217, 91%, 60%) 0%, hsl(217, 91%, 70%) 50%, hsl(142, 76%, 46%) 100%);
     --gradient-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
     
@@ -129,6 +130,10 @@
 
   .bg-gradient-secondary {
     background: var(--gradient-secondary);
+  }
+
+  .bg-gradient-accent {
+    background: var(--gradient-accent);
   }
 
   .bg-gradient-hero {
