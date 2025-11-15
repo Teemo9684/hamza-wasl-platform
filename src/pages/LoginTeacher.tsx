@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { UserCheck, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,9 @@ const LoginTeacher = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +55,30 @@ const LoginTeacher = () => {
       toast.error(error.message || "خطأ في تسجيل الدخول");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetEmail) {
+      toast.error("الرجاء إدخال البريد الإلكتروني");
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/login/teacher`,
+      });
+
+      if (error) throw error;
+
+      toast.success("تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني");
+      setIsResetDialogOpen(false);
+      setResetEmail("");
+    } catch (error: any) {
+      toast.error(error.message || "حدث خطأ في إرسال رابط إعادة التعيين");
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -105,6 +133,43 @@ const LoginTeacher = () => {
                   className="font-tajawal"
                   required
                 />
+              </div>
+
+              <div className="flex justify-end">
+                <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto">
+                      نسيت كلمة المرور؟
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>إعادة تعيين كلمة المرور</DialogTitle>
+                      <DialogDescription>
+                        أدخل بريدك الإلكتروني وسنرسل لك رابط لإعادة تعيين كلمة المرور
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reset-email">البريد الإلكتروني</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          placeholder="example@email.com"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleResetPassword} 
+                        disabled={isResetting}
+                        className="w-full"
+                      >
+                        {isResetting ? "جاري الإرسال..." : "إرسال رابط إعادة التعيين"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
             
