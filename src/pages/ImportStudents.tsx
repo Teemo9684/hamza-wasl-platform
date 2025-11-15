@@ -10,8 +10,7 @@ import * as XLSX from "xlsx";
 interface StudentRow {
   full_name: string;
   national_school_id: string;
-  grade_level: string;
-  class_section?: string;
+  class_section: string;
   date_of_birth?: string;
 }
 
@@ -67,7 +66,7 @@ const ImportStudents = () => {
       for (const row of jsonData) {
         try {
           // التحقق من البيانات المطلوبة
-          if (!row.full_name || !row.national_school_id || !row.grade_level) {
+          if (!row.full_name || !row.national_school_id || !row.class_section) {
             errors.push(`صف مفقود البيانات: ${JSON.stringify(row)}`);
             failedCount++;
             continue;
@@ -79,8 +78,8 @@ const ImportStudents = () => {
             .insert({
               full_name: row.full_name,
               national_school_id: row.national_school_id,
-              grade_level: row.grade_level,
-              class_section: row.class_section || null,
+              grade_level: "ابتدائي", // قيمة افتراضية للمدرسة الابتدائية
+              class_section: row.class_section,
               date_of_birth: row.date_of_birth || null,
             });
 
@@ -135,15 +134,13 @@ const ImportStudents = () => {
       {
         full_name: "أحمد محمد",
         national_school_id: "2024001",
-        grade_level: "الأولى",
-        class_section: "أ",
+        class_section: "السنة الأولى - أ",
         date_of_birth: "2010-01-15",
       },
       {
         full_name: "فاطمة علي",
         national_school_id: "2024002",
-        grade_level: "الثانية",
-        class_section: "ب",
+        class_section: "السنة الثانية - ب",
         date_of_birth: "2009-05-20",
       },
     ];
@@ -200,8 +197,7 @@ const ImportStudents = () => {
                   <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground mr-4">
                     <li><strong>full_name</strong>: الاسم الكامل للتلميذ (مطلوب)</li>
                     <li><strong>national_school_id</strong>: الرقم الوطني المدرسي (مطلوب)</li>
-                    <li><strong>grade_level</strong>: المستوى الدراسي (مطلوب)</li>
-                    <li><strong>class_section</strong>: القسم (اختياري)</li>
+                    <li><strong>class_section</strong>: القسم (مثال: السنة الأولى - أ) (مطلوب)</li>
                     <li><strong>date_of_birth</strong>: تاريخ الميلاد بصيغة YYYY-MM-DD (اختياري)</li>
                   </ul>
                 </div>
