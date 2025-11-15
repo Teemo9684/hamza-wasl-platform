@@ -14,6 +14,7 @@ import LoginAdmin from "./pages/LoginAdmin";
 import DashboardParent from "./pages/DashboardParent";
 import DashboardTeacher from "./pages/DashboardTeacher";
 import DashboardAdmin from "./pages/DashboardAdmin";
+import ImportStudents from "./pages/ImportStudents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,14 @@ const App = () => (
             element={
               <ProtectedRoute requiredRole="admin">
                 <DashboardAdmin />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/import/students" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ImportStudents />
               </ProtectedRoute>
             } 
           />
