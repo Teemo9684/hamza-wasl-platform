@@ -46,13 +46,32 @@ const Index = () => {
         <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
           {/* Repeat items 3 times for seamless scrolling */}
           {[...Array(3)].map((_, repeatIndex) => (
-            newsItems.map((item) => (
-              <span key={`${repeatIndex}-${item.id}`} className="text-white font-tajawal flex items-center gap-2">
-                <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
-                  {item.icon_type}
+            newsItems.map((item, itemIndex) => (
+              <div key={`${repeatIndex}-${item.id}`} className="flex items-center gap-8">
+                <span className="text-white font-tajawal flex items-center gap-2">
+                  <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
+                    {item.icon_type}
+                  </span>
+                  {item.content}
                 </span>
-                {item.content}
-              </span>
+                
+                {/* Logo separator */}
+                <div className="relative h-10 w-16 flex-shrink-0">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
+                    <span className="text-base font-bold text-white/80 font-ruqaa leading-[0.8]">
+                      <div>همزة</div>
+                      <div>وصل</div>
+                    </span>
+                  </div>
+                  
+                  <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
+                    <span className="text-base font-bold text-white/80 font-ruqaa leading-[0.8]">
+                      <div>العربي</div>
+                      <div>التبسي</div>
+                    </span>
+                  </div>
+                </div>
+              </div>
             ))
           ))}
         </div>
