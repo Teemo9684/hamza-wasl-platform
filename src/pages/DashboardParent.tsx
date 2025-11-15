@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ParentSidebar } from "@/components/parent/ParentSidebar";
 import { ParentOverview } from "@/components/parent/ParentOverview";
-import { ParentGrades } from "@/components/parent/ParentGrades";
 import { ParentAttendance } from "@/components/parent/ParentAttendance";
 import { ParentMessages } from "@/components/parent/ParentMessages";
 
@@ -17,7 +16,6 @@ const DashboardParent = () => {
   const [children, setChildren] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [selectedChild, setSelectedChild] = useState<string>("");
-  const [grades, setGrades] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [parentName, setParentName] = useState<string>("");
@@ -101,15 +99,6 @@ const DashboardParent = () => {
 
   const fetchChildDetails = async (childId: string) => {
     try {
-      const { data: gradesData, error: gradesError } = await supabase
-        .from('grades')
-        .select('*')
-        .eq('student_id', childId)
-        .order('date', { ascending: false });
-
-      if (gradesError) throw gradesError;
-      setGrades(gradesData || []);
-
       const { data: attendanceData, error: attendanceError } = await supabase
         .from('attendance')
         .select('*')
@@ -130,18 +119,6 @@ const DashboardParent = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
-  };
-
-  const calculateAverage = (childId: string) => {
-    const childGrades = grades.filter(g => g.student_id === childId);
-    if (childGrades.length === 0) return 0;
-
-    const total = childGrades.reduce((sum, grade) => {
-      const percentage = (grade.grade_value / grade.max_grade) * 100;
-      return sum + percentage;
-    }, 0);
-
-    return total / childGrades.length;
   };
 
   const calculateAttendanceRate = (childId: string) => {
@@ -199,15 +176,9 @@ const DashboardParent = () => {
                 <ParentOverview
                   children={children}
                   selectedChild={selectedChild}
-                  grades={grades}
                   attendance={attendance}
-                  calculateAverage={calculateAverage}
                   calculateAttendanceRate={calculateAttendanceRate}
                 />
-              </section>
-
-              <section id="grades">
-                <ParentGrades grades={grades} selectedChild={selectedChild} />
               </section>
 
               <section id="attendance">

@@ -1,21 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, Award } from "lucide-react";
+import { Users, Calendar } from "lucide-react";
 
 interface ParentOverviewProps {
   children: any[];
   selectedChild: string;
-  grades: any[];
   attendance: any[];
-  calculateAverage: (childId: string) => number;
   calculateAttendanceRate: (childId: string) => number;
 }
 
 export const ParentOverview = ({
   children,
   selectedChild,
-  grades,
   attendance,
-  calculateAverage,
   calculateAttendanceRate,
 }: ParentOverviewProps) => {
   const selectedChildData = children.find(c => c.id === selectedChild);
@@ -27,7 +23,7 @@ export const ParentOverview = ({
         <p className="text-muted-foreground">متابعة الأداء الأكاديمي لأبنائك</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">عدد الأبناء</CardTitle>
@@ -46,18 +42,6 @@ export const ParentOverview = ({
           <CardContent>
             <div className="text-2xl font-bold">
               {selectedChild ? `${calculateAttendanceRate(selectedChild)}%` : "-"}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">المعدل العام</CardTitle>
-            <Award className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {selectedChild ? calculateAverage(selectedChild).toFixed(2) : "-"}
             </div>
           </CardContent>
         </Card>
