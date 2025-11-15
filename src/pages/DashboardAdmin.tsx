@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone } from "lucide-react";
+import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare } from "lucide-react";
 import { NewsTickerManager } from "@/components/NewsTickerManager";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { StudentManagement } from "@/components/admin/StudentManagement";
 import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
 import { ReportsView } from "@/components/admin/ReportsView";
 import { SettingsManager } from "@/components/admin/SettingsManager";
+import { MessagesView } from "@/components/admin/MessagesView";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -99,6 +100,7 @@ const DashboardAdmin = () => {
               {activeSection === "announcements" && <AnnouncementsManager />}
               {activeSection === "reports" && <ReportsView />}
               {activeSection === "settings" && <SettingsManager />}
+              {activeSection === "messages" && <MessagesView />}
             </div>
           ) : (
             <>
@@ -256,6 +258,23 @@ const DashboardAdmin = () => {
                   </p>
                   <Button variant="outline" className="w-full font-tajawal">
                     إعدادات
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("messages")}>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
+                    <MessageSquare className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 font-cairo">الرسائل والاستفسارات</h3>
+                  <p className="text-sm text-muted-foreground font-tajawal mb-4">
+                    عرض جميع الرسائل بين الأولياء والأساتذة
+                  </p>
+                  <Button className="w-full bg-gradient-primary text-white font-tajawal">
+                    عرض
                   </Button>
                 </div>
               </CardContent>
