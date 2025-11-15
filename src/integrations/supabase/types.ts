@@ -336,6 +336,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_parent_of_student: {
+        Args: { _parent_id: string; _student_id: string }
+        Returns: boolean
+      }
+      is_teacher_of_student: {
+        Args: { _student_id: string; _teacher_id: string }
+        Returns: boolean
+      }
       link_parent_to_student: {
         Args: { _national_school_id: string; _parent_id: string }
         Returns: string
