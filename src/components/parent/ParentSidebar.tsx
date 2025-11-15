@@ -31,7 +31,7 @@ export const ParentSidebar = ({ children, selectedChild, onChildChange }: Parent
 
   return (
     <Sidebar className={isCollapsed ? "w-14" : "w-60"} style={{ "--sidebar-background": "hsl(var(--background))" } as React.CSSProperties}>
-      <SidebarContent className="bg-background/95 backdrop-blur-xl border-r">
+      <SidebarContent className="bg-background border-r shadow-lg">
         <SidebarGroup>
           <SidebarGroupLabel className="text-lg font-bold px-4 py-6">
             لوحة الولي
