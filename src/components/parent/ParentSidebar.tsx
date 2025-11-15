@@ -21,7 +21,6 @@ interface ParentSidebarProps {
 
 const menuItems = [
   { title: "نظرة عامة", icon: Home, section: "overview" },
-  { title: "التقييمات", icon: BookOpen, section: "grades" },
   { title: "الحضور", icon: Calendar, section: "attendance" },
   { title: "المراسلة", icon: MessageSquare, section: "messages" },
 ];
