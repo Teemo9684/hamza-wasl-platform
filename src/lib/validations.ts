@@ -108,6 +108,21 @@ export const teacherRegistrationSchema = z.object({
     .max(100, "كلمة المرور يجب أن تكون أقل من 100 حرف"),
 });
 
+// Message validation schema
+export const messageSchema = z.object({
+  subject: z.string()
+    .min(1, "الموضوع مطلوب")
+    .max(200, "الموضوع يجب أن يكون أقل من 200 حرف"),
+  content: z.string()
+    .min(1, "المحتوى مطلوب")
+    .max(5000, "المحتوى يجب أن يكون أقل من 5000 حرف"),
+});
+
+// Attendance notes validation
+export const attendanceNotesSchema = z.string()
+  .max(1000, "الملاحظات يجب أن تكون أقل من 1000 حرف")
+  .optional();
+
 export type StudentFormData = z.infer<typeof studentSchema>;
 export type NewsTickerFormData = z.infer<typeof newsTickerSchema>;
 export type AdminLoginFormData = z.infer<typeof adminLoginSchema>;
@@ -115,3 +130,4 @@ export type TeacherLoginFormData = z.infer<typeof teacherLoginSchema>;
 export type ParentLoginFormData = z.infer<typeof parentLoginSchema>;
 export type ParentRegistrationFormData = z.infer<typeof parentRegistrationSchema>;
 export type TeacherRegistrationFormData = z.infer<typeof teacherRegistrationSchema>;
+export type MessageFormData = z.infer<typeof messageSchema>;

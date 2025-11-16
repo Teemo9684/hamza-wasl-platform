@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Send, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { messageSchema } from "@/lib/validations";
 
 interface ParentMessagesProps {
   teachers: any[];
@@ -36,10 +37,10 @@ export const ParentMessages = ({
   const [isSending, setIsSending] = useState(false);
 
   const handleSendMessage = async () => {
-    if (!newMessage.recipient_id || !newMessage.subject || !newMessage.content) {
+    if (!newMessage.recipient_id) {
       toast({
         title: "تنبيه",
-        description: "يرجى ملء جميع الحقول",
+        description: "يرجى اختيار المعلم",
         variant: "destructive",
       });
       return;
@@ -47,6 +48,11 @@ export const ParentMessages = ({
 
     setIsSending(true);
     try {
+      // Validate message content
+      messageSchema.parse({
+        subject: newMessage.subject,
+        content: newMessage.content,
+      });
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("المستخدم غير مسجل الدخول");
 
@@ -70,7 +76,7 @@ export const ParentMessages = ({
     } catch (error: any) {
       toast({
         title: "خطأ",
-        description: error.message,
+        description: error.errors?.[0]?.message || error.message,
         variant: "destructive",
       });
     } finally {
