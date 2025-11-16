@@ -92,7 +92,7 @@ const LoginAdmin = () => {
               <Shield className="w-10 h-10 text-white" />
             </div>
             <CardTitle className="text-3xl font-cairo">تسجيل دخول المدير</CardTitle>
-            <CardDescription className="font-tajawal">
+            <CardDescription className="font-cairo">
               أدخل الرقم السري للوصول إلى لوحة التحكم الإدارية
             </CardDescription>
           </CardHeader>
@@ -100,14 +100,14 @@ const LoginAdmin = () => {
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="pin" className="font-tajawal text-lg">الرقم السري</Label>
+                <Label htmlFor="pin" className="font-cairo text-lg">الرقم السري</Label>
                 <Input
                   id="pin"
                   type="password"
                   placeholder="أدخل الرقم السري"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  className="font-tajawal text-lg h-12"
+                  className="font-cairo text-lg h-12"
                   required
                   autoFocus
                 />
@@ -117,7 +117,7 @@ const LoginAdmin = () => {
             <CardFooter className="flex flex-col space-y-4">
               <Button
                 type="submit"
-                className="w-full bg-accent text-white font-tajawal"
+                className="w-full bg-accent text-white font-cairo"
                 size="lg"
                 disabled={isLoading}
               >

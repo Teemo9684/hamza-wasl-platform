@@ -196,7 +196,7 @@ export const StudentManagement = () => {
         <h2 className="text-3xl font-bold font-cairo">إدارة التلاميذ</h2>
         <Button
           onClick={() => setIsAddingStudent(true)}
-          className="font-tajawal"
+          className="font-cairo"
         >
           <Plus className="ml-2 h-4 w-4" />
           إضافة تلميذ جديد
@@ -222,7 +222,7 @@ export const StudentManagement = () => {
                     id="full_name"
                     value={formData.full_name}
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    className="font-tajawal"
+                    className="font-cairo"
                     required
                   />
                 </div>
@@ -235,7 +235,7 @@ export const StudentManagement = () => {
                     id="national_school_id"
                     value={formData.national_school_id}
                     onChange={(e) => setFormData({ ...formData, national_school_id: e.target.value })}
-                    className="font-tajawal"
+                    className="font-cairo"
                     required
                   />
                 </div>
@@ -248,12 +248,12 @@ export const StudentManagement = () => {
                     value={formData.grade_level}
                     onValueChange={(value) => setFormData({ ...formData, grade_level: value })}
                   >
-                    <SelectTrigger className="font-tajawal">
+                    <SelectTrigger className="font-cairo">
                       <SelectValue placeholder="اختر المستوى" />
                     </SelectTrigger>
                     <SelectContent>
                       {gradeLevels.map((level) => (
-                        <SelectItem key={level} value={level} className="font-tajawal">
+                        <SelectItem key={level} value={level} className="font-cairo">
                           {level}
                         </SelectItem>
                       ))}
@@ -269,12 +269,12 @@ export const StudentManagement = () => {
                     value={formData.class_section}
                     onValueChange={(value) => setFormData({ ...formData, class_section: value })}
                   >
-                    <SelectTrigger className="font-tajawal">
+                    <SelectTrigger className="font-cairo">
                       <SelectValue placeholder="اختر القسم" />
                     </SelectTrigger>
                     <SelectContent>
                       {classSections.map((section) => (
-                        <SelectItem key={section} value={section} className="font-tajawal">
+                        <SelectItem key={section} value={section} className="font-cairo">
                           {section}
                         </SelectItem>
                       ))}
@@ -291,17 +291,17 @@ export const StudentManagement = () => {
                     type="date"
                     value={formData.date_of_birth}
                     onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                    className="font-tajawal"
+                    className="font-cairo"
                   />
                 </div>
               </div>
 
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="ghost" onClick={resetForm} className="font-tajawal">
+                <Button type="button" variant="ghost" onClick={resetForm} className="font-cairo">
                   <X className="ml-2 h-4 w-4" />
                   إلغاء
                 </Button>
-                <Button type="submit" className="font-tajawal">
+                <Button type="submit" className="font-cairo">
                   <Save className="ml-2 h-4 w-4" />
                   حفظ
                 </Button>
@@ -318,7 +318,7 @@ export const StudentManagement = () => {
           placeholder="البحث عن تلميذ..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pr-10 font-tajawal"
+          className="pr-10 font-cairo"
         />
       </div>
 
@@ -329,11 +329,11 @@ export const StudentManagement = () => {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground font-tajawal">
+            <div className="text-center py-8 text-muted-foreground font-cairo">
               جاري التحميل...
             </div>
           ) : filteredStudents.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground font-tajawal">
+            <div className="text-center py-8 text-muted-foreground font-cairo">
               لا توجد بيانات
             </div>
           ) : (
@@ -350,16 +350,16 @@ export const StudentManagement = () => {
               <TableBody>
                 {filteredStudents.map((student) => (
                   <TableRow key={student.id}>
-                    <TableCell className="font-tajawal font-medium">
+                    <TableCell className="font-cairo font-medium">
                       {student.full_name}
                     </TableCell>
-                    <TableCell className="font-tajawal">
+                    <TableCell className="font-cairo">
                       {student.national_school_id}
                     </TableCell>
-                    <TableCell className="font-tajawal">
+                    <TableCell className="font-cairo">
                       {student.grade_level}
                     </TableCell>
-                    <TableCell className="font-tajawal">
+                    <TableCell className="font-cairo">
                       {student.class_section || "-"}
                     </TableCell>
                     <TableCell>
@@ -368,7 +368,7 @@ export const StudentManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEdit(student)}
-                          className="font-tajawal"
+                          className="font-cairo"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -377,7 +377,7 @@ export const StudentManagement = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-destructive font-tajawal"
+                              className="text-destructive font-cairo"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -387,7 +387,7 @@ export const StudentManagement = () => {
                               <DialogTitle className="font-cairo">
                                 تأكيد الحذف
                               </DialogTitle>
-                              <DialogDescription className="font-tajawal">
+                              <DialogDescription className="font-cairo">
                                 هل أنت متأكد من حذف هذا التلميذ؟ لا يمكن التراجع عن هذا الإجراء.
                               </DialogDescription>
                             </DialogHeader>
@@ -395,7 +395,7 @@ export const StudentManagement = () => {
                               <Button
                                 variant="destructive"
                                 onClick={() => handleDelete(student.id)}
-                                className="font-tajawal"
+                                className="font-cairo"
                               >
                                 حذف
                               </Button>

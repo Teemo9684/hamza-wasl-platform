@@ -126,7 +126,7 @@ export const UserManagement = () => {
         <Button
           variant={activeTab === "teachers" ? "default" : "outline"}
           onClick={() => setActiveTab("teachers")}
-          className="font-tajawal"
+          className="font-cairo"
         >
           <UserCheck className="ml-2 h-4 w-4" />
           المعلمين
@@ -134,7 +134,7 @@ export const UserManagement = () => {
         <Button
           variant={activeTab === "parents" ? "default" : "outline"}
           onClick={() => setActiveTab("parents")}
-          className="font-tajawal"
+          className="font-cairo"
         >
           <Users className="ml-2 h-4 w-4" />
           أولياء الأمور
@@ -148,7 +148,7 @@ export const UserManagement = () => {
           placeholder="البحث عن مستخدم..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pr-10 font-tajawal"
+          className="pr-10 font-cairo"
         />
       </div>
 
@@ -161,11 +161,11 @@ export const UserManagement = () => {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground font-tajawal">
+            <div className="text-center py-8 text-muted-foreground font-cairo">
               جاري التحميل...
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground font-tajawal">
+            <div className="text-center py-8 text-muted-foreground font-cairo">
               لا توجد بيانات
             </div>
           ) : (
@@ -192,7 +192,7 @@ export const UserManagement = () => {
                       {new Date(user.created_at).toLocaleDateString("ar-EG")}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="font-tajawal">
+                      <Badge variant="secondary" className="font-cairo">
                         <CheckCircle className="ml-1 h-3 w-3" />
                         نشط
                       </Badge>
@@ -203,7 +203,7 @@ export const UserManagement = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-destructive font-tajawal"
+                            className="text-destructive font-cairo"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -213,7 +213,7 @@ export const UserManagement = () => {
                             <DialogTitle className="font-cairo">
                               تأكيد الحذف
                             </DialogTitle>
-                            <DialogDescription className="font-tajawal">
+                            <DialogDescription className="font-cairo">
                               هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.
                             </DialogDescription>
                           </DialogHeader>
@@ -221,7 +221,7 @@ export const UserManagement = () => {
                             <Button
                               variant="destructive"
                               onClick={() => handleDeleteUser(user.id)}
-                              className="font-tajawal"
+                              className="font-cairo"
                             >
                               حذف
                             </Button>

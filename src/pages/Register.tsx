@@ -17,7 +17,7 @@ const Register = () => {
           <Button
             onClick={() => navigate("/")}
             variant="ghost"
-            className="mb-8 text-white hover:bg-white/10 font-tajawal"
+            className="mb-8 text-white hover:bg-white/10 font-cairo"
           >
             <ArrowRight className="ml-2 h-4 w-4" />
             العودة للصفحة الرئيسية
@@ -28,7 +28,7 @@ const Register = () => {
             <h1 className="text-5xl font-bold text-white mb-4 font-cairo">
               تسجيل حساب جديد
             </h1>
-            <p className="text-xl text-white/90 font-tajawal">
+            <p className="text-xl text-white/90 font-cairo">
               اختر نوع الحساب الذي تريد إنشاءه
             </p>
           </div>
@@ -42,10 +42,10 @@ const Register = () => {
                   <UserCheck className="w-16 h-16 text-white" />
                 </div>
                 <h3 className="text-3xl font-bold mb-4 font-cairo">المعلمين</h3>
-                <p className="text-muted-foreground text-center mb-8 font-tajawal text-lg">
+                <p className="text-muted-foreground text-center mb-8 font-cairo text-lg">
                   إنشاء حساب جديد للمعلمين
                 </p>
-                <ul className="text-right mb-8 space-y-2 w-full font-tajawal text-sm">
+                <ul className="text-right mb-8 space-y-2 w-full font-cairo text-sm">
                   <li className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-gradient-secondary rounded-full"></div>
                     إدارة الحضور والغياب
@@ -63,7 +63,7 @@ const Register = () => {
                 onClick={() => navigate("/register/teacher")}
                 size="lg"
                 type="button"
-                className="w-full bg-gradient-secondary hover:opacity-90 text-white font-tajawal text-lg"
+                className="w-full bg-gradient-secondary hover:opacity-90 text-white font-cairo text-lg"
               >
                 إنشاء حساب معلم
               </Button>
@@ -77,10 +77,10 @@ const Register = () => {
                   <Users className="w-16 h-16 text-white" />
                 </div>
                 <h3 className="text-3xl font-bold mb-4 font-cairo">أولياء الأمور</h3>
-                <p className="text-muted-foreground text-center mb-8 font-tajawal text-lg">
+                <p className="text-muted-foreground text-center mb-8 font-cairo text-lg">
                   إنشاء حساب جديد لأولياء الأمور
                 </p>
-                <ul className="text-right mb-8 space-y-2 w-full font-tajawal text-sm">
+                <ul className="text-right mb-8 space-y-2 w-full font-cairo text-sm">
                   <li className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-gradient-primary rounded-full"></div>
                     متابعة درجات الأبناء
@@ -98,7 +98,7 @@ const Register = () => {
                 onClick={() => navigate("/register/parent")}
                 size="lg"
                 type="button"
-                className="w-full bg-gradient-primary hover:opacity-90 text-white font-tajawal text-lg"
+                className="w-full bg-gradient-primary hover:opacity-90 text-white font-cairo text-lg"
               >
                 إنشاء حساب ولي أمر
               </Button>
