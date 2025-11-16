@@ -99,7 +99,7 @@ const RegisterTeacher = () => {
           <Button
             onClick={() => navigate("/register")}
             variant="ghost"
-            className="mb-8 text-white hover:bg-white/10 font-tajawal"
+            className="mb-8 text-white hover:bg-white/10 font-cairo"
           >
             <ArrowRight className="ml-2 h-4 w-4" />
             العودة
@@ -114,14 +114,14 @@ const RegisterTeacher = () => {
               <h1 className="text-3xl font-bold text-center mb-2 font-cairo">
                 تسجيل حساب معلم
               </h1>
-              <p className="text-muted-foreground text-center font-tajawal text-sm">
+              <p className="text-muted-foreground text-center font-cairo text-sm">
                 أدخل بياناتك لإنشاء حساب جديد
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="font-tajawal">
+                <Label htmlFor="fullName" className="font-cairo">
                   الاسم الكامل
                 </Label>
                 <div className="relative">
@@ -132,14 +132,14 @@ const RegisterTeacher = () => {
                     placeholder="أدخل الاسم الكامل"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="pr-10 font-tajawal"
+                    className="pr-10 font-cairo"
                     dir="rtl"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="font-tajawal">
+                <Label htmlFor="email" className="font-cairo">
                   البريد الإلكتروني
                 </Label>
                 <div className="relative">
@@ -150,14 +150,14 @@ const RegisterTeacher = () => {
                     placeholder="example@school.dz"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pr-10 font-tajawal"
+                    className="pr-10 font-cairo"
                     dir="ltr"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="subject" className="font-tajawal">
+                <Label htmlFor="subject" className="font-cairo">
                   المادة
                 </Label>
                 <div className="relative">
@@ -166,7 +166,7 @@ const RegisterTeacher = () => {
                     value={formData.subject} 
                     onValueChange={(value) => setFormData({ ...formData, subject: value, gradeLevel: "" })}
                   >
-                    <SelectTrigger className="pr-10 font-tajawal" dir="rtl">
+                    <SelectTrigger className="pr-10 font-cairo" dir="rtl">
                       <SelectValue placeholder="اختر المادة" />
                     </SelectTrigger>
                     <SelectContent>
@@ -180,17 +180,17 @@ const RegisterTeacher = () => {
 
               {!isForeignLanguage && (
                 <div className="space-y-2">
-                  <Label htmlFor="gradeLevel" className="font-tajawal">
+                  <Label htmlFor="gradeLevel" className="font-cairo">
                     القسم
                   </Label>
                   <div className="relative">
                     <GraduationCap className="absolute right-3 top-3 h-5 w-5 text-muted-foreground z-10 pointer-events-none" />
-                    <Select 
-                      value={formData.gradeLevel} 
+                    <Select
+                      value={formData.gradeLevel}
                       onValueChange={(value) => setFormData({ ...formData, gradeLevel: value })}
                       disabled={!formData.subject}
                     >
-                      <SelectTrigger className="pr-10 font-tajawal" dir="rtl">
+                      <SelectTrigger className="pr-10 font-cairo" dir="rtl">
                         <SelectValue placeholder="اختر القسم" />
                       </SelectTrigger>
                       <SelectContent>
@@ -203,7 +203,7 @@ const RegisterTeacher = () => {
                     </Select>
                   </div>
                   {!formData.subject && (
-                    <p className="text-xs text-muted-foreground font-tajawal">
+                    <p className="text-xs text-muted-foreground font-cairo">
                       الرجاء اختيار المادة أولاً
                     </p>
                   )}
@@ -213,7 +213,7 @@ const RegisterTeacher = () => {
               {isForeignLanguage && (
                 <div className="space-y-2">
                   <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                    <p className="text-sm font-tajawal text-foreground">
+                    <p className="text-sm font-cairo text-foreground">
                       سيتم تسجيلك تلقائياً لتدريس المستويات الثلاثة: السنة الثالثة، السنة الرابعة، والسنة الخامسة
                     </p>
                   </div>
@@ -257,12 +257,12 @@ const RegisterTeacher = () => {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-gradient-secondary hover:opacity-90 text-white font-tajawal text-lg"
+                className="w-full bg-gradient-secondary hover:opacity-90 text-white font-cairo text-lg"
               >
                 إنشاء الحساب
               </Button>
 
-              <p className="text-center text-sm text-muted-foreground font-tajawal">
+              <p className="text-center text-sm text-muted-foreground font-cairo">
                 لديك حساب بالفعل؟{" "}
                 <button
                   type="button"

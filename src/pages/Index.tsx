@@ -131,7 +131,7 @@ const Index = () => {
               {/* Text */}
               <div>
                 <h2 className="text-3xl font-bold text-white mb-2 font-cairo">أولياء الأمور</h2>
-                <p className="text-white/80 font-tajawal">تابع مستوى أبنائك الدراسي</p>
+                <p className="text-white/80 font-cairo">تابع مستوى أبنائك الدراسي</p>
               </div>
 
               {/* Arrow Icon */}

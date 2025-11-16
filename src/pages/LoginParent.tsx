@@ -102,7 +102,7 @@ const LoginParent = () => {
               <Users className="w-10 h-10 text-white" />
             </div>
             <CardTitle className="text-3xl font-cairo">تسجيل دخول ولي الأمر</CardTitle>
-            <CardDescription className="font-tajawal">
+            <CardDescription className="font-cairo">
               أدخل بياناتك للوصول إلى حساب ولي الأمر
             </CardDescription>
           </CardHeader>
@@ -110,27 +110,27 @@ const LoginParent = () => {
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="font-tajawal">البريد الإلكتروني</Label>
+                <Label htmlFor="email" className="font-cairo">البريد الإلكتروني</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="example@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="font-tajawal"
+                  className="font-cairo"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="font-tajawal">كلمة المرور</Label>
+                <Label htmlFor="password" className="font-cairo">كلمة المرور</Label>
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="font-tajawal"
+                  className="font-cairo"
                   required
                 />
               </div>
@@ -176,7 +176,7 @@ const LoginParent = () => {
             <CardFooter className="flex flex-col space-y-4">
               <Button
                 type="submit"
-                className="w-full bg-gradient-primary text-white font-tajawal"
+                className="w-full bg-gradient-primary text-white font-cairo"
                 size="lg"
                 disabled={isLoading}
               >
@@ -188,7 +188,7 @@ const LoginParent = () => {
                 type="button"
                 variant="ghost"
                 onClick={() => navigate("/register/parent")}
-                className="w-full font-tajawal"
+                className="w-full font-cairo"
               >
                 ليس لديك حساب؟ سجل الآن
               </Button>

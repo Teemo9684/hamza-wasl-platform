@@ -90,7 +90,7 @@ const DashboardAdmin = () => {
               <Button 
                 onClick={() => setActiveSection(null)} 
                 variant="ghost" 
-                className="mb-4 font-tajawal"
+                className="mb-4 font-cairo"
               >
                 ← العودة إلى لوحة التحكم
               </Button>
@@ -115,7 +115,7 @@ const DashboardAdmin = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{stats.parents}</p>
-                <p className="text-sm text-muted-foreground font-tajawal">مسجل</p>
+                <p className="text-sm text-muted-foreground font-cairo">مسجل</p>
               </CardContent>
             </Card>
 
@@ -128,7 +128,7 @@ const DashboardAdmin = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{stats.teachers}</p>
-                <p className="text-sm text-muted-foreground font-tajawal">معلم نشط</p>
+                <p className="text-sm text-muted-foreground font-cairo">معلم نشط</p>
               </CardContent>
             </Card>
 
@@ -141,7 +141,7 @@ const DashboardAdmin = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{stats.students}</p>
-                <p className="text-sm text-muted-foreground font-tajawal">تلميذ</p>
+                <p className="text-sm text-muted-foreground font-cairo">تلميذ</p>
               </CardContent>
             </Card>
 
@@ -154,7 +154,7 @@ const DashboardAdmin = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{stats.pendingRequests}</p>
-                <p className="text-sm text-muted-foreground font-tajawal">بانتظار الموافقة</p>
+                <p className="text-sm text-muted-foreground font-cairo">بانتظار الموافقة</p>
               </CardContent>
             </Card>
           </div>
@@ -168,10 +168,10 @@ const DashboardAdmin = () => {
                     <Megaphone className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold mb-2 font-cairo">الشريط الإخباري</h3>
-                  <p className="text-sm text-muted-foreground font-tajawal mb-4">
+                  <p className="text-sm text-muted-foreground font-cairo mb-4">
                     إدارة الأخبار والتنبيهات المدرسية
                   </p>
-                  <Button className="w-full bg-gradient-primary text-white font-tajawal">
+                  <Button className="w-full bg-gradient-primary text-white font-cairo">
                     إدارة
                   </Button>
                 </div>
@@ -185,10 +185,10 @@ const DashboardAdmin = () => {
                     <Users className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold mb-2 font-cairo">إدارة المستخدمين</h3>
-                  <p className="text-sm text-muted-foreground font-tajawal mb-4">
+                  <p className="text-sm text-muted-foreground font-cairo mb-4">
                     إدارة حسابات المعلمين وأولياء الأمور
                   </p>
-                  <Button className="w-full bg-gradient-primary text-white font-tajawal">
+                  <Button className="w-full bg-gradient-primary text-white font-cairo">
                     إدارة
                   </Button>
                 </div>
@@ -205,7 +205,7 @@ const DashboardAdmin = () => {
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
                     إضافة وتعديل وحذف بيانات التلاميذ
                   </p>
-                  <Button className="w-full bg-gradient-secondary text-white font-tajawal">
+                  <Button className="w-full bg-gradient-secondary text-white font-cairo">
                     إدارة
                   </Button>
                 </div>
@@ -222,7 +222,7 @@ const DashboardAdmin = () => {
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
                     إضافة قوائم التلاميذ من ملف Excel
                   </p>
-                  <Button className="w-full bg-gradient-accent text-white font-tajawal">
+                  <Button className="w-full bg-gradient-accent text-white font-cairo">
                     استيراد
                   </Button>
                 </div>
@@ -239,7 +239,7 @@ const DashboardAdmin = () => {
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
                     نشر إعلانات للمعلمين وأولياء الأمور
                   </p>
-                  <Button className="w-full bg-accent text-white font-tajawal">
+                  <Button className="w-full bg-accent text-white font-cairo">
                     إدارة
                   </Button>
                 </div>
@@ -256,7 +256,7 @@ const DashboardAdmin = () => {
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
                     عرض تقارير الأداء والإحصائيات الشاملة
                   </p>
-                  <Button variant="outline" className="w-full font-tajawal">
+                  <Button variant="outline" className="w-full font-cairo">
                     عرض
                   </Button>
                 </div>
@@ -290,7 +290,7 @@ const DashboardAdmin = () => {
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
                     عرض جميع الرسائل بين الأولياء والأساتذة
                   </p>
-                  <Button className="w-full bg-gradient-primary text-white font-tajawal">
+                  <Button className="w-full bg-gradient-primary text-white font-cairo">
                     عرض
                   </Button>
                 </div>

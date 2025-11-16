@@ -359,7 +359,7 @@ export const NewsTickerManager = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button type="submit" className="font-tajawal">
+                <Button type="submit" className="font-cairo">
                   <Save className="ml-2 h-4 w-4" />
                   {editingId ? "حفظ التعديلات" : "إضافة"}
                 </Button>
@@ -367,7 +367,7 @@ export const NewsTickerManager = () => {
                   type="button"
                   variant="outline"
                   onClick={resetForm}
-                  className="font-tajawal"
+                  className="font-cairo"
                 >
                   إلغاء
                 </Button>

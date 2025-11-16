@@ -34,7 +34,7 @@ export const SettingsManager = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold font-cairo">الإعدادات</h2>
-        <Button onClick={handleSave} className="font-tajawal">
+        <Button onClick={handleSave} className="font-cairo">
           <Save className="ml-2 h-4 w-4" />
           حفظ التغييرات
         </Button>
@@ -47,7 +47,7 @@ export const SettingsManager = () => {
             <Settings className="w-5 h-5 text-primary" />
             معلومات المدرسة
           </CardTitle>
-          <CardDescription className="font-tajawal">
+          <CardDescription className="font-cairo">
             قم بتحديث المعلومات الأساسية للمدرسة
           </CardDescription>
         </CardHeader>
@@ -61,7 +61,7 @@ export const SettingsManager = () => {
                 id="schoolName"
                 value={settings.schoolName}
                 onChange={(e) => setSettings({ ...settings, schoolName: e.target.value })}
-                className="font-tajawal"
+                className="font-cairo"
               />
             </div>
 
@@ -73,7 +73,7 @@ export const SettingsManager = () => {
                 id="schoolPhone"
                 value={settings.schoolPhone}
                 onChange={(e) => setSettings({ ...settings, schoolPhone: e.target.value })}
-                className="font-tajawal"
+                  className="font-cairo"
               />
             </div>
 
@@ -86,7 +86,7 @@ export const SettingsManager = () => {
                 type="email"
                 value={settings.schoolEmail}
                 onChange={(e) => setSettings({ ...settings, schoolEmail: e.target.value })}
-                className="font-tajawal"
+                className="font-cairo"
               />
             </div>
 
@@ -98,7 +98,7 @@ export const SettingsManager = () => {
                 id="schoolAddress"
                 value={settings.schoolAddress}
                 onChange={(e) => setSettings({ ...settings, schoolAddress: e.target.value })}
-                className="font-tajawal"
+                className="font-cairo"
               />
             </div>
           </div>
@@ -112,7 +112,7 @@ export const SettingsManager = () => {
             <Shield className="w-5 h-5 text-secondary" />
             إعدادات النظام
           </CardTitle>
-          <CardDescription className="font-tajawal">
+          <CardDescription className="font-cairo">
             تحكم في إعدادات الوصول والأمان
           </CardDescription>
         </CardHeader>
@@ -120,7 +120,7 @@ export const SettingsManager = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label className="font-cairo">تفعيل الإشعارات</Label>
-              <p className="text-sm text-muted-foreground font-tajawal">
+              <p className="text-sm text-muted-foreground font-cairo">
                 إرسال إشعارات للمستخدمين عند وجود تحديثات
               </p>
             </div>
@@ -137,7 +137,7 @@ export const SettingsManager = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label className="font-cairo">السماح لأولياء الأمور بالدخول</Label>
-              <p className="text-sm text-muted-foreground font-tajawal">
+              <p className="text-sm text-muted-foreground font-cairo">
                 تمكين أولياء الأمور من الوصول إلى المنصة
               </p>
             </div>
@@ -209,7 +209,7 @@ export const SettingsManager = () => {
             <Database className="w-5 h-5 text-accent" />
             إدارة قاعدة البيانات
           </CardTitle>
-          <CardDescription className="font-tajawal">
+          <CardDescription className="font-cairo">
             أدوات الصيانة والنسخ الاحتياطي
           </CardDescription>
         </CardHeader>
@@ -221,7 +221,7 @@ export const SettingsManager = () => {
                 آخر نسخة احتياطية: منذ 3 أيام
               </p>
             </div>
-            <Button variant="outline" className="font-tajawal">
+            <Button variant="outline" className="font-cairo">
               إنشاء نسخة احتياطية
             </Button>
           </div>

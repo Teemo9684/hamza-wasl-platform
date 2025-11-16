@@ -126,14 +126,14 @@ export const ReportsView = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold font-cairo">التقارير والإحصائيات</h2>
         <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-[200px] font-tajawal">
+          <SelectTrigger className="w-[200px] font-cairo">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="week" className="font-tajawal">هذا الأسبوع</SelectItem>
-            <SelectItem value="month" className="font-tajawal">هذا الشهر</SelectItem>
-            <SelectItem value="year" className="font-tajawal">هذه السنة</SelectItem>
-            <SelectItem value="all" className="font-tajawal">كل الفترات</SelectItem>
+            <SelectItem value="week" className="font-cairo">هذا الأسبوع</SelectItem>
+            <SelectItem value="month" className="font-cairo">هذا الشهر</SelectItem>
+            <SelectItem value="year" className="font-cairo">هذه السنة</SelectItem>
+            <SelectItem value="all" className="font-cairo">كل الفترات</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -141,7 +141,7 @@ export const ReportsView = () => {
       {loading ? (
         <Card className="glass-card">
           <CardContent className="py-8">
-            <div className="text-center text-muted-foreground font-tajawal">
+            <div className="text-center text-muted-foreground font-cairo">
               جاري تحميل الإحصائيات...
             </div>
           </CardContent>
@@ -159,7 +159,7 @@ export const ReportsView = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold">{statistics.totalStudents}</p>
-                <p className="text-sm text-muted-foreground font-tajawal mt-2">
+                <p className="text-sm text-muted-foreground font-cairo mt-2">
                   إجمالي التلاميذ المسجلين
                 </p>
               </CardContent>
@@ -174,7 +174,7 @@ export const ReportsView = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold">{statistics.totalTeachers}</p>
-                <p className="text-sm text-muted-foreground font-tajawal mt-2">
+                <p className="text-sm text-muted-foreground font-cairo mt-2">
                   إجمالي المعلمين النشطين
                 </p>
               </CardContent>
@@ -189,7 +189,7 @@ export const ReportsView = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold">{statistics.totalParents}</p>
-                <p className="text-sm text-muted-foreground font-tajawal mt-2">
+                <p className="text-sm text-muted-foreground font-cairo mt-2">
                   إجمالي أولياء الأمور المسجلين
                 </p>
               </CardContent>
@@ -204,7 +204,7 @@ export const ReportsView = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold">{statistics.averageGrade}%</p>
-                <p className="text-sm text-muted-foreground font-tajawal mt-2">
+                <p className="text-sm text-muted-foreground font-cairo mt-2">
                   متوسط أداء التلاميذ
                 </p>
               </CardContent>
@@ -222,7 +222,7 @@ export const ReportsView = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{statistics.attendanceRate}%</p>
-                <p className="text-sm text-muted-foreground font-tajawal mt-2">
+                <p className="text-sm text-muted-foreground font-cairo mt-2">
                   من إجمالي {statistics.totalAttendance} سجل حضور
                 </p>
               </CardContent>
@@ -237,7 +237,7 @@ export const ReportsView = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{statistics.totalGrades}</p>
-                <p className="text-sm text-muted-foreground font-tajawal mt-2">
+                <p className="text-sm text-muted-foreground font-cairo mt-2">
                   إجمالي الدرجات المسجلة
                 </p>
               </CardContent>
@@ -252,7 +252,7 @@ export const ReportsView = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{statistics.totalMessages}</p>
-                <p className="text-sm text-muted-foreground font-tajawal mt-2">
+                <p className="text-sm text-muted-foreground font-cairo mt-2">
                   إجمالي الرسائل المتبادلة
                 </p>
               </CardContent>

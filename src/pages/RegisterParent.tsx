@@ -100,7 +100,7 @@ const RegisterParent = () => {
           <Button
             onClick={() => navigate("/register")}
             variant="ghost"
-            className="mb-8 text-white hover:bg-white/10 font-tajawal"
+            className="mb-8 text-white hover:bg-white/10 font-cairo"
           >
             <ArrowRight className="ml-2 h-4 w-4" />
             العودة
@@ -115,14 +115,14 @@ const RegisterParent = () => {
               <h1 className="text-3xl font-bold text-center mb-2 font-cairo">
                 تسجيل حساب ولي أمر
               </h1>
-              <p className="text-muted-foreground text-center font-tajawal text-sm">
+              <p className="text-muted-foreground text-center font-cairo text-sm">
                 أدخل بياناتك لإنشاء حساب جديد
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="font-tajawal">
+                <Label htmlFor="fullName" className="font-cairo">
                   الاسم الكامل
                 </Label>
                 <div className="relative">
@@ -133,14 +133,14 @@ const RegisterParent = () => {
                     placeholder="أدخل الاسم الكامل"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="pr-10 font-tajawal"
+                    className="pr-10 font-cairo"
                     dir="rtl"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="font-tajawal">
+                <Label htmlFor="email" className="font-cairo">
                   البريد الإلكتروني
                 </Label>
                 <div className="relative">
@@ -151,14 +151,14 @@ const RegisterParent = () => {
                     placeholder="example@email.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pr-10 font-tajawal"
+                    className="pr-10 font-cairo"
                     dir="ltr"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="font-tajawal">
+                <Label htmlFor="phone" className="font-cairo">
                   رقم الهاتف
                 </Label>
                 <div className="relative">
@@ -169,14 +169,14 @@ const RegisterParent = () => {
                     placeholder="0555 123456"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="pr-10 font-tajawal"
+                    className="pr-10 font-cairo"
                     dir="ltr"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="nationalSchoolId" className="font-tajawal">
+                <Label htmlFor="nationalSchoolId" className="font-cairo">
                   الرقم الوطني المدرسي
                 </Label>
                 <div className="relative">
@@ -187,7 +187,7 @@ const RegisterParent = () => {
                     placeholder="أدخل الرقم الوطني المدرسي"
                     value={formData.nationalSchoolId}
                     onChange={(e) => setFormData({ ...formData, nationalSchoolId: e.target.value })}
-                    className="pr-10 font-tajawal"
+                    className="pr-10 font-cairo"
                     dir="ltr"
                   />
                 </div>
@@ -230,12 +230,12 @@ const RegisterParent = () => {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-gradient-primary hover:opacity-90 text-white font-tajawal text-lg"
+                className="w-full bg-gradient-primary hover:opacity-90 text-white font-cairo text-lg"
               >
                 إنشاء الحساب
               </Button>
 
-              <p className="text-center text-sm text-muted-foreground font-tajawal">
+              <p className="text-center text-sm text-muted-foreground font-cairo">
                 لديك حساب بالفعل؟{" "}
                 <button
                   type="button"

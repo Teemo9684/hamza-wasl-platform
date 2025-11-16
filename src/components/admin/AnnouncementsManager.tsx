@@ -320,7 +320,7 @@ export const AnnouncementsManager = () => {
                         <Button
                           variant="destructive"
                           onClick={() => handleDelete(announcement.id)}
-                          className="font-tajawal"
+                          className="font-cairo"
                         >
                           حذف
                         </Button>
@@ -330,7 +330,7 @@ export const AnnouncementsManager = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground font-tajawal whitespace-pre-wrap">
+                <p className="text-muted-foreground font-cairo whitespace-pre-wrap">
                   {announcement.content}
                 </p>
               </CardContent>

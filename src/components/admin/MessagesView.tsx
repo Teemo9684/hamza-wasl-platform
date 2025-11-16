@@ -130,7 +130,7 @@ export const MessagesView = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground font-tajawal">جاري تحميل الرسائل...</p>
+        <p className="text-muted-foreground font-cairo">جاري تحميل الرسائل...</p>
       </div>
     );
   }
@@ -141,7 +141,7 @@ export const MessagesView = () => {
         <MessageSquare className="w-8 h-8 text-primary" />
         <div>
           <h2 className="text-2xl font-bold font-cairo">إدارة الرسائل والاستفسارات</h2>
-          <p className="text-muted-foreground font-tajawal">عرض جميع الرسائل بين الأولياء والأساتذة</p>
+          <p className="text-muted-foreground font-cairo">عرض جميع الرسائل بين الأولياء والأساتذة</p>
         </div>
       </div>
 
@@ -149,7 +149,7 @@ export const MessagesView = () => {
         <Card>
           <CardContent className="py-12 text-center">
             <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground font-tajawal">لا توجد رسائل حالياً</p>
+            <p className="text-muted-foreground font-cairo">لا توجد رسائل حالياً</p>
           </CardContent>
         </Card>
       ) : (
@@ -162,7 +162,7 @@ export const MessagesView = () => {
                     <User className="w-5 h-5 text-primary" />
                     <div className="flex-1 text-right">
                       <h3 className="text-lg font-bold font-cairo">{teacher.teacher_name}</h3>
-                      <p className="text-sm text-muted-foreground font-tajawal">
+                      <p className="text-sm text-muted-foreground font-cairo">
                         {teacher.messages.length} رسالة
                       </p>
                     </div>
@@ -185,7 +185,7 @@ export const MessagesView = () => {
                                 </Badge>
                               )}
                             </div>
-                            <div className="flex flex-wrap gap-2 text-sm text-muted-foreground font-tajawal">
+                            <div className="flex flex-wrap gap-2 text-sm text-muted-foreground font-cairo">
                               <span>من: {message.sender_name}</span>
                               <span>•</span>
                               <span>إلى: {message.recipient_name}</span>
@@ -198,8 +198,8 @@ export const MessagesView = () => {
                             </div>
                           </CardHeader>
                           <CardContent className="pt-0">
-                            <p className="text-sm mb-3 font-tajawal">{message.content}</p>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground font-tajawal">
+                            <p className="text-sm mb-3 font-cairo">{message.content}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground font-cairo">
                               <Clock className="w-3 h-3" />
                               {formatDate(message.created_at)}
                             </div>
