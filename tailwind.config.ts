@@ -14,11 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Cairo', 'Tajawal', 'system-ui', '-apple-system', 'sans-serif'],
-        cairo: ['Cairo', 'Tajawal', 'sans-serif'],
-        tajawal: ['Tajawal', 'Cairo', 'sans-serif'],
+        cairo: ['Cairo', 'sans-serif'],
+        tajawal: ['Tajawal', 'sans-serif'],
         ruqaa: ['Aref Ruqaa', 'serif'],
-        amiri: ['Amiri', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",

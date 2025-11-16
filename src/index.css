@@ -1,93 +1,4 @@
-/* Local Fonts - Arabic Typography */
-@font-face {
-  font-family: 'Aref Ruqaa';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/aref-ruqaa-regular.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
-
-@font-face {
-  font-family: 'Aref Ruqaa';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/aref-ruqaa-bold.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
-
-@font-face {
-  font-family: 'Cairo';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/cairo-regular.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
-
-@font-face {
-  font-family: 'Cairo';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('/fonts/cairo-semibold.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
-
-@font-face {
-  font-family: 'Cairo';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/cairo-bold.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
-
-@font-face {
-  font-family: 'Cairo';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url('/fonts/cairo-extrabold.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
-
-@font-face {
-  font-family: 'Tajawal';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/tajawal-regular.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
-
-@font-face {
-  font-family: 'Tajawal';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('/fonts/tajawal-medium.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
-
-@font-face {
-  font-family: 'Tajawal';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/tajawal-bold.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
-
-@font-face {
-  font-family: 'Tajawal';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url('/fonts/tajawal-extrabold.woff2') format('woff2');
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -193,18 +104,12 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+    @apply bg-background text-foreground font-cairo;
     direction: rtl;
   }
 
   html {
     direction: rtl;
-    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
-  }
-  
-  * {
-    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
   }
 }
 
