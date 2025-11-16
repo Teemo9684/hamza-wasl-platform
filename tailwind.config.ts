@@ -17,7 +17,7 @@ export default {
         sans: ['Cairo', 'Tajawal', 'system-ui', '-apple-system', 'sans-serif'],
         cairo: ['Cairo', 'Tajawal', 'sans-serif'],
         tajawal: ['Tajawal', 'Cairo', 'sans-serif'],
-        ruqaa: ['Aref Ruqaa', 'Cairo', 'serif'],
+        ruqaa: ['Aref Ruqaa', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
