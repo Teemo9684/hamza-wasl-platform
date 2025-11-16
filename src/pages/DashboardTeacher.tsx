@@ -11,6 +11,7 @@ import { TeacherOverview } from "@/components/teacher/TeacherOverview";
 import { TeacherStudents } from "@/components/teacher/TeacherStudents";
 import { TeacherAttendance } from "@/components/teacher/TeacherAttendance";
 import { TeacherMessages } from "@/components/teacher/TeacherMessages";
+import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 
 const DashboardTeacher = () => {
   const navigate = useNavigate();
@@ -173,6 +174,9 @@ const DashboardTeacher = () => {
 
   const handleRecordAttendance = async (studentId: string, status: string, notes: string) => {
     try {
+      // Validate attendance notes
+      attendanceNotesSchema.parse(notes);
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -195,7 +199,7 @@ const DashboardTeacher = () => {
     } catch (error: any) {
       toast({
         title: "خطأ",
-        description: error.message,
+        description: error.errors?.[0]?.message || error.message,
         variant: "destructive",
       });
     }
@@ -227,6 +231,12 @@ const DashboardTeacher = () => {
     content: string
   ) => {
     try {
+      // Validate reply content
+      messageSchema.parse({
+        subject: `رد: ${originalSubject}`,
+        content: content,
+      });
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -248,10 +258,11 @@ const DashboardTeacher = () => {
       });
 
       await handleMarkAsRead(messageId);
+      fetchTeacherData();
     } catch (error: any) {
       toast({
         title: "خطأ",
-        description: error.message,
+        description: error.errors?.[0]?.message || error.message,
         variant: "destructive",
       });
     }

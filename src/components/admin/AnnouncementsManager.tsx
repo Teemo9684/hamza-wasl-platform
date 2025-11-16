@@ -23,6 +23,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { messageSchema } from "@/lib/validations";
 
 interface Announcement {
   id: string;
@@ -75,16 +76,12 @@ export const AnnouncementsManager = () => {
   const handleSendAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.subject || !formData.content) {
-      toast({
-        title: "خطأ",
-        description: "الرجاء ملء جميع الحقول",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
+      // Validate message content
+      messageSchema.parse({
+        subject: formData.subject,
+        content: formData.content,
+      });
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
@@ -132,7 +129,7 @@ export const AnnouncementsManager = () => {
     } catch (error: any) {
       toast({
         title: "خطأ",
-        description: error.message || "فشل إرسال الإعلان",
+        description: error.errors?.[0]?.message || error.message || "فشل إرسال الإعلان",
         variant: "destructive",
       });
     }
