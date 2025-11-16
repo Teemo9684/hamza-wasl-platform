@@ -48,7 +48,7 @@ const Index = () => {
           {[...Array(3)].map((_, repeatIndex) => (
             newsItems.map((item, itemIndex) => (
               <div key={`${repeatIndex}-${item.id}`} className="flex items-center gap-8">
-                <span className="text-white font-tajawal flex items-center gap-2">
+                <span className="text-white font-cairo flex items-center gap-2">
                   <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
                     {item.icon_type}
                   </span>
@@ -102,10 +102,10 @@ const Index = () => {
           </div>
           
           <div>
-            <p className="text-2xl text-white/90 font-tajawal mb-2">
+            <p className="text-2xl text-white/90 font-cairo mb-2">
               منصة التواصل التربوي
             </p>
-            <p className="text-sm text-white/70 font-tajawal">
+            <p className="text-sm text-white/70 font-cairo">
               المدرسة الابتدائية العربي التبسي
             </p>
           </div>
@@ -161,7 +161,7 @@ const Index = () => {
               {/* Text */}
               <div>
                 <h2 className="text-3xl font-bold text-white mb-2 font-cairo">المعلمين</h2>
-                <p className="text-white/80 font-tajawal">إدارة الأقسام والتلاميذ</p>
+                <p className="text-white/80 font-cairo">إدارة الأقسام والتلاميذ</p>
               </div>
 
               {/* Arrow Icon */}
@@ -191,7 +191,7 @@ const Index = () => {
               {/* Text */}
               <div>
                 <h2 className="text-3xl font-bold text-white mb-2 font-cairo">الإدارة</h2>
-                <p className="text-white/80 font-tajawal">لوحة التحكم الإدارية</p>
+                <p className="text-white/80 font-cairo">لوحة التحكم الإدارية</p>
               </div>
 
               {/* Arrow Icon */}
@@ -206,7 +206,7 @@ const Index = () => {
 
         {/* Footer */}
         <div className="mt-16 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
-          <p className="text-white/70 font-tajawal text-lg">
+          <p className="text-white/70 font-cairo text-lg">
             اختر نوع الحساب للدخول إلى المنصة
           </p>
         </div>

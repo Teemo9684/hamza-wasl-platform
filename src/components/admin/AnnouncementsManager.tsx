@@ -183,7 +183,7 @@ export const AnnouncementsManager = () => {
         <h2 className="text-3xl font-bold font-cairo">إدارة الإعلانات</h2>
         <Button
           onClick={() => setIsAddingAnnouncement(true)}
-          className="font-tajawal"
+          className="font-cairo"
         >
           <Plus className="ml-2 h-4 w-4" />
           إعلان جديد
@@ -206,13 +206,13 @@ export const AnnouncementsManager = () => {
                   value={formData.target_role}
                   onValueChange={(value) => setFormData({ ...formData, target_role: value })}
                 >
-                  <SelectTrigger className="font-tajawal">
+                  <SelectTrigger className="font-cairo">
                     <SelectValue placeholder="اختر الفئة المستهدفة" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all" className="font-tajawal">الجميع</SelectItem>
-                    <SelectItem value="teacher" className="font-tajawal">المعلمين فقط</SelectItem>
-                    <SelectItem value="parent" className="font-tajawal">أولياء الأمور فقط</SelectItem>
+                    <SelectItem value="all" className="font-cairo">الجميع</SelectItem>
+                    <SelectItem value="teacher" className="font-cairo">المعلمين فقط</SelectItem>
+                    <SelectItem value="parent" className="font-cairo">أولياء الأمور فقط</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -225,7 +225,7 @@ export const AnnouncementsManager = () => {
                   id="subject"
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="font-tajawal"
+                  className="font-cairo"
                   placeholder="عنوان الإعلان"
                   required
                 />
@@ -239,18 +239,18 @@ export const AnnouncementsManager = () => {
                   id="content"
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  className="font-tajawal min-h-[150px]"
+                  className="font-cairo min-h-[150px]"
                   placeholder="نص الإعلان"
                   required
                 />
               </div>
 
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="ghost" onClick={resetForm} className="font-tajawal">
+                <Button type="button" variant="ghost" onClick={resetForm} className="font-cairo">
                   <X className="ml-2 h-4 w-4" />
                   إلغاء
                 </Button>
-                <Button type="submit" className="font-tajawal">
+                <Button type="submit" className="font-cairo">
                   <Send className="ml-2 h-4 w-4" />
                   إرسال الإعلان
                 </Button>
@@ -265,7 +265,7 @@ export const AnnouncementsManager = () => {
         {loading ? (
           <Card className="glass-card">
             <CardContent className="py-8">
-              <div className="text-center text-muted-foreground font-tajawal">
+              <div className="text-center text-muted-foreground font-cairo">
                 جاري التحميل...
               </div>
             </CardContent>
@@ -273,7 +273,7 @@ export const AnnouncementsManager = () => {
         ) : announcements.length === 0 ? (
           <Card className="glass-card">
             <CardContent className="py-8">
-              <div className="text-center text-muted-foreground font-tajawal">
+              <div className="text-center text-muted-foreground font-cairo">
                 لا توجد إعلانات
               </div>
             </CardContent>
@@ -288,11 +288,11 @@ export const AnnouncementsManager = () => {
                       {announcement.subject}
                     </CardTitle>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="font-tajawal">
+                      <Badge variant="secondary" className="font-cairo">
                         <Megaphone className="ml-1 h-3 w-3" />
                         إعلان
                       </Badge>
-                      <span className="text-sm text-muted-foreground font-tajawal">
+                      <span className="text-sm text-muted-foreground font-cairo">
                         {new Date(announcement.created_at).toLocaleDateString("ar-EG")}
                       </span>
                     </div>
@@ -312,7 +312,7 @@ export const AnnouncementsManager = () => {
                         <DialogTitle className="font-cairo">
                           تأكيد الحذف
                         </DialogTitle>
-                        <DialogDescription className="font-tajawal">
+                        <DialogDescription className="font-cairo">
                           هل أنت متأكد من حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.
                         </DialogDescription>
                       </DialogHeader>
