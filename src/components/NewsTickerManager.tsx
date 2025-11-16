@@ -243,7 +243,7 @@ export const NewsTickerManager = () => {
         <h2 className="text-2xl font-bold font-cairo">إدارة الشريط الإخباري</h2>
         <Button
           onClick={() => setIsAdding(!isAdding)}
-          className="font-tajawal"
+          className="font-cairo"
         >
           {isAdding ? (
             <>
@@ -269,7 +269,7 @@ export const NewsTickerManager = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="icon_type" className="font-tajawal">
+                <Label htmlFor="icon_type" className="font-cairo">
                   نوع التنبيه
                 </Label>
                 <Select
@@ -278,12 +278,12 @@ export const NewsTickerManager = () => {
                     setFormData({ ...formData, icon_type: value })
                   }
                 >
-                  <SelectTrigger className="font-tajawal">
+                  <SelectTrigger className="font-cairo">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {iconTypes.map((type) => (
-                      <SelectItem key={type} value={type} className="font-tajawal">
+                      <SelectItem key={type} value={type} className="font-cairo">
                         {type}
                       </SelectItem>
                     ))}
@@ -292,7 +292,7 @@ export const NewsTickerManager = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title" className="font-tajawal">
+                <Label htmlFor="title" className="font-cairo">
                   العنوان
                 </Label>
                 <Input
@@ -301,13 +301,13 @@ export const NewsTickerManager = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="font-tajawal"
+                  className="font-cairo"
                   dir="rtl"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content" className="font-tajawal">
+                <Label htmlFor="content" className="font-cairo">
                   المحتوى
                 </Label>
                 <Textarea
@@ -316,14 +316,14 @@ export const NewsTickerManager = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, content: e.target.value })
                   }
-                  className="font-tajawal"
+                  className="font-cairo"
                   dir="rtl"
                   rows={3}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="badge_color" className="font-tajawal">
+                <Label htmlFor="badge_color" className="font-cairo">
                   لون الشارة
                 </Label>
                 <Select
@@ -332,12 +332,12 @@ export const NewsTickerManager = () => {
                     setFormData({ ...formData, badge_color: value })
                   }
                 >
-                  <SelectTrigger className="font-tajawal">
+                  <SelectTrigger className="font-cairo">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {badgeColors.map((color) => (
-                      <SelectItem key={color.value} value={color.value} className="font-tajawal">
+                      <SelectItem key={color.value} value={color.value} className="font-cairo">
                         <div className="flex items-center gap-2">
                           <div className={`w-4 h-4 rounded ${color.value}`} />
                           {color.label}
@@ -355,7 +355,7 @@ export const NewsTickerManager = () => {
                     setFormData({ ...formData, is_active: checked })
                   }
                 />
-                <Label className="font-tajawal">نشط</Label>
+                <Label className="font-cairo">نشط</Label>
               </div>
 
               <div className="flex gap-2">
@@ -404,13 +404,13 @@ export const NewsTickerManager = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span
-                      className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold font-tajawal`}
+                      className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold font-cairo`}
                     >
                       {item.icon_type}
                     </span>
                     <h3 className="font-bold font-cairo">{item.title}</h3>
                   </div>
-                  <p className="text-muted-foreground font-tajawal">
+                  <p className="text-muted-foreground font-cairo">
                     {item.content}
                   </p>
                 </div>

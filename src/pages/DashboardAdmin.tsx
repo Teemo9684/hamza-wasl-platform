@@ -69,7 +69,7 @@ const DashboardAdmin = () => {
               <Shield className="w-8 h-8 text-accent" />
               <h1 className="text-2xl font-bold font-cairo">لوحة التحكم الإدارية</h1>
             </div>
-            <Button onClick={handleLogout} variant="ghost" className="font-tajawal">
+            <Button onClick={handleLogout} variant="ghost" className="font-cairo">
               <LogOut className="ml-2 h-4 w-4" />
               تسجيل الخروج
             </Button>
@@ -80,7 +80,7 @@ const DashboardAdmin = () => {
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h2 className="text-3xl font-bold mb-2 font-cairo">مرحباً مدير المدرسة</h2>
-            <p className="text-muted-foreground font-tajawal">
+            <p className="text-muted-foreground font-cairo">
               إدارة شاملة للمنصة التعليمية
             </p>
           </div>
