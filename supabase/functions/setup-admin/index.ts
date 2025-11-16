@@ -16,8 +16,12 @@ Deno.serve(async (req) => {
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const ADMIN_EMAIL = 'admin@system.local';
-    const ADMIN_PIN = 'ARBIT1922@';
+    const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL');
+    const ADMIN_PIN = Deno.env.get('ADMIN_PASSWORD');
+
+    if (!ADMIN_EMAIL || !ADMIN_PIN) {
+      throw new Error('Admin credentials not configured');
+    }
 
     // Check if admin already exists
     const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
