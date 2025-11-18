@@ -634,7 +634,7 @@ export const StudentManagement = () => {
                 <p className="text-2xl font-bold text-primary">{students.length}</p>
                 <p className="text-sm text-muted-foreground font-cairo mt-1">إجمالي التلاميذ</p>
               </div>
-              {gradeLevels.slice(0, 5).map((level) => (
+              {gradeLevels.map((level) => (
                 <div key={level} className="text-center p-4 bg-muted/50 rounded-lg">
                   <p className="text-2xl font-bold">
                     {students.filter(s => s.grade_level === level).length}
