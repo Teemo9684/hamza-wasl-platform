@@ -42,44 +42,44 @@ const Index = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl" />
         
         {/* Floating Logo Text - Large */}
-        <div className="absolute top-10 right-20 text-white/5 blur-2xl float-logo-animation font-ruqaa text-8xl leading-tight" style={{ animationDuration: "35s" }}>
+        <div className="absolute top-10 right-20 text-white/20 blur-sm float-logo-animation font-ruqaa text-8xl leading-tight" style={{ animationDuration: "35s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute bottom-32 left-16 text-white/4 blur-3xl float-logo-animation font-ruqaa text-9xl leading-tight" style={{ animationDelay: "10s", animationDuration: "40s" }}>
+        <div className="absolute bottom-32 left-16 text-white/15 blur-md float-logo-animation font-ruqaa text-9xl leading-tight" style={{ animationDelay: "10s", animationDuration: "40s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
         {/* Medium Logos */}
-        <div className="absolute top-1/3 left-1/4 text-white/6 blur-2xl float-logo-animation font-ruqaa text-7xl leading-tight" style={{ animationDelay: "5s", animationDuration: "32s" }}>
+        <div className="absolute top-1/3 left-1/4 text-white/25 blur-sm float-logo-animation font-ruqaa text-7xl leading-tight" style={{ animationDelay: "5s", animationDuration: "32s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute top-2/3 right-1/4 text-white/5 blur-2xl float-logo-animation font-ruqaa text-7xl leading-tight" style={{ animationDelay: "15s", animationDuration: "38s" }}>
+        <div className="absolute top-2/3 right-1/4 text-white/20 blur-sm float-logo-animation font-ruqaa text-7xl leading-tight" style={{ animationDelay: "15s", animationDuration: "38s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
         {/* Small Logos */}
-        <div className="absolute bottom-1/4 right-1/3 text-white/7 blur-3xl float-logo-animation font-ruqaa text-5xl leading-tight" style={{ animationDelay: "8s", animationDuration: "28s" }}>
+        <div className="absolute bottom-1/4 right-1/3 text-white/30 blur-md float-logo-animation font-ruqaa text-5xl leading-tight" style={{ animationDelay: "8s", animationDuration: "28s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute top-1/2 right-1/2 text-white/6 blur-2xl float-logo-animation font-ruqaa text-6xl leading-tight" style={{ animationDelay: "12s", animationDuration: "34s" }}>
+        <div className="absolute top-1/2 right-1/2 text-white/25 blur-sm float-logo-animation font-ruqaa text-6xl leading-tight" style={{ animationDelay: "12s", animationDuration: "34s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute top-3/4 left-1/3 text-white/8 blur-3xl float-logo-animation font-ruqaa text-4xl leading-tight" style={{ animationDelay: "3s", animationDuration: "26s" }}>
+        <div className="absolute top-3/4 left-1/3 text-white/35 blur-md float-logo-animation font-ruqaa text-4xl leading-tight" style={{ animationDelay: "3s", animationDuration: "26s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute top-1/4 left-1/2 text-white/5 blur-2xl float-logo-animation font-ruqaa text-6xl leading-tight" style={{ animationDelay: "18s", animationDuration: "36s" }}>
+        <div className="absolute top-1/4 left-1/2 text-white/20 blur-sm float-logo-animation font-ruqaa text-6xl leading-tight" style={{ animationDelay: "18s", animationDuration: "36s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
