@@ -18,17 +18,22 @@ export const ThemeManager = () => {
 
   const fetchActiveTheme = async () => {
     try {
+      console.log('Fetching active theme...');
       const { data, error } = await supabase
         .from('theme_settings')
         .select('theme_name')
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
+
+      console.log('Active theme from DB:', data);
 
       if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching theme:', error);
         throw error;
       }
 
       if (data) {
+        console.log('Setting active theme to:', data.theme_name);
         setActiveTheme(data.theme_name);
       }
     } catch (error) {
@@ -43,37 +48,60 @@ export const ThemeManager = () => {
 
   const activateTheme = async (themeName: string) => {
     setLoading(true);
+    console.log('Activating theme:', themeName);
+    
     try {
-      // Deactivate all themes first
-      await supabase
+      // First, deactivate all themes
+      console.log('Deactivating all themes...');
+      const { error: deactivateError } = await supabase
         .from('theme_settings')
         .update({ is_active: false })
         .neq('theme_name', '');
 
-      // Check if theme exists
-      const { data: existing } = await supabase
+      if (deactivateError) {
+        console.error('Error deactivating themes:', deactivateError);
+        throw deactivateError;
+      }
+
+      // Check if theme record exists
+      console.log('Checking if theme exists:', themeName);
+      const { data: existing, error: checkError } = await supabase
         .from('theme_settings')
         .select('id')
         .eq('theme_name', themeName)
-        .single();
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking theme:', checkError);
+        throw checkError;
+      }
 
       if (existing) {
         // Update existing theme
+        console.log('Updating existing theme...');
         const { error: updateError } = await supabase
           .from('theme_settings')
           .update({ is_active: true })
           .eq('theme_name', themeName);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Error updating theme:', updateError);
+          throw updateError;
+        }
       } else {
         // Insert new theme
+        console.log('Inserting new theme...');
         const { error: insertError } = await supabase
           .from('theme_settings')
           .insert({ theme_name: themeName, is_active: true });
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Error inserting theme:', insertError);
+          throw insertError;
+        }
       }
 
+      console.log('Theme activated successfully!');
       setActiveTheme(themeName);
       
       toast({
@@ -81,8 +109,9 @@ export const ThemeManager = () => {
         description: `تم تفعيل ثيم "${themes[themeName].displayName}" بنجاح. جاري تحديث الصفحة...`,
       });
 
-      // Reload page immediately to apply theme
+      // Reload page to apply theme
       setTimeout(() => {
+        console.log('Reloading page...');
         window.location.reload();
       }, 500);
     } catch (error) {
