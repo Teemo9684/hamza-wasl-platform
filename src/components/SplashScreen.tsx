@@ -32,7 +32,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
       <img
         src={splashLogo}
         alt="همزة وصل"
-        className="max-w-[80%] max-h-[80%] object-contain animate-in fade-in zoom-in duration-500"
+        className="max-w-[90%] max-h-[90%] object-contain animate-in fade-in zoom-in duration-500"
       />
     </div>
   );
