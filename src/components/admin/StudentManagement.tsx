@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { GraduationCap, Plus, Edit, Trash2, Save, X, Search } from "lucide-react";
+import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus } from "lucide-react";
 import { studentSchema } from "@/lib/validations";
 import {
   Table,
@@ -50,8 +50,6 @@ const gradeLevels = [
   "السنة الخامسة",
 ];
 
-const classSections = ["01", "02", "03", "04"];
-
 export const StudentManagement = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,14 +59,18 @@ export const StudentManagement = () => {
     full_name: "",
     national_school_id: "",
     grade_level: "",
-    class_section: "",
     date_of_birth: "",
   });
   const [loading, setLoading] = useState(true);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [gradeTeachers, setGradeTeachers] = useState<Record<string, any>>({});
+  const [assigningGrade, setAssigningGrade] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchStudents();
+    fetchTeachers();
+    fetchGradeTeachers();
   }, []);
 
   const fetchStudents = async () => {
@@ -77,8 +79,7 @@ export const StudentManagement = () => {
       const { data, error } = await supabase
         .from("students")
         .select("*")
-        .order("grade_level", { ascending: true })
-        .order("class_section", { ascending: true });
+        .order("grade_level", { ascending: true });
 
       if (error) throw error;
       setStudents(data || []);
@@ -90,6 +91,76 @@ export const StudentManagement = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTeachers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", 
+          (await supabase
+            .from("user_roles")
+            .select("user_id")
+            .eq("role", "teacher")
+          ).data?.map(r => r.user_id) || []
+        );
+
+      if (error) throw error;
+      setTeachers(data || []);
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+    }
+  };
+
+  const fetchGradeTeachers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("teacher_grade_levels")
+        .select(`
+          grade_level,
+          teacher:profiles(id, full_name)
+        `);
+
+      if (error) throw error;
+      
+      const teacherMap: Record<string, any> = {};
+      data?.forEach((item: any) => {
+        teacherMap[item.grade_level] = item.teacher;
+      });
+      setGradeTeachers(teacherMap);
+    } catch (error) {
+      console.error("Error fetching grade teachers:", error);
+    }
+  };
+
+  const handleAssignTeacher = async (gradeLevel: string, teacherId: string) => {
+    try {
+      const { error } = await supabase
+        .from("teacher_grade_levels")
+        .upsert({
+          teacher_id: teacherId,
+          grade_level: gradeLevel,
+        }, {
+          onConflict: "teacher_id,grade_level"
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "نجاح",
+        description: "تم ربط الأستاذ بالمستوى بنجاح",
+      });
+
+      fetchGradeTeachers();
+      setAssigningGrade(null);
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "فشل ربط الأستاذ بالمستوى",
+        variant: "destructive",
+      });
     }
   };
 
@@ -142,7 +213,6 @@ export const StudentManagement = () => {
       full_name: student.full_name,
       national_school_id: student.national_school_id,
       grade_level: student.grade_level,
-      class_section: student.class_section || "",
       date_of_birth: student.date_of_birth || "",
     });
     setIsAddingStudent(true);
@@ -177,7 +247,6 @@ export const StudentManagement = () => {
       full_name: "",
       national_school_id: "",
       grade_level: "",
-      class_section: "",
       date_of_birth: "",
     });
     setIsAddingStudent(false);
@@ -262,27 +331,6 @@ export const StudentManagement = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="class_section" className="font-cairo">
-                    القسم
-                  </Label>
-                  <Select
-                    value={formData.class_section}
-                    onValueChange={(value) => setFormData({ ...formData, class_section: value })}
-                  >
-                    <SelectTrigger className="font-cairo">
-                      <SelectValue placeholder="اختر القسم" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classSections.map((section) => (
-                        <SelectItem key={section} value={section} className="font-cairo">
-                          {section}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="date_of_birth" className="font-cairo">
                     تاريخ الميلاد
                   </Label>
@@ -344,13 +392,58 @@ export const StudentManagement = () => {
           const studentsInLevel = filteredStudents.filter(s => s.grade_level === level);
           if (studentsInLevel.length === 0) return null;
 
+          const assignedTeacher = gradeTeachers[level];
+
           return (
             <Card key={level} className="glass-card">
               <CardHeader>
-                <CardTitle className="font-cairo flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-primary" />
-                  {level} ({studentsInLevel.length} تلميذ)
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-cairo flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5 text-primary" />
+                    {level} ({studentsInLevel.length} تلميذ)
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    {assignedTeacher ? (
+                      <div className="flex items-center gap-2 text-sm font-cairo">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">الأستاذ:</span>
+                        <span className="font-medium">{assignedTeacher.full_name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground font-cairo">لم يتم تعيين أستاذ</span>
+                    )}
+                    <Dialog open={assigningGrade === level} onOpenChange={(open) => setAssigningGrade(open ? level : null)}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="font-cairo">
+                          <UserPlus className="w-4 h-4 ml-2" />
+                          تعيين أستاذ
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle className="font-cairo">تعيين أستاذ للمستوى</DialogTitle>
+                          <DialogDescription className="font-cairo">
+                            اختر الأستاذ المسؤول عن {level}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <Select onValueChange={(value) => handleAssignTeacher(level, value)}>
+                            <SelectTrigger className="font-cairo">
+                              <SelectValue placeholder="اختر الأستاذ" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {teachers.map((teacher) => (
+                                <SelectItem key={teacher.id} value={teacher.id} className="font-cairo">
+                                  {teacher.full_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -358,7 +451,6 @@ export const StudentManagement = () => {
                     <TableRow>
                       <TableHead className="font-cairo">الاسم الكامل</TableHead>
                       <TableHead className="font-cairo">الرقم التعريفي</TableHead>
-                      <TableHead className="font-cairo">القسم</TableHead>
                       <TableHead className="font-cairo">الإجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -370,9 +462,6 @@ export const StudentManagement = () => {
                         </TableCell>
                         <TableCell className="font-cairo">
                           {student.national_school_id}
-                        </TableCell>
-                        <TableCell className="font-cairo">
-                          {student.class_section || "-"}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
