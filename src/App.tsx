@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { initializePushNotifications, isPushNotificationsAvailable } from "@/utils/pushNotifications";
+import { setupRealtimeNotifications } from "@/utils/realtimeNotifications";
+import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
@@ -24,6 +27,59 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    // Initialize push notifications if available (native app)
+    if (isPushNotificationsAvailable()) {
+      initializePushNotifications();
+    }
+
+    // Set up real-time notifications for authenticated users
+    let cleanupRealtime: (() => void) | undefined;
+
+    const initializeNotifications = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Get user role
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (roleData) {
+          cleanupRealtime = await setupRealtimeNotifications(user.id, roleData.role);
+        }
+      }
+    };
+
+    initializeNotifications();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // Re-initialize notifications on sign in
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (roleData) {
+          cleanupRealtime = await setupRealtimeNotifications(session.user.id, roleData.role);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        // Clean up on sign out
+        cleanupRealtime?.();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      cleanupRealtime?.();
+    };
+  }, []);
 
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
