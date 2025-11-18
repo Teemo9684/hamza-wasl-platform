@@ -69,11 +69,14 @@ const DashboardTeacher = () => {
 
       const { data: studentsData, error: studentsError } = await supabase
         .from('students')
-        .select(`
-          *,
-          teacher_students!inner(teacher_id)
-        `)
-        .eq('teacher_students.teacher_id', user.id);
+        .select('*')
+        .in('grade_level', 
+          (await supabase
+            .from('teacher_grade_levels')
+            .select('grade_level')
+            .eq('teacher_id', user.id)
+          ).data?.map(r => r.grade_level) || []
+        );
 
       if (studentsError) throw studentsError;
       setStudents(studentsData || []);
@@ -111,6 +114,23 @@ const DashboardTeacher = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Check if teacher is assigned to this grade level
+      const { data: assignedGrades } = await supabase
+        .from('teacher_grade_levels')
+        .select('grade_level')
+        .eq('teacher_id', user.id);
+
+      const teacherGrades = assignedGrades?.map(g => g.grade_level) || [];
+      
+      if (!teacherGrades.includes(student.grade_level)) {
+        toast({
+          title: "خطأ",
+          description: "لا يمكنك إضافة تلميذ لمستوى غير مسند إليك",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data: studentData, error: studentError } = await supabase
         .from('students')
         .insert({
@@ -123,15 +143,6 @@ const DashboardTeacher = () => {
         .single();
 
       if (studentError) throw studentError;
-
-      const { error: linkError } = await supabase
-        .from('teacher_students')
-        .insert({
-          teacher_id: user.id,
-          student_id: studentData.id,
-        });
-
-      if (linkError) throw linkError;
 
       toast({
         title: "تم بنجاح",

@@ -292,6 +292,38 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_grade_levels: {
+        Row: {
+          created_at: string | null
+          grade_level: string
+          id: string
+          subject: string | null
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          grade_level: string
+          id?: string
+          subject?: string | null
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string | null
+          grade_level?: string
+          id?: string
+          subject?: string | null
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_grade_levels_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_students: {
         Row: {
           created_at: string | null
