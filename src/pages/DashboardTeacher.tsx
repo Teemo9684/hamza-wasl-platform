@@ -342,14 +342,6 @@ const DashboardTeacher = () => {
                 />
               </section>
 
-              <section id="students">
-                <TeacherStudents
-                  students={students}
-                  onAddStudent={handleAddStudent}
-                  onDeleteStudent={handleDeleteStudent}
-                />
-              </section>
-
               <section id="attendance">
                 <TeacherAttendance
                   students={students}
