@@ -1,1 +1,4 @@
 project_id = "caeltaubipulyrdyqsjn"
+
+[functions.extract-students-from-image]
+verify_jwt = false
