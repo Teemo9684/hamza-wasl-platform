@@ -34,80 +34,55 @@ const Index = () => {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-accent">
-      {/* Animated Background Elements with Geometric Flowers */}
+      {/* Animated Background Elements with Floating Logo */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Soft gradient orbs */}
         <div className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-700" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl" />
         
-        {/* Geometric Flower Shapes - Large */}
-        <svg className="absolute top-10 right-20 w-48 h-48 text-white/8 blur-sm float-animation" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="15" fill="currentColor" />
-          <circle cx="50" cy="25" r="10" fill="currentColor" />
-          <circle cx="75" cy="50" r="10" fill="currentColor" />
-          <circle cx="50" cy="75" r="10" fill="currentColor" />
-          <circle cx="25" cy="50" r="10" fill="currentColor" />
-          <circle cx="65" cy="35" r="8" fill="currentColor" />
-          <circle cx="65" cy="65" r="8" fill="currentColor" />
-          <circle cx="35" cy="65" r="8" fill="currentColor" />
-          <circle cx="35" cy="35" r="8" fill="currentColor" />
-        </svg>
+        {/* Floating Logo Text - Large */}
+        <div className="absolute top-10 right-20 text-white/5 blur-2xl float-logo-animation font-ruqaa text-8xl leading-tight" style={{ animationDuration: "35s" }}>
+          <div>همزة</div>
+          <div>وصل</div>
+        </div>
         
-        <svg className="absolute bottom-32 left-16 w-56 h-56 text-white/6 blur-sm float-animation" style={{ animationDelay: "2s", animationDuration: "25s" }} viewBox="0 0 100 100">
-          <polygon points="50,20 80,50 50,80 20,50" fill="currentColor" />
-          <circle cx="50" cy="50" r="12" fill="currentColor" />
-          <circle cx="50" cy="20" r="8" fill="currentColor" />
-          <circle cx="80" cy="50" r="8" fill="currentColor" />
-          <circle cx="50" cy="80" r="8" fill="currentColor" />
-          <circle cx="20" cy="50" r="8" fill="currentColor" />
-        </svg>
+        <div className="absolute bottom-32 left-16 text-white/4 blur-3xl float-logo-animation font-ruqaa text-9xl leading-tight" style={{ animationDelay: "10s", animationDuration: "40s" }}>
+          <div>همزة</div>
+          <div>وصل</div>
+        </div>
         
-        {/* Medium Flowers */}
-        <svg className="absolute top-1/3 left-1/4 w-36 h-36 text-white/7 blur-md float-animation" style={{ animationDelay: "4s", animationDuration: "22s" }} viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="12" fill="currentColor" />
-          <circle cx="30" cy="30" r="10" fill="currentColor" />
-          <circle cx="70" cy="30" r="10" fill="currentColor" />
-          <circle cx="70" cy="70" r="10" fill="currentColor" />
-          <circle cx="30" cy="70" r="10" fill="currentColor" />
-          <circle cx="50" cy="25" r="7" fill="currentColor" />
-          <circle cx="75" cy="50" r="7" fill="currentColor" />
-          <circle cx="50" cy="75" r="7" fill="currentColor" />
-          <circle cx="25" cy="50" r="7" fill="currentColor" />
-        </svg>
+        {/* Medium Logos */}
+        <div className="absolute top-1/3 left-1/4 text-white/6 blur-2xl float-logo-animation font-ruqaa text-7xl leading-tight" style={{ animationDelay: "5s", animationDuration: "32s" }}>
+          <div>همزة</div>
+          <div>وصل</div>
+        </div>
         
-        <svg className="absolute top-2/3 right-1/4 w-40 h-40 text-white/8 blur-sm float-animation" style={{ animationDelay: "1s", animationDuration: "28s" }} viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="18" fill="currentColor" />
-          <circle cx="50" cy="20" r="12" fill="currentColor" />
-          <circle cx="80" cy="50" r="12" fill="currentColor" />
-          <circle cx="50" cy="80" r="12" fill="currentColor" />
-          <circle cx="20" cy="50" r="12" fill="currentColor" />
-        </svg>
+        <div className="absolute top-2/3 right-1/4 text-white/5 blur-2xl float-logo-animation font-ruqaa text-7xl leading-tight" style={{ animationDelay: "15s", animationDuration: "38s" }}>
+          <div>همزة</div>
+          <div>وصل</div>
+        </div>
         
-        {/* Small Flowers */}
-        <svg className="absolute bottom-1/4 right-1/3 w-24 h-24 text-white/10 blur-md float-animation" style={{ animationDelay: "3s", animationDuration: "20s" }} viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="10" fill="currentColor" />
-          <circle cx="35" cy="35" r="8" fill="currentColor" />
-          <circle cx="65" cy="35" r="8" fill="currentColor" />
-          <circle cx="65" cy="65" r="8" fill="currentColor" />
-          <circle cx="35" cy="65" r="8" fill="currentColor" />
-        </svg>
+        {/* Small Logos */}
+        <div className="absolute bottom-1/4 right-1/3 text-white/7 blur-3xl float-logo-animation font-ruqaa text-5xl leading-tight" style={{ animationDelay: "8s", animationDuration: "28s" }}>
+          <div>همزة</div>
+          <div>وصل</div>
+        </div>
         
-        <svg className="absolute top-1/2 right-1/2 w-28 h-28 text-white/9 blur-sm float-animation" style={{ animationDelay: "5s", animationDuration: "24s" }} viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="14" fill="currentColor" />
-          <circle cx="50" cy="28" r="9" fill="currentColor" />
-          <circle cx="72" cy="50" r="9" fill="currentColor" />
-          <circle cx="50" cy="72" r="9" fill="currentColor" />
-          <circle cx="28" cy="50" r="9" fill="currentColor" />
-        </svg>
+        <div className="absolute top-1/2 right-1/2 text-white/6 blur-2xl float-logo-animation font-ruqaa text-6xl leading-tight" style={{ animationDelay: "12s", animationDuration: "34s" }}>
+          <div>همزة</div>
+          <div>وصل</div>
+        </div>
         
-        <svg className="absolute top-3/4 left-1/3 w-20 h-20 text-white/11 blur-md float-animation" style={{ animationDelay: "6s", animationDuration: "18s" }} viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="8" fill="currentColor" />
-          <circle cx="38" cy="38" r="6" fill="currentColor" />
-          <circle cx="62" cy="38" r="6" fill="currentColor" />
-          <circle cx="62" cy="62" r="6" fill="currentColor" />
-          <circle cx="38" cy="62" r="6" fill="currentColor" />
-        </svg>
+        <div className="absolute top-3/4 left-1/3 text-white/8 blur-3xl float-logo-animation font-ruqaa text-4xl leading-tight" style={{ animationDelay: "3s", animationDuration: "26s" }}>
+          <div>همزة</div>
+          <div>وصل</div>
+        </div>
+        
+        <div className="absolute top-1/4 left-1/2 text-white/5 blur-2xl float-logo-animation font-ruqaa text-6xl leading-tight" style={{ animationDelay: "18s", animationDuration: "36s" }}>
+          <div>همزة</div>
+          <div>وصل</div>
+        </div>
       </div>
 
       {/* News Ticker */}
