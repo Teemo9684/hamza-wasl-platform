@@ -390,7 +390,6 @@ export const StudentManagement = () => {
       ) : (
         gradeLevels.map((level) => {
           const studentsInLevel = filteredStudents.filter(s => s.grade_level === level);
-          if (studentsInLevel.length === 0) return null;
 
           const assignedTeacher = gradeTeachers[level];
 
@@ -446,16 +445,21 @@ export const StudentManagement = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-cairo">الاسم الكامل</TableHead>
-                      <TableHead className="font-cairo">الرقم التعريفي</TableHead>
-                      <TableHead className="font-cairo">الإجراءات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {studentsInLevel.map((student) => (
+                {studentsInLevel.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground font-cairo">
+                    لا يوجد تلاميذ في هذا المستوى
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="font-cairo">الاسم الكامل</TableHead>
+                        <TableHead className="font-cairo">الرقم التعريفي</TableHead>
+                        <TableHead className="font-cairo">الإجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {studentsInLevel.map((student) => (
                       <TableRow key={student.id}>
                         <TableCell className="font-cairo font-medium">
                           {student.full_name}
@@ -509,6 +513,7 @@ export const StudentManagement = () => {
                     ))}
                   </TableBody>
                 </Table>
+                )}
               </CardContent>
             </Card>
           );
