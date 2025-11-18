@@ -210,6 +210,13 @@ const Index = () => {
             اختر نوع الحساب للدخول إلى المنصة
           </p>
         </div>
+
+        {/* Copyright */}
+        <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
+          <p className="text-white/60 font-cairo text-sm">
+            © 2026 مدرسة العربي التبسي - جميع الحقوق محفوظة
+          </p>
+        </div>
       </div>
     </div>
   );
