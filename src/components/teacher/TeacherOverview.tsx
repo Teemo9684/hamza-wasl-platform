@@ -1,16 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, MessageSquare, GraduationCap } from "lucide-react";
+import { StudentSearch } from "./StudentSearch";
 
 interface TeacherOverviewProps {
   teacherInfo: { name: string; subject: string };
   studentsCount: number;
   unreadMessagesCount: number;
+  students: any[];
+  onSendMessage: (parentId: string, studentId: string) => void;
 }
 
 export const TeacherOverview = ({
   teacherInfo,
   studentsCount,
   unreadMessagesCount,
+  students,
+  onSendMessage,
 }: TeacherOverviewProps) => {
   return (
     <div className="space-y-6">
@@ -50,6 +55,8 @@ export const TeacherOverview = ({
           </CardContent>
         </Card>
       </div>
+
+      <StudentSearch students={students} onSendMessage={onSendMessage} />
     </div>
   );
 };
