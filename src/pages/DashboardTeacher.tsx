@@ -279,6 +279,20 @@ const DashboardTeacher = () => {
     }
   };
 
+  const handleSendMessageToParent = async (parentId: string, studentId: string) => {
+    // This function will open the messages section and pre-select the parent and student
+    // For now, we'll navigate to the messages section
+    const messagesSection = document.getElementById('messages');
+    if (messagesSection) {
+      messagesSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    toast({
+      title: "التواصل مع ولي الأمر",
+      description: "انتقل إلى قسم الرسائل لإرسال رسالة لولي الأمر",
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -323,6 +337,8 @@ const DashboardTeacher = () => {
                   teacherInfo={teacherInfo}
                   studentsCount={students.length}
                   unreadMessagesCount={unreadCount}
+                  students={students}
+                  onSendMessage={handleSendMessageToParent}
                 />
               </section>
 
