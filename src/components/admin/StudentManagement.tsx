@@ -267,27 +267,30 @@ export const StudentManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {selectedGrade && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setSelectedGrade(null);
-                setSearchTerm("");
-                setIsAddingStudent(false);
-              }}
-              className="font-cairo"
-            >
-              <X className="ml-2 h-4 w-4" />
-              العودة للأقسام
-            </Button>
-          )}
-          <h2 className="text-3xl font-bold font-cairo">
-            {selectedGrade ? selectedGrade : "إدارة التلاميذ"}
-          </h2>
-        </div>
+      {/* Header Section */}
+      <div className="flex items-center gap-4">
         {selectedGrade && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setSelectedGrade(null);
+              setSearchTerm("");
+              setIsAddingStudent(false);
+            }}
+            className="font-cairo"
+          >
+            <X className="ml-2 h-4 w-4" />
+            العودة للأقسام
+          </Button>
+        )}
+        <h2 className="text-3xl font-bold font-cairo">
+          {selectedGrade ? selectedGrade : "إدارة التلاميذ"}
+        </h2>
+      </div>
+
+      {/* Add Student Button - Below Grade Title */}
+      {selectedGrade && (
+        <div>
           <Button
             onClick={() => {
               setFormData({ ...formData, grade_level: selectedGrade });
@@ -298,8 +301,8 @@ export const StudentManagement = () => {
             <Plus className="ml-2 h-4 w-4" />
             إضافة تلميذ جديد
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Sections Grid - Show only when no grade is selected */}
       {!selectedGrade && !loading && (
