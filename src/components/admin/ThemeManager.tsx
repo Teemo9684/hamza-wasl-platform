@@ -78,13 +78,13 @@ export const ThemeManager = () => {
       
       toast({
         title: "تم تفعيل الثيم",
-        description: `تم تفعيل ثيم "${themes[themeName].displayName}" بنجاح`,
+        description: `تم تفعيل ثيم "${themes[themeName].displayName}" بنجاح. جاري تحديث الصفحة...`,
       });
 
-      // Reload page to apply theme
+      // Reload page immediately to apply theme
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error('Error activating theme:', error);
       toast({
