@@ -41,8 +41,8 @@ const Index = () => {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-700" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl" />
         
-        {/* Geometric Flower Shapes */}
-        <svg className="absolute top-10 right-20 w-32 h-32 text-white/10 blur-sm animate-pulse" viewBox="0 0 100 100">
+        {/* Geometric Flower Shapes - Large */}
+        <svg className="absolute top-10 right-20 w-48 h-48 text-white/8 blur-sm float-animation" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="15" fill="currentColor" />
           <circle cx="50" cy="25" r="10" fill="currentColor" />
           <circle cx="75" cy="50" r="10" fill="currentColor" />
@@ -54,7 +54,7 @@ const Index = () => {
           <circle cx="35" cy="35" r="8" fill="currentColor" />
         </svg>
         
-        <svg className="absolute bottom-32 left-16 w-40 h-40 text-accent/15 blur-sm animate-pulse" style={{ animationDelay: "1s" }} viewBox="0 0 100 100">
+        <svg className="absolute bottom-32 left-16 w-56 h-56 text-white/6 blur-sm float-animation" style={{ animationDelay: "2s", animationDuration: "25s" }} viewBox="0 0 100 100">
           <polygon points="50,20 80,50 50,80 20,50" fill="currentColor" />
           <circle cx="50" cy="50" r="12" fill="currentColor" />
           <circle cx="50" cy="20" r="8" fill="currentColor" />
@@ -63,7 +63,8 @@ const Index = () => {
           <circle cx="20" cy="50" r="8" fill="currentColor" />
         </svg>
         
-        <svg className="absolute top-1/3 left-1/4 w-28 h-28 text-white/8 blur-md animate-pulse" style={{ animationDelay: "2s" }} viewBox="0 0 100 100">
+        {/* Medium Flowers */}
+        <svg className="absolute top-1/3 left-1/4 w-36 h-36 text-white/7 blur-md float-animation" style={{ animationDelay: "4s", animationDuration: "22s" }} viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="12" fill="currentColor" />
           <circle cx="30" cy="30" r="10" fill="currentColor" />
           <circle cx="70" cy="30" r="10" fill="currentColor" />
@@ -75,7 +76,7 @@ const Index = () => {
           <circle cx="25" cy="50" r="7" fill="currentColor" />
         </svg>
         
-        <svg className="absolute top-2/3 right-1/4 w-36 h-36 text-accent/12 blur-sm animate-pulse" style={{ animationDelay: "1.5s" }} viewBox="0 0 100 100">
+        <svg className="absolute top-2/3 right-1/4 w-40 h-40 text-white/8 blur-sm float-animation" style={{ animationDelay: "1s", animationDuration: "28s" }} viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="18" fill="currentColor" />
           <circle cx="50" cy="20" r="12" fill="currentColor" />
           <circle cx="80" cy="50" r="12" fill="currentColor" />
@@ -83,12 +84,29 @@ const Index = () => {
           <circle cx="20" cy="50" r="12" fill="currentColor" />
         </svg>
         
-        <svg className="absolute bottom-1/4 right-1/3 w-24 h-24 text-white/12 blur-md animate-pulse" style={{ animationDelay: "0.5s" }} viewBox="0 0 100 100">
+        {/* Small Flowers */}
+        <svg className="absolute bottom-1/4 right-1/3 w-24 h-24 text-white/10 blur-md float-animation" style={{ animationDelay: "3s", animationDuration: "20s" }} viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="10" fill="currentColor" />
           <circle cx="35" cy="35" r="8" fill="currentColor" />
           <circle cx="65" cy="35" r="8" fill="currentColor" />
           <circle cx="65" cy="65" r="8" fill="currentColor" />
           <circle cx="35" cy="65" r="8" fill="currentColor" />
+        </svg>
+        
+        <svg className="absolute top-1/2 right-1/2 w-28 h-28 text-white/9 blur-sm float-animation" style={{ animationDelay: "5s", animationDuration: "24s" }} viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="14" fill="currentColor" />
+          <circle cx="50" cy="28" r="9" fill="currentColor" />
+          <circle cx="72" cy="50" r="9" fill="currentColor" />
+          <circle cx="50" cy="72" r="9" fill="currentColor" />
+          <circle cx="28" cy="50" r="9" fill="currentColor" />
+        </svg>
+        
+        <svg className="absolute top-3/4 left-1/3 w-20 h-20 text-white/11 blur-md float-animation" style={{ animationDelay: "6s", animationDuration: "18s" }} viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="8" fill="currentColor" />
+          <circle cx="38" cy="38" r="6" fill="currentColor" />
+          <circle cx="62" cy="38" r="6" fill="currentColor" />
+          <circle cx="62" cy="62" r="6" fill="currentColor" />
+          <circle cx="38" cy="62" r="6" fill="currentColor" />
         </svg>
       </div>
 
