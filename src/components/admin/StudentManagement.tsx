@@ -314,10 +314,12 @@ export const StudentManagement = () => {
             return (
               <Card 
                 key={level} 
-                className="glass-card hover:shadow-lg transition-all cursor-pointer"
-                onClick={() => setSelectedGrade(level)}
+                className="glass-card hover:shadow-lg transition-all"
               >
-                <CardHeader>
+                <CardHeader 
+                  className="cursor-pointer"
+                  onClick={() => setSelectedGrade(level)}
+                >
                   <CardTitle className="font-cairo flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <GraduationCap className="w-6 h-6 text-primary" />
@@ -329,7 +331,10 @@ export const StudentManagement = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div 
+                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => setSelectedGrade(level)}
+                  >
                     <span className="text-sm text-muted-foreground font-cairo">
                       عدد التلاميذ
                     </span>
@@ -359,7 +364,7 @@ export const StudentManagement = () => {
                       setAssigningGrade(open ? level : null);
                     }}
                   >
-                    <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <DialogTrigger asChild>
                       <Button variant="outline" size="sm" className="w-full font-cairo">
                         <UserPlus className="w-4 h-4 ml-2" />
                         {assignedTeacher ? "تغيير الأستاذ" : "تعيين أستاذ"}
