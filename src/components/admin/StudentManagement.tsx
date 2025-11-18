@@ -50,6 +50,8 @@ const gradeLevels = [
   "السنة الخامسة",
 ];
 
+const classSections = ["01", "02", "03", "04"];
+
 export const StudentManagement = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,6 +61,7 @@ export const StudentManagement = () => {
     full_name: "",
     national_school_id: "",
     grade_level: "",
+    class_section: "",
     date_of_birth: "",
   });
   const [loading, setLoading] = useState(true);
@@ -74,7 +77,8 @@ export const StudentManagement = () => {
       const { data, error } = await supabase
         .from("students")
         .select("*")
-        .order("grade_level", { ascending: true });
+        .order("grade_level", { ascending: true })
+        .order("class_section", { ascending: true });
 
       if (error) throw error;
       setStudents(data || []);
@@ -138,6 +142,7 @@ export const StudentManagement = () => {
       full_name: student.full_name,
       national_school_id: student.national_school_id,
       grade_level: student.grade_level,
+      class_section: student.class_section || "",
       date_of_birth: student.date_of_birth || "",
     });
     setIsAddingStudent(true);
@@ -172,6 +177,7 @@ export const StudentManagement = () => {
       full_name: "",
       national_school_id: "",
       grade_level: "",
+      class_section: "",
       date_of_birth: "",
     });
     setIsAddingStudent(false);
@@ -256,6 +262,27 @@ export const StudentManagement = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="class_section" className="font-cairo">
+                    القسم
+                  </Label>
+                  <Select
+                    value={formData.class_section}
+                    onValueChange={(value) => setFormData({ ...formData, class_section: value })}
+                  >
+                    <SelectTrigger className="font-cairo">
+                      <SelectValue placeholder="اختر القسم" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classSections.map((section) => (
+                        <SelectItem key={section} value={section} className="font-cairo">
+                          {section}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="date_of_birth" className="font-cairo">
                     تاريخ الميلاد
                   </Label>
@@ -295,91 +322,109 @@ export const StudentManagement = () => {
         />
       </div>
 
-      {/* Students Table */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="font-cairo">قائمة التلاميذ</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground font-cairo">
+      {/* Students by Grade Level */}
+      {loading ? (
+        <Card className="glass-card">
+          <CardContent className="py-8">
+            <div className="text-center text-muted-foreground font-cairo">
               جاري التحميل...
             </div>
-          ) : filteredStudents.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground font-cairo">
+          </CardContent>
+        </Card>
+      ) : filteredStudents.length === 0 ? (
+        <Card className="glass-card">
+          <CardContent className="py-8">
+            <div className="text-center text-muted-foreground font-cairo">
               لا توجد بيانات
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-cairo">الاسم الكامل</TableHead>
-                  <TableHead className="font-cairo">الرقم التعريفي</TableHead>
-                  <TableHead className="font-cairo">المستوى</TableHead>
-                  <TableHead className="font-cairo">الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-cairo font-medium">
-                      {student.full_name}
-                    </TableCell>
-                    <TableCell className="font-cairo">
-                      {student.national_school_id}
-                    </TableCell>
-                    <TableCell className="font-cairo">
-                      {student.grade_level}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(student)}
-                          className="font-cairo"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Dialog>
-                          <DialogTrigger asChild>
+          </CardContent>
+        </Card>
+      ) : (
+        gradeLevels.map((level) => {
+          const studentsInLevel = filteredStudents.filter(s => s.grade_level === level);
+          if (studentsInLevel.length === 0) return null;
+
+          return (
+            <Card key={level} className="glass-card">
+              <CardHeader>
+                <CardTitle className="font-cairo flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-primary" />
+                  {level} ({studentsInLevel.length} تلميذ)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-cairo">الاسم الكامل</TableHead>
+                      <TableHead className="font-cairo">الرقم التعريفي</TableHead>
+                      <TableHead className="font-cairo">القسم</TableHead>
+                      <TableHead className="font-cairo">الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {studentsInLevel.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-cairo font-medium">
+                          {student.full_name}
+                        </TableCell>
+                        <TableCell className="font-cairo">
+                          {student.national_school_id}
+                        </TableCell>
+                        <TableCell className="font-cairo">
+                          {student.class_section || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-destructive font-cairo"
+                              onClick={() => handleEdit(student)}
+                              className="font-cairo"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Edit className="h-4 w-4" />
                             </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle className="font-cairo">
-                                تأكيد الحذف
-                              </DialogTitle>
-                              <DialogDescription className="font-cairo">
-                                هل أنت متأكد من حذف هذا التلميذ؟ لا يمكن التراجع عن هذا الإجراء.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="flex gap-2 justify-end">
-                              <Button
-                                variant="destructive"
-                                onClick={() => handleDelete(student.id)}
-                                className="font-cairo"
-                              >
-                                حذف
-                              </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive font-cairo"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle className="font-cairo">
+                                    تأكيد الحذف
+                                  </DialogTitle>
+                                  <DialogDescription className="font-cairo">
+                                    هل أنت متأكد من حذف هذا التلميذ؟ لا يمكن التراجع عن هذا الإجراء.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex gap-2 justify-end">
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => handleDelete(student.id)}
+                                    className="font-cairo"
+                                  >
+                                    حذف
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          );
+        })
+      )}
 
       {/* Statistics */}
       <div className="grid md:grid-cols-3 gap-6">
