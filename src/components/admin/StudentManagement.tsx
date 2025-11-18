@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus } from "lucide-react";
+import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles } from "lucide-react";
 import { studentSchema } from "@/lib/validations";
 import {
   Table,
@@ -66,6 +66,9 @@ export const StudentManagement = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [gradeTeachers, setGradeTeachers] = useState<Record<string, any>>({});
   const [assigningGrade, setAssigningGrade] = useState<string | null>(null);
+  const [extractedStudents, setExtractedStudents] = useState<any[]>([]);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -265,6 +268,122 @@ export const StudentManagement = () => {
     return students.filter(s => s.grade_level === grade).length;
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedGrade) return;
+
+    setIsExtracting(true);
+    
+    try {
+      // Convert image to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      
+      reader.onload = async () => {
+        const base64Image = reader.result as string;
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('extract-students-from-image', {
+            body: { 
+              imageBase64: base64Image,
+              gradeLevel: selectedGrade 
+            }
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          if (data?.students && data.students.length > 0) {
+            // Add grade_level to extracted students
+            const studentsWithGrade = data.students.map((s: any) => ({
+              ...s,
+              grade_level: selectedGrade,
+              date_of_birth: null
+            }));
+            
+            setExtractedStudents(studentsWithGrade);
+            
+            toast({
+              title: "نجح الاستخراج",
+              description: `تم استخراج ${data.students.length} تلميذ من الصورة`,
+            });
+          } else {
+            toast({
+              title: "لم يتم العثور على بيانات",
+              description: "لم يتم استخراج أي بيانات تلاميذ من الصورة",
+              variant: "destructive",
+            });
+          }
+        } catch (error: any) {
+          console.error('Error extracting students:', error);
+          toast({
+            title: "خطأ",
+            description: error.message || "فشل استخراج البيانات من الصورة",
+            variant: "destructive",
+          });
+        } finally {
+          setIsExtracting(false);
+        }
+      };
+
+      reader.onerror = () => {
+        toast({
+          title: "خطأ",
+          description: "فشل قراءة الصورة",
+          variant: "destructive",
+        });
+        setIsExtracting(false);
+      };
+    } catch (error) {
+      console.error('Error handling image:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل رفع الصورة",
+        variant: "destructive",
+      });
+      setIsExtracting(false);
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleConfirmExtractedStudents = async () => {
+    try {
+      const studentsToInsert = extractedStudents.map(s => ({
+        full_name: s.full_name,
+        national_school_id: s.national_school_id || `AUTO-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        grade_level: selectedGrade,
+        class_section: s.class_section || null,
+        date_of_birth: null
+      }));
+
+      const { error } = await supabase
+        .from("students")
+        .insert(studentsToInsert);
+
+      if (error) throw error;
+
+      toast({
+        title: "نجح الحفظ",
+        description: `تم إضافة ${extractedStudents.length} تلميذ بنجاح`,
+      });
+
+      setExtractedStudents([]);
+      fetchStudents();
+    } catch (error) {
+      console.error('Error saving extracted students:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل حفظ التلاميذ",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -288,9 +407,9 @@ export const StudentManagement = () => {
         </h2>
       </div>
 
-      {/* Add Student Button - Below Grade Title */}
+      {/* Add Student Button & AI Extract Button - Below Grade Title */}
       {selectedGrade && (
-        <div>
+        <div className="flex gap-3">
           <Button
             onClick={() => {
               setFormData({ ...formData, grade_level: selectedGrade });
@@ -301,6 +420,26 @@ export const StudentManagement = () => {
             <Plus className="ml-2 h-4 w-4" />
             إضافة تلميذ جديد
           </Button>
+          
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="image-upload"
+            />
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isExtracting}
+              variant="outline"
+              className="font-cairo"
+            >
+              <Sparkles className="ml-2 h-4 w-4" />
+              {isExtracting ? "جاري الاستخراج..." : "استخراج من صورة بالذكاء الاصطناعي"}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -398,6 +537,60 @@ export const StudentManagement = () => {
             );
           })}
         </div>
+      )}
+
+      {/* Extracted Students Preview */}
+      {selectedGrade && extractedStudents.length > 0 && (
+        <Card className="glass-card border-primary">
+          <CardHeader>
+            <CardTitle className="font-cairo flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              التلاميذ المستخرجون من الصورة ({extractedStudents.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="max-h-96 overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-cairo">الاسم الكامل</TableHead>
+                      <TableHead className="font-cairo">الرقم التعريفي</TableHead>
+                      <TableHead className="font-cairo">القسم</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {extractedStudents.map((student, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-cairo">{student.full_name}</TableCell>
+                        <TableCell className="font-cairo">{student.national_school_id || "غير محدد"}</TableCell>
+                        <TableCell className="font-cairo">{student.class_section || "غير محدد"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setExtractedStudents([])}
+                  className="font-cairo"
+                >
+                  <X className="ml-2 h-4 w-4" />
+                  إلغاء
+                </Button>
+                <Button
+                  onClick={handleConfirmExtractedStudents}
+                  className="font-cairo"
+                >
+                  <Save className="ml-2 h-4 w-4" />
+                  تأكيد وإضافة جميع التلاميذ
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Add/Edit Form - Show only when grade is selected */}
