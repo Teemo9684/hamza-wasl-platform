@@ -67,18 +67,27 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const applyTheme = (theme: ThemeColors) => {
     const root = document.documentElement;
     
+    console.log('Applying theme:', theme.name);
+    
     // Apply color variables
     Object.entries(theme.colors).forEach(([key, value]) => {
+      // Convert camelCase to kebab-case (e.g., primaryLight -> primary-light)
       const cssVar = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-      root.style.setProperty(`--${cssVar}`, value);
+      const varName = `--${cssVar}`;
+      root.style.setProperty(varName, value);
+      console.log(`Set ${varName} to ${value}`);
     });
 
     // Apply gradients if available
     if (theme.gradients) {
       Object.entries(theme.gradients).forEach(([key, value]) => {
-        root.style.setProperty(`--gradient-${key}`, value);
+        const varName = `--gradient-${key}`;
+        root.style.setProperty(varName, value);
+        console.log(`Set ${varName}`);
       });
     }
+    
+    console.log('Theme applied successfully');
   };
 
   return (
