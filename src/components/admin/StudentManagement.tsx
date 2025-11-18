@@ -50,8 +50,6 @@ const gradeLevels = [
   "السنة الخامسة",
 ];
 
-const classSections = ["أ", "ب", "ج", "د"];
-
 export const StudentManagement = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,7 +59,6 @@ export const StudentManagement = () => {
     full_name: "",
     national_school_id: "",
     grade_level: "",
-    class_section: "",
     date_of_birth: "",
   });
   const [loading, setLoading] = useState(true);
@@ -77,8 +74,7 @@ export const StudentManagement = () => {
       const { data, error } = await supabase
         .from("students")
         .select("*")
-        .order("grade_level", { ascending: true })
-        .order("class_section", { ascending: true });
+        .order("grade_level", { ascending: true });
 
       if (error) throw error;
       setStudents(data || []);
@@ -142,7 +138,6 @@ export const StudentManagement = () => {
       full_name: student.full_name,
       national_school_id: student.national_school_id,
       grade_level: student.grade_level,
-      class_section: student.class_section || "",
       date_of_birth: student.date_of_birth || "",
     });
     setIsAddingStudent(true);
@@ -177,7 +172,6 @@ export const StudentManagement = () => {
       full_name: "",
       national_school_id: "",
       grade_level: "",
-      class_section: "",
       date_of_birth: "",
     });
     setIsAddingStudent(false);
@@ -262,27 +256,6 @@ export const StudentManagement = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="class_section" className="font-cairo">
-                    القسم
-                  </Label>
-                  <Select
-                    value={formData.class_section}
-                    onValueChange={(value) => setFormData({ ...formData, class_section: value })}
-                  >
-                    <SelectTrigger className="font-cairo">
-                      <SelectValue placeholder="اختر القسم" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classSections.map((section) => (
-                        <SelectItem key={section} value={section} className="font-cairo">
-                          {section}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="date_of_birth" className="font-cairo">
                     تاريخ الميلاد
                   </Label>
@@ -343,7 +316,6 @@ export const StudentManagement = () => {
                   <TableHead className="font-cairo">الاسم الكامل</TableHead>
                   <TableHead className="font-cairo">الرقم التعريفي</TableHead>
                   <TableHead className="font-cairo">المستوى</TableHead>
-                  <TableHead className="font-cairo">القسم</TableHead>
                   <TableHead className="font-cairo">الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -358,9 +330,6 @@ export const StudentManagement = () => {
                     </TableCell>
                     <TableCell className="font-cairo">
                       {student.grade_level}
-                    </TableCell>
-                    <TableCell className="font-cairo">
-                      {student.class_section || "-"}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
