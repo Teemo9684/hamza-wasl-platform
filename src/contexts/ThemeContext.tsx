@@ -16,23 +16,34 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const fetchActiveTheme = async () => {
       try {
+        console.log('Fetching active theme from database...');
+        
         const { data, error } = await supabase
           .from('theme_settings')
           .select('theme_name')
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
+
+        console.log('Theme query result:', { data, error });
 
         if (error) {
           console.error('Error fetching theme:', error);
+          applyTheme(themes.default);
+          setIsLoading(false);
           return;
         }
 
-        if (data && themes[data.theme_name]) {
+        if (data && data.theme_name && themes[data.theme_name]) {
+          console.log('Found active theme:', data.theme_name);
           setCurrentTheme(themes[data.theme_name]);
           applyTheme(themes[data.theme_name]);
+        } else {
+          console.log('No active theme found, using default');
+          applyTheme(themes.default);
         }
       } catch (error) {
         console.error('Error in fetchActiveTheme:', error);
+        applyTheme(themes.default);
       } finally {
         setIsLoading(false);
       }
@@ -51,7 +62,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           table: 'theme_settings',
         },
         (payload) => {
+          console.log('Theme update received:', payload);
           if (payload.new.is_active && themes[payload.new.theme_name]) {
+            console.log('Applying new theme:', payload.new.theme_name);
             setCurrentTheme(themes[payload.new.theme_name]);
             applyTheme(themes[payload.new.theme_name]);
           }
