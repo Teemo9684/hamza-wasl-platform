@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles } from "lucide-react";
+import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles, ArrowRight, Home } from "lucide-react";
 import { studentSchema } from "@/lib/validations";
 import {
   Table,
@@ -409,13 +409,13 @@ export const StudentManagement = () => {
 
       {/* Add Student Button & AI Extract Button - Below Grade Title */}
       {selectedGrade && (
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3">
           <Button
             onClick={() => {
               setFormData({ ...formData, grade_level: selectedGrade });
               setIsAddingStudent(true);
             }}
-            className="font-cairo"
+            className="font-cairo w-fit"
           >
             <Plus className="ml-2 h-4 w-4" />
             إضافة تلميذ جديد
@@ -434,7 +434,7 @@ export const StudentManagement = () => {
               onClick={() => fileInputRef.current?.click()}
               disabled={isExtracting}
               variant="outline"
-              className="font-cairo"
+              className="font-cairo w-fit"
             >
               <Sparkles className="ml-2 h-4 w-4" />
               {isExtracting ? "جاري الاستخراج..." : "استخراج من صورة بالذكاء الاصطناعي"}
