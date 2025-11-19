@@ -49,7 +49,9 @@ const DashboardAdmin = () => {
         pendingRequests: 0,
       });
     } catch (error) {
-      console.error("Error fetching statistics:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching statistics:", error);
+      }
     }
   };
 

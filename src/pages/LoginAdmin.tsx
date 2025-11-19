@@ -61,7 +61,9 @@ const LoginAdmin = () => {
       toast.success("تم تسجيل الدخول بنجاح");
       navigate("/dashboard/admin");
     } catch (error: any) {
-      console.error("Login error:", error);
+      if (import.meta.env.DEV) {
+        console.error("Login error:", error);
+      }
       if (error.message?.includes("Invalid login credentials")) {
         toast.error("الرقم السري غير صحيح");
       } else {
