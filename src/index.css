@@ -331,19 +331,19 @@
     }
   }
 
-  /* Ticker Animation for News */
+  /* Ticker Animation for News - RTL Support */
   .ticker-animation {
-    animation: ticker-ltr 16s linear infinite;
+    animation: ticker-rtl 30s linear infinite;
     will-change: transform;
   }
 
-  /* Left-to-right smooth scroll (repeat 3x, move by +33.333%) */
-  @keyframes ticker-ltr {
+  /* Right-to-left smooth scroll for Arabic (repeat 3x, move by -33.333%) */
+  @keyframes ticker-rtl {
     0% {
       transform: translateX(0);
     }
     100% {
-      transform: translateX(33.333%);
+      transform: translateX(-33.333%);
     }
   }
 
