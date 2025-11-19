@@ -40,9 +40,8 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
         </div>
         
         {/* Text with staggered animation - directly under image */}
-        <div className="flex flex-col items-center gap-1 splash-slide-up -mt-8" style={{ animationDelay: '0.6s', opacity: 0 }}>
-          <h1 className="text-5xl font-bold text-white font-ruqaa drop-shadow-lg">همزة وصل</h1>
-          <p className="text-xl text-white/95 font-cairo drop-shadow-md">مدرسة العربي التبسي</p>
+        <div className="flex flex-col items-center splash-slide-up -mt-12" style={{ animationDelay: '0.6s', opacity: 0 }}>
+          <h1 className="text-4xl font-bold text-white font-cairo drop-shadow-lg">المدرسة الابتدائية العربي التبسي</h1>
         </div>
       </div>
     </div>
