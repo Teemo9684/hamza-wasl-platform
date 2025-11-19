@@ -10,7 +10,6 @@ import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
 import { ReportsView } from "@/components/admin/ReportsView";
 import { SettingsManager } from "@/components/admin/SettingsManager";
 import { MessagesView } from "@/components/admin/MessagesView";
-import { AccountApprovalsManager } from "@/components/admin/AccountApprovalsManager";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -111,7 +110,6 @@ const DashboardAdmin = () => {
               {activeSection === "reports" && <ReportsView />}
               {activeSection === "settings" && <SettingsManager />}
               {activeSection === "messages" && <MessagesView />}
-              {activeSection === "approvals" && <AccountApprovalsManager />}
             </div>
           ) : (
             <>
@@ -285,28 +283,6 @@ const DashboardAdmin = () => {
                     عرض جميع الرسائل بين الأولياء والأساتذة
                   </p>
                   <Button className="w-full bg-gradient-primary text-white font-cairo">
-                    عرض
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("approvals")}>
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
-                    <Bell className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 font-cairo">الموافقة على الحسابات</h3>
-                  <p className="text-sm text-muted-foreground font-cairo mb-4">
-                    اعتماد أو رفض طلبات التسجيل الجديدة
-                  </p>
-                  {stats.pendingRequests > 0 && (
-                    <Badge className="mb-2 bg-red-500 text-white">
-                      {stats.pendingRequests} طلب جديد
-                    </Badge>
-                  )}
-                  <Button className="w-full bg-accent text-white font-cairo">
                     عرض
                   </Button>
                 </div>
