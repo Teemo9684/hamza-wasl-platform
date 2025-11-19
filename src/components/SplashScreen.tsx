@@ -52,6 +52,9 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               src={splashLogo} 
               alt="العربي التبسي" 
               className="w-[70vw] h-[70vh] object-contain drop-shadow-2xl"
+              width="1024"
+              height="1024"
+              fetchPriority="high"
             />
           </div>
         )}
@@ -63,6 +66,9 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               src={splashLogo} 
               alt="العربي التبسي" 
               className="w-[70vw] h-[70vh] object-contain drop-shadow-2xl"
+              width="1024"
+              height="1024"
+              fetchPriority="high"
             />
           </div>
         )}
