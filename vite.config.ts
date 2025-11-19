@@ -19,14 +19,16 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: 'همزة وصل - المدرسة الابتدائية العربي التبسي',
         short_name: 'همزة وصل',
-        description: 'منصة تعليمية شاملة للمدرسة الابتدائية العربي التبسي',
+        description: 'جسر التواصل بين المدرسة والبيت - منصة تعليمية شاملة للمدرسة الابتدائية العربي التبسي',
         theme_color: '#1e40af',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
+        scope: '/',
         lang: 'ar',
         dir: 'rtl',
+        categories: ['education', 'productivity'],
         icons: [
           {
             src: '/icon-192.png',
@@ -44,6 +46,22 @@ export default defineConfig(({ mode }) => ({
             src: '/apple-touch-icon.png',
             sizes: '180x180',
             type: 'image/png'
+          }
+        ],
+        shortcuts: [
+          {
+            name: 'تسجيل الدخول - أولياء الأمور',
+            short_name: 'أولياء',
+            description: 'الدخول لحساب ولي الأمر',
+            url: '/login/parent',
+            icons: [{ src: '/icon-192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'تسجيل الدخول - المعلمين',
+            short_name: 'معلمين',
+            description: 'الدخول لحساب المعلم',
+            url: '/login/teacher',
+            icons: [{ src: '/icon-192.png', sizes: '192x192' }]
           }
         ]
       },
