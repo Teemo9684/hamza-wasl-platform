@@ -19,27 +19,34 @@ const LoginAdmin = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // التحقق من الرقم السري
+    if (!pin || pin.trim().length === 0) {
+      toast.error("الرجاء إدخال الرقم السري");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // التحقق من الرقم السري
-      if (!pin || pin.trim().length === 0) {
-        toast.error("الرجاء إدخال الرقم السري");
-        setIsLoading(false);
-        return;
-      }
-
+      console.log("Admin login attempt");
+      
       // Sign in with Supabase using fixed admin email and PIN as password
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: ADMIN_EMAIL,
-        password: pin,
+        password: pin.trim(),
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error("Auth error:", authError.message);
+        throw authError;
+      }
 
       if (!authData.user) {
         throw new Error("لم يتم العثور على المستخدم");
       }
+
+      console.log("Authentication successful, checking admin role...");
 
       // Check if user has admin role
       const { data: roleData, error: roleError } = await supabase
@@ -49,23 +56,33 @@ const LoginAdmin = () => {
         .eq("role", "admin")
         .maybeSingle();
 
-      if (roleError) throw roleError;
+      if (roleError) {
+        console.error("Role check error:", roleError);
+        throw roleError;
+      }
 
       if (!roleData) {
+        console.log("User does not have admin role");
         await supabase.auth.signOut();
         toast.error("ليس لديك صلاحية المسؤول");
         setIsLoading(false);
         return;
       }
 
+      console.log("Admin role confirmed, navigating to dashboard...");
       toast.success("تم تسجيل الدخول بنجاح");
-      navigate("/dashboard/admin");
+      
+      // Use setTimeout to ensure toast is shown before navigation
+      setTimeout(() => {
+        navigate("/dashboard/admin");
+      }, 100);
     } catch (error: any) {
-      if (import.meta.env.DEV) {
-        console.error("Login error:", error);
-      }
+      console.error("Login error:", error);
+      
       if (error.message?.includes("Invalid login credentials")) {
         toast.error("الرقم السري غير صحيح");
+      } else if (error.message?.includes("Email not confirmed")) {
+        toast.error("الرجاء تأكيد بريدك الإلكتروني أولاً");
       } else {
         toast.error("حدث خطأ في تسجيل الدخول");
       }
