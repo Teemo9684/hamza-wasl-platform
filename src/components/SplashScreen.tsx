@@ -31,7 +31,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
     >
       <div className="flex flex-col items-center justify-center gap-8">
         {/* Logo with animation */}
-        <div className="animate-in fade-in zoom-in duration-700 delay-100">
+        <div className="splash-zoom-fade" style={{ animationDelay: '0.2s', opacity: 0 }}>
           <img 
             src={splashLogo} 
             alt="العربي التبسي" 
@@ -40,7 +40,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
         </div>
         
         {/* Text with staggered animation */}
-        <div className="flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+        <div className="flex flex-col items-center gap-3 splash-slide-up" style={{ animationDelay: '0.6s', opacity: 0 }}>
           <h1 className="text-6xl font-bold text-white font-ruqaa drop-shadow-lg">همزة وصل</h1>
           <p className="text-2xl text-white/95 font-cairo drop-shadow-md">مدرسة العربي التبسي</p>
         </div>

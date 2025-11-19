@@ -387,4 +387,35 @@
     animation: magicRotate2 6s ease-in-out infinite;
     transform-style: preserve-3d;
   }
+
+  /* Splash Screen Animations */
+  @keyframes splash-zoom-fade {
+    0% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes splash-slide-up {
+    0% {
+      opacity: 0;
+      transform: translateY(50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .splash-zoom-fade {
+    animation: splash-zoom-fade 1s ease-out forwards;
+  }
+
+  .splash-slide-up {
+    animation: splash-slide-up 1s ease-out forwards;
+  }
 }
