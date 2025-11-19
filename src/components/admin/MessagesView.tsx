@@ -111,7 +111,9 @@ export const MessagesView = () => {
       const teachersArray = Object.values(groupedMessages);
       setMessagesByTeacher(teachersArray);
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching messages:", error);
+      }
     } finally {
       setLoading(false);
     }

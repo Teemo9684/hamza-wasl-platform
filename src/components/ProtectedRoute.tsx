@@ -36,7 +36,9 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
         .maybeSingle();
 
       if (error) {
-        console.error("Error checking role:", error);
+        if (import.meta.env.DEV) {
+          console.error("Error checking role:", error);
+        }
         toast.error("حدث خطأ في التحقق من الصلاحيات");
         setIsAuthorized(false);
       } else {
@@ -46,7 +48,9 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
         }
       }
     } catch (error) {
-      console.error("Auth check error:", error);
+      if (import.meta.env.DEV) {
+        console.error("Auth check error:", error);
+      }
       setIsAuthorized(false);
     } finally {
       setIsLoading(false);
