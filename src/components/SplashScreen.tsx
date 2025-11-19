@@ -35,7 +35,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
           <img 
             src={splashLogo} 
             alt="العربي التبسي" 
-            className="mx-auto w-48 h-48 object-contain rounded-full shadow-2xl border-4 border-white/20"
+            className="mx-auto w-72 h-72 object-contain"
           />
         </div>
         
