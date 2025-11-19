@@ -250,38 +250,15 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Installation Guide Button */}
-        <div className="mt-12 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
-          <button
-            onClick={() => navigate("/install-guide")}
-            className="group relative bg-white/20 backdrop-blur-lg rounded-2xl px-12 py-6 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/30 border-2 border-white/40 hover:border-white/60 inline-flex items-center gap-4"
-          >
-            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-            </svg>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-white font-cairo">
-                دليل التثبيت و QR Code
-              </div>
-              <div className="text-white/80 font-cairo text-sm mt-1">
-                اطبع الورقة أو شارك الرابط مع الأولياء
-              </div>
-            </div>
-            <svg className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-        </div>
-
         {/* Footer */}
-        <div className="mt-16 text-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
+        <div className="mt-16 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <p className="text-white/70 font-cairo text-lg">
             اختر نوع الحساب للدخول إلى المنصة
           </p>
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
+        <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
           <p className="text-white/60 font-cairo text-sm">
             © 2026 مدرسة العربي التبسي - جميع الحقوق محفوظة
           </p>
