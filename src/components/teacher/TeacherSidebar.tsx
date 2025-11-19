@@ -1,4 +1,4 @@
-import { Home, Users, MessageSquare, Calendar } from "lucide-react";
+import { Home, Users, MessageSquare, Calendar, Send } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +20,7 @@ const menuItems = [
   { title: "التلاميذ", icon: Users, section: "students" },
   { title: "الحضور", icon: Calendar, section: "attendance" },
   { title: "الرسائل", icon: MessageSquare, section: "messages" },
+  { title: "رسائل جماعية", icon: Send, section: "groupMessages" },
 ];
 
 export const TeacherSidebar = ({ unreadCount }: TeacherSidebarProps) => {

@@ -11,6 +11,7 @@ import { TeacherOverview } from "@/components/teacher/TeacherOverview";
 import { TeacherStudents } from "@/components/teacher/TeacherStudents";
 import { TeacherAttendance } from "@/components/teacher/TeacherAttendance";
 import { TeacherMessages } from "@/components/teacher/TeacherMessages";
+import { TeacherGroupMessaging } from "@/components/teacher/TeacherGroupMessaging";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 
 const DashboardTeacher = () => {
@@ -355,6 +356,10 @@ const DashboardTeacher = () => {
                   onMarkAsRead={handleMarkAsRead}
                   onSendReply={handleSendReply}
                 />
+              </section>
+
+              <section id="groupMessages">
+                <TeacherGroupMessaging />
               </section>
             </div>
           </main>
