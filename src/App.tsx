@@ -21,6 +21,7 @@ import DashboardParent from "./pages/DashboardParent";
 import DashboardTeacher from "./pages/DashboardTeacher";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import InstallApp from "./pages/InstallApp";
+import InstallGuide from "./pages/InstallGuide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -127,6 +128,7 @@ const App = () => {
             } 
           />
           <Route path="/install" element={<InstallApp />} />
+          <Route path="/install-guide" element={<InstallGuide />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
