@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import splashLogo from "@/assets/splash-logo.png";
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -7,32 +6,19 @@ interface SplashScreenProps {
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   const [fadeOut, setFadeOut] = useState(false);
-  const [stage, setStage] = useState<'logo' | 'breaking' | 'text'>('logo');
 
   useEffect(() => {
-    // Stage 1: Show logo (0-1.5s)
-    const breakTimer = setTimeout(() => {
-      setStage('breaking');
-    }, 1500);
-
-    // Stage 2: Breaking effect (1.5-2.3s)
-    const textTimer = setTimeout(() => {
-      setStage('text');
-    }, 2300);
-
-    // Stage 3: Fade out (3.5s)
+    // Fade out after 2.5s
     const fadeTimer = setTimeout(() => {
       setFadeOut(true);
-    }, 3500);
+    }, 2500);
 
-    // Finish (4s)
+    // Finish after 3s
     const finishTimer = setTimeout(() => {
       onFinish();
-    }, 4000);
+    }, 3000);
 
     return () => {
-      clearTimeout(breakTimer);
-      clearTimeout(textTimer);
       clearTimeout(fadeTimer);
       clearTimeout(finishTimer);
     };
@@ -44,43 +30,39 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="flex items-center justify-center w-full h-full">
-        {/* Logo Stage */}
-        {stage === 'logo' && (
-          <div className="splash-zoom-fade w-full h-full flex items-center justify-center">
-            <img 
-              src={splashLogo} 
-              alt="العربي التبسي" 
-              className="w-[70vw] h-[70vh] object-contain drop-shadow-2xl"
-              width="1024"
-              height="1024"
-              fetchPriority="high"
-            />
-          </div>
-        )}
+      {/* Animated Background Particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute w-96 h-96 bg-white/5 rounded-full blur-3xl -top-48 -left-48 animate-pulse" />
+        <div className="absolute w-96 h-96 bg-white/5 rounded-full blur-3xl -bottom-48 -right-48 animate-pulse delay-700" />
+      </div>
 
-        {/* Breaking Stage */}
-        {stage === 'breaking' && (
-          <div className="splash-break-apart w-full h-full flex items-center justify-center">
-            <img 
-              src={splashLogo} 
-              alt="العربي التبسي" 
-              className="w-[70vw] h-[70vh] object-contain drop-shadow-2xl"
-              width="1024"
-              height="1024"
-              fetchPriority="high"
-            />
+      {/* Main Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center gap-8">
+        {/* Logo Text with Glow Effect */}
+        <div className="relative">
+          <h1 className="text-7xl md:text-9xl font-bold text-white font-aref drop-shadow-2xl animate-fade-in">
+            همزة وصل
+          </h1>
+          {/* Glow Effect */}
+          <div className="absolute inset-0 text-7xl md:text-9xl font-bold text-white font-aref blur-2xl opacity-50 animate-pulse">
+            همزة وصل
           </div>
-        )}
+        </div>
 
-        {/* Text Stage */}
-        {stage === 'text' && (
-          <div className="splash-text-appear flex items-center justify-center">
-            <h1 className="text-6xl md:text-8xl font-bold text-white font-aref drop-shadow-2xl">
-              العربي التبسي
-            </h1>
-          </div>
-        )}
+        {/* Animated Underline */}
+        <div className="w-64 h-1 bg-gradient-to-r from-transparent via-white to-transparent animate-fade-in delay-300" />
+
+        {/* Subtitle with Fade In */}
+        <p className="text-xl md:text-2xl text-white/90 font-cairo animate-fade-in delay-500">
+          جسر التواصل بين المدرسة و البيت
+        </p>
+
+        {/* Loading Dots Animation */}
+        <div className="flex gap-2 mt-4 animate-fade-in delay-700">
+          <div className="w-3 h-3 bg-white rounded-full animate-bounce" />
+          <div className="w-3 h-3 bg-white rounded-full animate-bounce delay-100" />
+          <div className="w-3 h-3 bg-white rounded-full animate-bounce delay-200" />
+        </div>
       </div>
     </div>
   );
