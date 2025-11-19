@@ -141,7 +141,21 @@ export type Database = {
             foreignKeyName: "messages_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
+            referencedRelation: "pending_approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "pending_approvals"
             referencedColumns: ["id"]
           },
           {
@@ -223,6 +237,13 @@ export type Database = {
             foreignKeyName: "parent_students_parent_id_fkey"
             columns: ["parent_id"]
             isOneToOne: false
+            referencedRelation: "pending_approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_students_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -240,6 +261,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          is_approved: boolean
           phone: string | null
           updated_at: string
         }
@@ -247,6 +269,7 @@ export type Database = {
           created_at?: string
           full_name: string
           id: string
+          is_approved?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -254,6 +277,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          is_approved?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -319,6 +343,13 @@ export type Database = {
             foreignKeyName: "teacher_grade_levels_teacher_id_fkey"
             columns: ["teacher_id"]
             isOneToOne: false
+            referencedRelation: "pending_approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_grade_levels_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -352,6 +383,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_students_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "pending_approvals"
             referencedColumns: ["id"]
           },
           {
@@ -410,7 +448,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      pending_approvals: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -428,6 +475,7 @@ export type Database = {
         Args: { _student_id: string; _teacher_id: string }
         Returns: boolean
       }
+      is_user_approved: { Args: { _user_id: string }; Returns: boolean }
       link_parent_to_student: {
         Args: { _national_school_id: string; _parent_id: string }
         Returns: string
