@@ -210,7 +210,7 @@ export const UserManagement = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <Button
           variant={activeTab === "teachers" ? "default" : "outline"}
           onClick={() => setActiveTab("teachers")}
@@ -227,19 +227,21 @@ export const UserManagement = () => {
           <Users className="ml-2 h-4 w-4" />
           أولياء الأمور
         </Button>
-        <Button
-          variant={activeTab === "pending" ? "default" : "outline"}
-          onClick={() => setActiveTab("pending")}
-          className="font-cairo"
-        >
-          <Clock className="ml-2 h-4 w-4" />
-          الحسابات المعلقة
+        <div className="relative">
+          <Button
+            variant={activeTab === "pending" ? "default" : "outline"}
+            onClick={() => setActiveTab("pending")}
+            className="font-cairo"
+          >
+            <Clock className="ml-2 h-4 w-4" />
+            الحسابات المعلقة
+          </Button>
           {pendingApprovals && pendingApprovals.length > 0 && (
-            <Badge className="mr-2 bg-red-500 text-white">
+            <Badge className="absolute -top-2 -left-2 bg-red-500 text-white h-5 min-w-5 flex items-center justify-center px-1.5">
               {pendingApprovals.length}
             </Badge>
           )}
-        </Button>
+        </div>
       </div>
 
       {/* Search - Only show for non-pending tabs */}
