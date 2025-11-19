@@ -71,11 +71,7 @@ const LoginAdmin = () => {
 
       console.log("Admin role confirmed, navigating to dashboard...");
       toast.success("تم تسجيل الدخول بنجاح");
-      
-      // Use setTimeout to ensure toast is shown before navigation
-      setTimeout(() => {
-        navigate("/dashboard/admin");
-      }, 100);
+      navigate("/dashboard/admin", { replace: true });
     } catch (error: any) {
       console.error("Login error:", error);
       

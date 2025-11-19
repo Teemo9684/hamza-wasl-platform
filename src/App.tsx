@@ -57,18 +57,20 @@ const App = () => {
     initializeNotifications();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Re-initialize notifications on sign in
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
+        // Defer Supabase calls with setTimeout to prevent deadlock
+        setTimeout(async () => {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
 
-        if (roleData) {
-          cleanupRealtime = await setupRealtimeNotifications(session.user.id, roleData.role);
-        }
+          if (roleData) {
+            cleanupRealtime = await setupRealtimeNotifications(session.user.id, roleData.role);
+          }
+        }, 0);
       } else if (event === 'SIGNED_OUT') {
         // Clean up on sign out
         cleanupRealtime?.();
