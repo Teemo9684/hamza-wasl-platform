@@ -129,10 +129,10 @@ const Index = () => {
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-24">
         {/* Logo and Title */}
         <div className="text-center mb-8 animate-fade-in">
-          <div className="relative h-64 mb-6">
+          <div className="relative h-48 mb-6">
             {/* همزة وصل */}
             <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
-              <h1 className="text-8xl font-bold text-white font-ruqaa leading-[0.9]">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
                 <div>همزة</div>
                 <div>وصل</div>
               </h1>
@@ -140,7 +140,7 @@ const Index = () => {
             
             {/* العربي التبسي */}
             <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
-              <h1 className="text-8xl font-bold text-white font-ruqaa leading-[0.9]">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
                 <div>العربي</div>
                 <div>التبسي</div>
               </h1>
