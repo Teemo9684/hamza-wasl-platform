@@ -337,13 +337,13 @@
     will-change: transform;
   }
 
-  /* Right-to-left smooth scroll for Arabic (repeat 3x, move by -33.333%) */
+  /* Left-to-right smooth scroll (repeat 3x, move by +33.333%) */
   @keyframes ticker-rtl {
     0% {
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-33.333%);
+      transform: translateX(33.333%);
     }
   }
 
