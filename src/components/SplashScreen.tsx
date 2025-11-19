@@ -37,28 +37,31 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center gap-8">
+      <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-6 max-w-2xl mx-auto">
         {/* Logo Text with Glow Effect */}
-        <div className="relative">
-          <h1 className="text-7xl md:text-9xl font-bold text-white font-aref drop-shadow-2xl animate-fade-in">
+        <div className="relative mb-4">
+          <h1 className="text-6xl md:text-8xl font-bold text-white font-aref drop-shadow-2xl animate-fade-in">
             همزة وصل
           </h1>
           {/* Glow Effect */}
-          <div className="absolute inset-0 text-7xl md:text-9xl font-bold text-white font-aref blur-2xl opacity-50 animate-pulse">
+          <div className="absolute inset-0 text-6xl md:text-8xl font-bold text-white font-aref blur-2xl opacity-50 animate-pulse">
             همزة وصل
           </div>
         </div>
 
-        {/* Animated Underline */}
-        <div className="w-64 h-1 bg-gradient-to-r from-transparent via-white to-transparent animate-fade-in delay-300" />
-
-        {/* Subtitle with Fade In */}
-        <p className="text-xl md:text-2xl text-white/90 font-cairo animate-fade-in delay-500">
-          جسر التواصل بين المدرسة و البيت
-        </p>
+        {/* Welcome Message */}
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20 animate-fade-in delay-300">
+          <h2 className="text-2xl md:text-3xl font-bold text-white font-cairo mb-4 text-center">
+            مرحباً بك في منصة المدرسة
+          </h2>
+          <p className="text-lg md:text-xl text-white/90 font-cairo text-center leading-relaxed">
+            هذا التطبيق مخصص فقط لمتابعة والاستفسار عن أبنائكم في المدرسة. 
+            يرجى استخدام التطبيق بالطريقة الصحيحة والتواصل مع المعلمين بشكل محترم ومهني.
+          </p>
+        </div>
 
         {/* Loading Dots Animation */}
-        <div className="flex gap-2 mt-4 animate-fade-in delay-700">
+        <div className="flex gap-2 mt-2 animate-fade-in delay-500">
           <div className="w-3 h-3 bg-white rounded-full animate-bounce" />
           <div className="w-3 h-3 bg-white rounded-full animate-bounce delay-100" />
           <div className="w-3 h-3 bg-white rounded-full animate-bounce delay-200" />
