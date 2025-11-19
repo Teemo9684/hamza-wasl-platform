@@ -38,19 +38,8 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-6 max-w-2xl mx-auto">
-        {/* Logo Text with Glow Effect */}
-        <div className="relative mb-4">
-          <h1 className="text-6xl md:text-8xl font-bold text-white font-aref drop-shadow-2xl animate-fade-in">
-            همزة وصل
-          </h1>
-          {/* Glow Effect */}
-          <div className="absolute inset-0 text-6xl md:text-8xl font-bold text-white font-aref blur-2xl opacity-50 animate-pulse">
-            همزة وصل
-          </div>
-        </div>
-
         {/* Welcome Message */}
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20 animate-fade-in delay-300">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20 animate-fade-in">
           <h2 className="text-2xl md:text-3xl font-bold text-white font-cairo mb-4 text-center">
             مرحباً بك في منصة المدرسة
           </h2>
