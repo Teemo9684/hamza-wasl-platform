@@ -102,6 +102,53 @@ export type Database = {
           },
         ]
       }
+      homework: {
+        Row: {
+          attachment_url: string | null
+          created_at: string | null
+          description: string
+          due_date: string
+          grade_level: string
+          id: string
+          subject: string | null
+          teacher_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          attachment_url?: string | null
+          created_at?: string | null
+          description: string
+          due_date: string
+          grade_level: string
+          id?: string
+          subject?: string | null
+          teacher_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          attachment_url?: string | null
+          created_at?: string | null
+          description?: string
+          due_date?: string
+          grade_level?: string
+          id?: string
+          subject?: string | null
+          teacher_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
