@@ -11,11 +11,11 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   useEffect(() => {
     const fadeTimer = setTimeout(() => {
       setFadeOut(true);
-    }, 1800);
+    }, 3500);
 
     const finishTimer = setTimeout(() => {
       onFinish();
-    }, 2000);
+    }, 4000);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -25,7 +25,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary/95 to-accent transition-opacity duration-200 ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary/95 to-accent transition-opacity duration-500 ${
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
