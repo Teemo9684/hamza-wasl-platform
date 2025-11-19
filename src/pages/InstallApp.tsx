@@ -81,7 +81,7 @@ const InstallApp = () => {
           </div>
           <CardTitle className="text-2xl">ثبّت تطبيق همزة وصل</CardTitle>
           <CardDescription className="text-base">
-            استمتع بتجربة أفضل مع التطبيق على هاتفك
+            حمّل التطبيق على هاتفك للحصول على تجربة أفضل وإشعارات فورية
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -89,9 +89,9 @@ const InstallApp = () => {
             <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
               <Download className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold mb-1">تثبيت سريع</h3>
+                <h3 className="font-semibold mb-1">بدون متجر التطبيقات</h3>
                 <p className="text-sm text-muted-foreground">
-                  لا حاجة للمتجر، ثبّت مباشرة من المتصفح
+                  ثبّت مباشرة من متصفحك بدون الحاجة لمتجر Google Play أو App Store
                 </p>
               </div>
             </div>
@@ -99,9 +99,19 @@ const InstallApp = () => {
             <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
               <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold mb-1">يعمل بدون إنترنت</h3>
+                <h3 className="font-semibold mb-1">إشعارات فورية</h3>
                 <p className="text-sm text-muted-foreground">
-                  الوصول للتطبيق حتى بدون اتصال بالإنترنت
+                  احصل على تنبيهات مباشرة للرسائل والإعلانات حتى عند إغلاق التطبيق
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
+              <Smartphone className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold mb-1">تحديثات تلقائية</h3>
+                <p className="text-sm text-muted-foreground">
+                  التطبيق يُحدّث نفسه تلقائياً لتحصل دائماً على آخر المميزات
                 </p>
               </div>
             </div>
@@ -112,12 +122,14 @@ const InstallApp = () => {
               <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Share2 className="w-5 h-5" />
-                  خطوات التثبيت على آيفون:
+                  خطوات التثبيت على آيفون (Safari):
                 </h3>
-                <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-                  <li>اضغط على زر المشاركة <Share2 className="inline w-4 h-4" /> في شريط Safari</li>
-                  <li>اختر "إضافة إلى الشاشة الرئيسية"</li>
-                  <li>اضغط "إضافة" للتأكيد</li>
+                <ol className="space-y-3 text-sm list-decimal list-inside mr-2">
+                  <li className="leading-relaxed">افتح هذه الصفحة في متصفح Safari (إذا لم تكن فيه بالفعل)</li>
+                  <li className="leading-relaxed">اضغط على زر المشاركة <Share2 className="inline w-4 h-4 mx-1" /> في الأسفل (وسط الشاشة)</li>
+                  <li className="leading-relaxed">مرر للأسفل واختر "إضافة إلى الشاشة الرئيسية"</li>
+                  <li className="leading-relaxed">اضغط "إضافة" في الأعلى لتأكيد التثبيت</li>
+                  <li className="leading-relaxed font-semibold text-primary">ستجد أيقونة التطبيق على شاشتك الرئيسية 🎉</li>
                 </ol>
               </div>
             </div>
@@ -128,10 +140,13 @@ const InstallApp = () => {
             </Button>
           ) : (
             <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
-              <p className="text-sm">
-                <strong>للتثبيت على أندرويد:</strong><br />
-                افتح قائمة المتصفح (⋮) واختر "إضافة إلى الشاشة الرئيسية" أو "تثبيت التطبيق"
-              </p>
+              <h3 className="font-semibold mb-3">خطوات التثبيت على أندرويد (Chrome):</h3>
+              <ol className="space-y-2 text-sm list-decimal list-inside mr-2">
+                <li className="leading-relaxed">افتح قائمة المتصفح (النقاط الثلاث ⋮ في الأعلى)</li>
+                <li className="leading-relaxed">اختر "إضافة إلى الشاشة الرئيسية" أو "تثبيت التطبيق"</li>
+                <li className="leading-relaxed">اضغط "إضافة" أو "تثبيت" للتأكيد</li>
+                <li className="leading-relaxed font-semibold text-primary">التطبيق جاهز للاستخدام من شاشتك الرئيسية! 🎉</li>
+              </ol>
             </div>
           )}
 
