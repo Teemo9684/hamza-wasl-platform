@@ -29,19 +29,14 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="flex flex-col items-center justify-center">
-        {/* Logo with animation */}
-        <div className="splash-zoom-fade" style={{ animationDelay: '0.2s', opacity: 0 }}>
+      <div className="flex items-center justify-center w-full h-full">
+        {/* Logo with animation - fullscreen */}
+        <div className="splash-zoom-fade w-full h-full flex items-center justify-center" style={{ animationDelay: '0.2s', opacity: 0 }}>
           <img 
             src={splashLogo} 
             alt="العربي التبسي" 
-            className="w-72 h-72 object-contain drop-shadow-2xl"
+            className="w-[90vw] h-[90vh] object-contain drop-shadow-2xl"
           />
-        </div>
-        
-        {/* Text with staggered animation - directly under image */}
-        <div className="flex flex-col items-center splash-slide-up -mt-12" style={{ animationDelay: '0.6s', opacity: 0 }}>
-          <h1 className="text-4xl font-bold text-white font-cairo drop-shadow-lg">المدرسة الابتدائية العربي التبسي</h1>
         </div>
       </div>
     </div>
