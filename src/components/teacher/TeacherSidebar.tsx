@@ -1,4 +1,4 @@
-import { Home, Users, MessageSquare, Calendar, Send } from "lucide-react";
+import { Home, Users, MessageSquare, Calendar, Send, BookOpen } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +19,7 @@ const menuItems = [
   { title: "نظرة عامة", icon: Home, section: "overview" },
   { title: "التلاميذ", icon: Users, section: "students" },
   { title: "الحضور", icon: Calendar, section: "attendance" },
+  { title: "الواجبات", icon: BookOpen, section: "homework" },
   { title: "الرسائل", icon: MessageSquare, section: "messages" },
   { title: "رسائل جماعية", icon: Send, section: "groupMessages" },
 ];

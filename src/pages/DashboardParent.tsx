@@ -10,6 +10,7 @@ import { ParentSidebar } from "@/components/parent/ParentSidebar";
 import { ParentOverview } from "@/components/parent/ParentOverview";
 import { ParentAttendance } from "@/components/parent/ParentAttendance";
 import { ParentMessages } from "@/components/parent/ParentMessages";
+import { ParentHomework } from "@/components/parent/ParentHomework";
 
 const DashboardParent = () => {
   const navigate = useNavigate();
@@ -215,6 +216,10 @@ const DashboardParent = () => {
 
               <section id="attendance">
                 <ParentAttendance attendance={attendance} selectedChild={selectedChild} />
+              </section>
+
+              <section id="homework">
+                <ParentHomework />
               </section>
 
               <section id="messages">

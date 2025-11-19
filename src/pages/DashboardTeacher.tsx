@@ -12,6 +12,7 @@ import { TeacherStudents } from "@/components/teacher/TeacherStudents";
 import { TeacherAttendance } from "@/components/teacher/TeacherAttendance";
 import { TeacherMessages } from "@/components/teacher/TeacherMessages";
 import { TeacherGroupMessaging } from "@/components/teacher/TeacherGroupMessaging";
+import { TeacherHomework } from "@/components/teacher/TeacherHomework";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 
 const DashboardTeacher = () => {
@@ -348,6 +349,10 @@ const DashboardTeacher = () => {
                   students={students}
                   onRecordAttendance={handleRecordAttendance}
                 />
+              </section>
+
+              <section id="homework">
+                <TeacherHomework />
               </section>
 
               <section id="messages">
