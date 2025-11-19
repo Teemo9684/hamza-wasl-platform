@@ -56,6 +56,11 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
           <div className="w-3 h-3 bg-white rounded-full animate-bounce delay-200" />
         </div>
       </div>
+
+      {/* Version Number */}
+      <div className="absolute bottom-6 left-0 right-0 text-center">
+        <p className="text-white/70 text-sm font-cairo">الإصدار 1.0.0</p>
+      </div>
     </div>
   );
 };
