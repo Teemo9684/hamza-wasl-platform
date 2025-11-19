@@ -6,11 +6,10 @@ import { registerSW } from 'virtual:pwa-register';
 // Register service worker
 if ('serviceWorker' in navigator) {
   registerSW({
+    immediate: true,
     onNeedRefresh() {
-      // You can show a prompt to user asking them to reload the page
-      if (confirm('يتوفر تحديث جديد. هل تريد تحديث التطبيق؟')) {
-        window.location.reload();
-      }
+      // Automatically reload when a new version is available
+      window.location.reload();
     },
     onOfflineReady() {
       console.log('التطبيق جاهز للعمل بدون إنترنت');
