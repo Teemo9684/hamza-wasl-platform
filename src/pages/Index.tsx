@@ -149,7 +149,7 @@ const Index = () => {
           
           <div>
             <p className="text-2xl text-white/90 font-cairo mb-2">
-              منصة التواصل التربوي
+              جسر التواصل بين المدرسة والبيت
             </p>
             <p className="text-sm text-white/70 font-cairo">
               المدرسة الابتدائية العربي التبسي
