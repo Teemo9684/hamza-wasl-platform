@@ -45,6 +45,26 @@ const LoginTeacher = () => {
       if (data.user) {
         console.log("User authenticated, checking teacher role...");
         
+        // Check if user is approved
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_approved')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Profile check error:", profileError);
+          throw profileError;
+        }
+
+        if (!profileData.is_approved) {
+          console.log("User account is not approved yet");
+          toast.error("حسابك قيد المراجعة من قبل الإدارة. الرجاء الانتظار حتى يتم اعتماد حسابك.");
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+        
         // Check if user has teacher role
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')

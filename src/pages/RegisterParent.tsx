@@ -74,10 +74,10 @@ const RegisterParent = () => {
 
         toast({
           title: "تم التسجيل بنجاح",
-          description: "تم ربط حسابك بابنك بنجاح",
+          description: "تم ربط حسابك بابنك بنجاح. يرجى الانتظار حتى يتم اعتماد حسابك من قبل الإدارة قبل تسجيل الدخول.",
         });
         
-        navigate("/dashboard/parent");
+        navigate("/login/parent");
       }
     } catch (error: any) {
       toast({
@@ -118,6 +118,11 @@ const RegisterParent = () => {
               <p className="text-muted-foreground text-center font-cairo text-sm">
                 أدخل بياناتك لإنشاء حساب جديد
               </p>
+              <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <p className="text-yellow-600 dark:text-yellow-400 text-center text-sm font-cairo">
+                  تنبيه: بعد التسجيل، يجب الانتظار حتى تتم الموافقة على حسابك من قبل الإدارة قبل أن تتمكن من تسجيل الدخول
+                </p>
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">

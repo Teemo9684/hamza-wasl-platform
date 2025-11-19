@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home } from "lucide-react";
 import { NewsTickerManager } from "@/components/NewsTickerManager";
 import { UserManagement } from "@/components/admin/UserManagement";
@@ -9,6 +10,7 @@ import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
 import { ReportsView } from "@/components/admin/ReportsView";
 import { SettingsManager } from "@/components/admin/SettingsManager";
 import { MessagesView } from "@/components/admin/MessagesView";
+import { AccountApprovalsManager } from "@/components/admin/AccountApprovalsManager";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,11 +44,16 @@ const DashboardAdmin = () => {
         .from("students")
         .select("*", { count: "exact", head: true });
 
+      const { count: pendingCount } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("is_approved", false);
+
       setStats({
         parents: parentsCount || 0,
         teachers: teachersCount || 0,
         students: studentsCount || 0,
-        pendingRequests: 0,
+        pendingRequests: pendingCount || 0,
       });
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -104,6 +111,7 @@ const DashboardAdmin = () => {
               {activeSection === "reports" && <ReportsView />}
               {activeSection === "settings" && <SettingsManager />}
               {activeSection === "messages" && <MessagesView />}
+              {activeSection === "approvals" && <AccountApprovalsManager />}
             </div>
           ) : (
             <>
@@ -277,6 +285,28 @@ const DashboardAdmin = () => {
                     عرض جميع الرسائل بين الأولياء والأساتذة
                   </p>
                   <Button className="w-full bg-gradient-primary text-white font-cairo">
+                    عرض
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("approvals")}>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
+                    <Bell className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 font-cairo">الموافقة على الحسابات</h3>
+                  <p className="text-sm text-muted-foreground font-cairo mb-4">
+                    اعتماد أو رفض طلبات التسجيل الجديدة
+                  </p>
+                  {stats.pendingRequests > 0 && (
+                    <Badge className="mb-2 bg-red-500 text-white">
+                      {stats.pendingRequests} طلب جديد
+                    </Badge>
+                  )}
+                  <Button className="w-full bg-accent text-white font-cairo">
                     عرض
                   </Button>
                 </div>
