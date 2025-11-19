@@ -20,17 +20,31 @@ const LoginTeacher = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate inputs
+    if (!email || !password) {
+      toast.error("الرجاء إدخال البريد الإلكتروني وكلمة المرور");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      console.log("Teacher login attempt for:", email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: email.trim(),
+        password: password.trim(),
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Login error:", error.message);
+        throw error;
+      }
 
       if (data.user) {
+        console.log("User authenticated, checking teacher role...");
+        
         // Check if user has teacher role
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
@@ -39,20 +53,37 @@ const LoginTeacher = () => {
           .eq('role', 'teacher')
           .maybeSingle();
 
-        if (roleError) throw roleError;
+        if (roleError) {
+          console.error("Role check error:", roleError);
+          throw roleError;
+        }
 
         if (!roleData) {
+          console.log("User does not have teacher role");
           toast.error("هذا الحساب ليس حساب معلم");
           await supabase.auth.signOut();
           setIsLoading(false);
           return;
         }
 
+        console.log("Teacher role confirmed, navigating to dashboard...");
         toast.success("تم تسجيل الدخول بنجاح");
-        navigate("/dashboard/teacher");
+        
+        // Use setTimeout to ensure toast is shown before navigation
+        setTimeout(() => {
+          navigate("/dashboard/teacher");
+        }, 100);
       }
     } catch (error: any) {
-      toast.error(error.message || "خطأ في تسجيل الدخول");
+      console.error("Login failed:", error);
+      
+      if (error.message?.includes("Invalid login credentials")) {
+        toast.error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+      } else if (error.message?.includes("Email not confirmed")) {
+        toast.error("الرجاء تأكيد بريدك الإلكتروني أولاً");
+      } else {
+        toast.error(error.message || "خطأ في تسجيل الدخول");
+      }
     } finally {
       setIsLoading(false);
     }
