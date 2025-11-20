@@ -91,7 +91,7 @@ const LoginParent = () => {
         
         // Use setTimeout to ensure toast is shown before navigation
         setTimeout(() => {
-          navigate("/dashboard/parent");
+          navigate("/dashboard/parent", { replace: true });
         }, 100);
       }
     } catch (error: any) {
