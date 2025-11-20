@@ -30,6 +30,13 @@ const DashboardAdmin = () => {
     fetchStatistics();
   }, []);
 
+  useEffect(() => {
+    // Restore scroll position when returning to dashboard
+    if (activeSection === null && mainContentRef.current && scrollPositionRef.current > 0) {
+      mainContentRef.current.scrollTop = scrollPositionRef.current;
+    }
+  }, [activeSection]);
+
   const fetchStatistics = async () => {
     try {
       const { count: parentsCount } = await supabase
@@ -69,17 +76,15 @@ const DashboardAdmin = () => {
   };
 
   const handleBackToDashboard = () => {
-    // Save current scroll position
+    setActiveSection(null);
+  };
+
+  const handleOpenSection = (section: string) => {
+    // Save current scroll position before opening section
     if (mainContentRef.current) {
       scrollPositionRef.current = mainContentRef.current.scrollTop;
     }
-    setActiveSection(null);
-    // Restore scroll position after state update
-    setTimeout(() => {
-      if (mainContentRef.current) {
-        mainContentRef.current.scrollTop = scrollPositionRef.current;
-      }
-    }, 0);
+    setActiveSection(section);
   };
 
   return (
@@ -188,7 +193,7 @@ const DashboardAdmin = () => {
 
           {/* Management Sections */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("news")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("news")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
@@ -205,7 +210,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("users")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("users")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
@@ -222,7 +227,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("students")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("students")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mb-4">
@@ -239,7 +244,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("announcements")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("announcements")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
@@ -256,7 +261,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("reports")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("reports")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
@@ -273,7 +278,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("settings")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("settings")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
@@ -290,7 +295,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("messages")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("messages")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
@@ -307,7 +312,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => setActiveSection("groupMessages")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("groupMessages")}>
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mb-4">
