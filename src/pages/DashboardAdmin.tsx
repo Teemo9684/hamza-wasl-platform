@@ -34,6 +34,9 @@ const DashboardAdmin = () => {
     if (activeSection === null && scrollPositionRef.current > 0) {
       window.scrollTo(0, scrollPositionRef.current);
       scrollPositionRef.current = 0; // Reset after restoring
+    } else if (activeSection !== null) {
+      // Scroll to top when opening a section
+      window.scrollTo(0, 0);
     }
   }, [activeSection]);
 
