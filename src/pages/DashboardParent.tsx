@@ -172,7 +172,7 @@ const DashboardParent = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full overflow-x-hidden">
         <ParentSidebar
           children={children}
           selectedChild={selectedChild}
@@ -182,7 +182,7 @@ const DashboardParent = () => {
           }}
         />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <NewsTicker />
           <header className="sticky top-0 z-20 border-b bg-background shadow-sm">
             <div className="flex h-16 items-center justify-between px-4 md:px-6">
@@ -205,8 +205,8 @@ const DashboardParent = () => {
             </div>
           </header>
 
-          <main className="flex-1 overflow-auto p-4">
-            <div className="max-w-6xl mx-auto space-y-8">
+          <main className="flex-1 overflow-auto p-4 w-full">
+            <div className="max-w-6xl mx-auto space-y-8 w-full">
               <section id="overview">
                 <ParentOverview
                   children={children}

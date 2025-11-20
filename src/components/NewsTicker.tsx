@@ -54,7 +54,7 @@ export const NewsTicker = () => {
   }
 
   return (
-    <div className="bg-primary/10 backdrop-blur-md border-b border-primary/20 overflow-hidden">
+    <div className="w-full bg-primary/10 backdrop-blur-md border-b border-primary/20 overflow-hidden">
       <div className="ticker-animation py-2 inline-flex min-w-max items-center gap-6 whitespace-nowrap">
         {/* Repeat items 3 times for seamless scrolling */}
         {[...Array(3)].map((_, repeatIndex) => (
