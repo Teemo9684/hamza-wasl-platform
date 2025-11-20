@@ -91,7 +91,7 @@ const LoginTeacher = () => {
         
         // Use setTimeout to ensure toast is shown before navigation
         setTimeout(() => {
-          navigate("/dashboard/teacher");
+          navigate("/dashboard/teacher", { replace: true });
         }, 100);
       }
     } catch (error: any) {
