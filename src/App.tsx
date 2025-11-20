@@ -29,6 +29,23 @@ const App = () => {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
+    // معالجة زر الرجوع في الهاتف
+    const handlePopState = (event: PopStateEvent) => {
+      // إذا كنا في الصفحة الرئيسية، لا نفعل شيء (سيخرج من التطبيق)
+      if (window.location.pathname === '/') {
+        return;
+      }
+      // في أي صفحة أخرى، يتم الرجوع بشكل طبيعي
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
     // Initialize push notifications if available (native app)
     if (isPushNotificationsAvailable()) {
       initializePushNotifications();
