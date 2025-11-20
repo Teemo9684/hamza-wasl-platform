@@ -15,7 +15,7 @@ const Register = () => {
         <div className="max-w-4xl w-full">
           {/* Back Button */}
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => navigate(-1)}
             variant="ghost"
             className="mb-8 text-white hover:bg-white/10 font-cairo"
           >

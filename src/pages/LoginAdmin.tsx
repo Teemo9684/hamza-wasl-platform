@@ -94,7 +94,7 @@ const LoginAdmin = () => {
       <div className="relative z-10 w-full max-w-md slide-in-up">
         <Button
           variant="ghost"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(-1)}
           className="mb-4 text-white hover:bg-white/10"
         >
           <Home className="ml-2 h-4 w-4" />
