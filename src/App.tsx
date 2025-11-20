@@ -10,6 +10,7 @@ import { initializePushNotifications, isPushNotificationsAvailable } from "@/uti
 import { setupRealtimeNotifications } from "@/utils/realtimeNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "@/components/SplashScreen";
+import { BackButtonHandler } from "@/components/BackButtonHandler";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import RegisterParent from "./pages/RegisterParent";
@@ -27,23 +28,6 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    // معالجة زر الرجوع في الهاتف
-    const handlePopState = (event: PopStateEvent) => {
-      // إذا كنا في الصفحة الرئيسية، لا نفعل شيء (سيخرج من التطبيق)
-      if (window.location.pathname === '/') {
-        return;
-      }
-      // في أي صفحة أخرى، يتم الرجوع بشكل طبيعي
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, []);
 
   useEffect(() => {
     // Initialize push notifications if available (native app)
@@ -111,7 +95,8 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-        <Routes>
+            <BackButtonHandler />
+            <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register/parent" element={<RegisterParent />} />
