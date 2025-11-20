@@ -308,10 +308,10 @@ const DashboardTeacher = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full overflow-x-hidden">
         <TeacherSidebar unreadCount={unreadCount} />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <NewsTicker />
           <header className="sticky top-0 z-20 border-b bg-background shadow-sm">
             <div className="flex h-16 items-center justify-between px-4 md:px-6">
@@ -334,8 +334,8 @@ const DashboardTeacher = () => {
             </div>
           </header>
 
-          <main className="flex-1 overflow-auto p-4">
-            <div className="max-w-6xl mx-auto space-y-8">
+          <main className="flex-1 overflow-auto p-4 w-full">
+            <div className="max-w-6xl mx-auto space-y-8 w-full">
               <section id="overview">
                 <TeacherOverview
                   teacherInfo={teacherInfo}
