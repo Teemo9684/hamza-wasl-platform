@@ -118,7 +118,7 @@ const RegisterTeacher = () => {
                 أدخل بياناتك لإنشاء حساب جديد
               </p>
               <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                <p className="text-yellow-600 dark:text-yellow-400 text-center text-sm font-cairo">
+                <p className="text-yellow-700 dark:text-yellow-300 text-center text-sm font-cairo font-medium">
                   تنبيه: بعد التسجيل، يجب الانتظار حتى تتم الموافقة على حسابك من قبل الإدارة قبل أن تتمكن من تسجيل الدخول
                 </p>
               </div>
@@ -208,7 +208,7 @@ const RegisterTeacher = () => {
                     </Select>
                   </div>
                   {!formData.subject && (
-                    <p className="text-xs text-muted-foreground font-cairo">
+                    <p className="text-xs text-foreground/60 font-cairo">
                       الرجاء اختيار المادة أولاً
                     </p>
                   )}
@@ -267,12 +267,12 @@ const RegisterTeacher = () => {
                 إنشاء الحساب
               </Button>
 
-              <p className="text-center text-sm text-muted-foreground font-cairo">
+              <p className="text-center text-sm text-foreground/70 font-cairo">
                 لديك حساب بالفعل؟{" "}
                 <button
                   type="button"
                   onClick={() => navigate("/login/teacher")}
-                  className="text-white hover:underline"
+                  className="text-secondary hover:underline font-semibold"
                 >
                   تسجيل الدخول
                 </button>
