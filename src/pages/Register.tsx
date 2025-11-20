@@ -108,7 +108,7 @@ const Register = () => {
 
           {/* Info Note */}
           <div className="text-center mt-12 glass-card p-6 rounded-2xl">
-            <p className="text-white/80 font-tajawal">
+            <p className="text-foreground font-tajawal font-medium">
               ⚠️ ملاحظة: سيتم مراجعة طلبك من قبل الإدارة قبل تفعيل الحساب
             </p>
           </div>
