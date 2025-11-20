@@ -111,10 +111,10 @@ const RegisterTeacher = () => {
               <div className="w-20 h-20 bg-gradient-secondary rounded-full flex items-center justify-center mb-4">
                 <UserCheck className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-center mb-2 font-cairo">
+              <h1 className="text-3xl font-bold text-center mb-2 font-cairo text-secondary">
                 تسجيل حساب معلم
               </h1>
-              <p className="text-muted-foreground text-center font-cairo text-sm">
+              <p className="text-foreground/80 text-center font-cairo text-sm">
                 أدخل بياناتك لإنشاء حساب جديد
               </p>
               <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
@@ -126,7 +126,7 @@ const RegisterTeacher = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="font-cairo">
+                <Label htmlFor="fullName" className="font-cairo text-foreground">
                   الاسم الكامل
                 </Label>
                 <div className="relative">
@@ -144,7 +144,7 @@ const RegisterTeacher = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="font-cairo">
+                <Label htmlFor="email" className="font-cairo text-foreground">
                   البريد الإلكتروني
                 </Label>
                 <div className="relative">
@@ -162,7 +162,7 @@ const RegisterTeacher = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="subject" className="font-cairo">
+                <Label htmlFor="subject" className="font-cairo text-foreground">
                   المادة
                 </Label>
                 <div className="relative">
@@ -185,7 +185,7 @@ const RegisterTeacher = () => {
 
               {!isForeignLanguage && (
                 <div className="space-y-2">
-                  <Label htmlFor="gradeLevel" className="font-cairo">
+                  <Label htmlFor="gradeLevel" className="font-cairo text-foreground">
                     القسم
                   </Label>
                   <div className="relative">
@@ -226,7 +226,7 @@ const RegisterTeacher = () => {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="font-tajawal">
+                <Label htmlFor="password" className="font-tajawal text-foreground">
                   كلمة المرور
                 </Label>
                 <div className="relative">
@@ -243,7 +243,7 @@ const RegisterTeacher = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="font-tajawal">
+                <Label htmlFor="confirmPassword" className="font-tajawal text-foreground">
                   تأكيد كلمة المرور
                 </Label>
                 <div className="relative">
