@@ -24,7 +24,6 @@ const DashboardAdmin = () => {
     pendingRequests: 0,
   });
   const scrollPositionRef = useRef<number>(0);
-  const mainContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchStatistics();
@@ -32,8 +31,9 @@ const DashboardAdmin = () => {
 
   useEffect(() => {
     // Restore scroll position when returning to dashboard
-    if (activeSection === null && mainContentRef.current && scrollPositionRef.current > 0) {
-      mainContentRef.current.scrollTop = scrollPositionRef.current;
+    if (activeSection === null && scrollPositionRef.current > 0) {
+      window.scrollTo(0, scrollPositionRef.current);
+      scrollPositionRef.current = 0; // Reset after restoring
     }
   }, [activeSection]);
 
@@ -81,9 +81,7 @@ const DashboardAdmin = () => {
 
   const handleOpenSection = (section: string) => {
     // Save current scroll position before opening section
-    if (mainContentRef.current) {
-      scrollPositionRef.current = mainContentRef.current.scrollTop;
-    }
+    scrollPositionRef.current = window.scrollY;
     setActiveSection(section);
   };
 
@@ -107,7 +105,7 @@ const DashboardAdmin = () => {
         </header>
 
         {/* Main Content */}
-        <main ref={mainContentRef} className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h2 className="text-3xl font-bold mb-2 font-cairo">مرحباً مدير المدرسة</h2>
             <p className="text-muted-foreground font-cairo">
