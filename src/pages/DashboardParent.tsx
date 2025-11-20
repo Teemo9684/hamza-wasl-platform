@@ -185,12 +185,12 @@ const DashboardParent = () => {
         <div className="flex-1 flex flex-col">
           <NewsTicker />
           <header className="sticky top-0 z-20 border-b bg-background shadow-sm">
-            <div className="flex h-28 items-center justify-between px-4 md:px-6">
+            <div className="flex h-16 items-center justify-between px-4 md:px-6">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
                 <SidebarTrigger className="shrink-0" />
                 <div className="min-w-0">
-                  <h1 className="text-lg md:text-xl font-bold truncate">مرحباً، {parentName}</h1>
-                  <p className="text-xs md:text-sm text-muted-foreground truncate">لوحة تحكم ولي الأمر</p>
+                  <h1 className="text-base md:text-lg font-bold truncate">مرحباً، {parentName}</h1>
+                  <p className="text-xs text-muted-foreground truncate hidden sm:block">لوحة تحكم ولي الأمر</p>
                 </div>
               </div>
               <Button
@@ -205,8 +205,8 @@ const DashboardParent = () => {
             </div>
           </header>
 
-          <main className="flex-1 overflow-auto p-6">
-            <div className="max-w-7xl mx-auto space-y-12">
+          <main className="flex-1 overflow-auto p-4">
+            <div className="max-w-6xl mx-auto space-y-8">
               <section id="overview">
                 <ParentOverview
                   children={children}
