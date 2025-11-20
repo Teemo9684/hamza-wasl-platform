@@ -11,6 +11,7 @@ import { ParentOverview } from "@/components/parent/ParentOverview";
 import { ParentAttendance } from "@/components/parent/ParentAttendance";
 import { ParentMessages } from "@/components/parent/ParentMessages";
 import { ParentHomework } from "@/components/parent/ParentHomework";
+import { NewsTicker } from "@/components/NewsTicker";
 
 const DashboardParent = () => {
   const navigate = useNavigate();
@@ -182,6 +183,7 @@ const DashboardParent = () => {
         />
 
         <div className="flex-1 flex flex-col">
+          <NewsTicker />
           <header className="sticky top-0 z-20 border-b bg-background shadow-sm">
             <div className="flex h-28 items-center justify-between px-4 md:px-6">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">

@@ -13,6 +13,7 @@ import { TeacherAttendance } from "@/components/teacher/TeacherAttendance";
 import { TeacherMessages } from "@/components/teacher/TeacherMessages";
 import { TeacherGroupMessaging } from "@/components/teacher/TeacherGroupMessaging";
 import { TeacherHomework } from "@/components/teacher/TeacherHomework";
+import { NewsTicker } from "@/components/NewsTicker";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 
 const DashboardTeacher = () => {
@@ -311,6 +312,7 @@ const DashboardTeacher = () => {
         <TeacherSidebar unreadCount={unreadCount} />
 
         <div className="flex-1 flex flex-col">
+          <NewsTicker />
           <header className="sticky top-0 z-20 border-b bg-background shadow-sm">
             <div className="flex h-28 items-center justify-between px-4 md:px-6">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
