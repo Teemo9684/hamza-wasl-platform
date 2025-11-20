@@ -11,7 +11,7 @@ import { ReportsView } from "@/components/admin/ReportsView";
 import { SettingsManager } from "@/components/admin/SettingsManager";
 import { MessagesView } from "@/components/admin/MessagesView";
 import { GroupMessaging } from "@/components/admin/GroupMessaging";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const DashboardAdmin = () => {
@@ -23,6 +23,8 @@ const DashboardAdmin = () => {
     students: 0,
     pendingRequests: 0,
   });
+  const scrollPositionRef = useRef<number>(0);
+  const mainContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchStatistics();
@@ -66,6 +68,20 @@ const DashboardAdmin = () => {
     navigate("/");
   };
 
+  const handleBackToDashboard = () => {
+    // Save current scroll position
+    if (mainContentRef.current) {
+      scrollPositionRef.current = mainContentRef.current.scrollTop;
+    }
+    setActiveSection(null);
+    // Restore scroll position after state update
+    setTimeout(() => {
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTop = scrollPositionRef.current;
+      }
+    }, 0);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="absolute inset-0 animated-bg opacity-10" />
@@ -86,7 +102,7 @@ const DashboardAdmin = () => {
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-8">
+        <main ref={mainContentRef} className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h2 className="text-3xl font-bold mb-2 font-cairo">مرحباً مدير المدرسة</h2>
             <p className="text-muted-foreground font-cairo">
@@ -97,7 +113,7 @@ const DashboardAdmin = () => {
           {activeSection ? (
             <div className="mb-8">
               <Button 
-                onClick={() => setActiveSection(null)} 
+                onClick={handleBackToDashboard} 
                 variant="ghost" 
                 className="mb-4 font-cairo"
               >
