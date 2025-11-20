@@ -10,6 +10,7 @@ import { initializePushNotifications, isPushNotificationsAvailable } from "@/uti
 import { setupRealtimeNotifications } from "@/utils/realtimeNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "@/components/SplashScreen";
+import { BackButtonHandler } from "@/components/BackButtonHandler";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import RegisterParent from "./pages/RegisterParent";
@@ -94,6 +95,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <BackButtonHandler />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/register" element={<Register />} />
