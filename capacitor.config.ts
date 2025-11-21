@@ -2,37 +2,21 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.5901e6106a23469f803baed9690ed218',
-  appName: 'همزة وصل',
+  appName: 'همزة وصل - العربي التبسي',
   webDir: 'dist',
   server: {
-    androidScheme: 'https',
+    url: 'https://5901e610-6a23-469f-803b-aed9690ed218.lovableproject.com?forceHideBadge=true',
     cleartext: true
   },
   ios: {
-    contentInset: 'automatic',
-    scrollEnabled: false
+    contentInset: 'always'
   },
   android: {
-    allowMixedContent: true,
-    backgroundColor: '#1e40af',
-    buildOptions: {
-      keystorePath: 'signing.keystore',
-      keystoreAlias: 'my-key-alias',
-    },
-    webContentsDebuggingEnabled: false
+    allowMixedContent: true
   },
   plugins: {
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"]
-    },
-    SplashScreen: {
-      launchShowDuration: 2000,
-      backgroundColor: "#1e40af",
-      androidScaleType: "CENTER_CROP",
-      showSpinner: false,
-      androidSpinnerStyle: "large",
-      splashFullScreen: false,
-      splashImmersive: false
     }
   }
 };

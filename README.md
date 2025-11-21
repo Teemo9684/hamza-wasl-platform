@@ -1,183 +1,73 @@
-# همزة وصل - منصة التواصل التعليمية
+# Welcome to your Lovable project
 
-منصة تعليمية شاملة للمدرسة الابتدائية العربي التبسي
+## Project info
 
-## 📱 نظرة عامة
+**URL**: https://lovable.dev/projects/5901e610-6a23-469f-803b-aed9690ed218
 
-**همزة وصل** هي منصة تواصل تعليمية شاملة تربط بين المدرسة والبيت، مصممة خصيصاً للمدرسة الابتدائية العربي التبسي. توفر المنصة ثلاثة أنواع من المستخدمين:
+## How can I edit this code?
 
-- 👨‍👩‍👧‍👦 **أولياء الأمور**: متابعة مستوى أبنائهم الدراسي والحضور والواجبات
-- 👨‍🏫 **المعلمين**: إدارة الأقسام والتلاميذ والدرجات والحضور
-- 🛡️ **الإدارة**: إدارة المستخدمين والإعلانات والتقارير
+There are several ways of editing your application.
 
-## 🚀 إنشاء APK للأندرويد
+**Use Lovable**
 
-### المتطلبات الأساسية
-- Node.js (v18 أو أحدث)
-- Android Studio
-- Java JDK 17 أو أحدث
+Simply visit the [Lovable Project](https://lovable.dev/projects/5901e610-6a23-469f-803b-aed9690ed218) and start prompting.
 
-### الخطوات السريعة
+Changes made via Lovable will be committed automatically to this repo.
 
-1. **تثبيت Dependencies**
-```bash
-npm install
+**Use your preferred IDE**
+
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Follow these steps:
+
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
+
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
 ```
 
-2. **بناء التطبيق**
-```bash
-npm run build
-```
+**Edit a file directly in GitHub**
 
-3. **إضافة منصة Android** (أول مرة فقط)
-```bash
-npx cap add android
-```
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-4. **مزامنة الملفات**
-```bash
-npx cap sync android
-```
+**Use GitHub Codespaces**
 
-5. **فتح في Android Studio**
-```bash
-npx cap open android
-```
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-6. **بناء APK في Android Studio**
-- للاختبار: `Build → Build APK(s)`
-- للنشر: `Build → Generate Signed Bundle / APK`
+## What technologies are used for this project?
 
-### 📚 دلائل إضافية
-راجع الملفات التالية للتفاصيل الكاملة:
-- `android-setup.md` - دليل التهيئة الكامل
-- `BUILD_CHECKLIST.md` - قائمة تدقيق شاملة لإنشاء APK
+This project is built with:
 
-## 🎨 المميزات
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-### للآباء
-- 📊 عرض درجات ومستوى التلاميذ
-- ✅ متابعة الحضور والغياب
-- 📝 الاطلاع على الواجبات المنزلية
-- 💬 التواصل مع المعلمين
-- 📢 استقبال الإعلانات المدرسية
+## How can I deploy this project?
 
-### للمعلمين
-- 👥 إدارة التلاميذ والأقسام
-- ✏️ إدخال الدرجات والتقييمات
-- 📋 تسجيل الحضور والغياب
-- 📚 إضافة الواجبات المنزلية
-- 💬 التواصل مع أولياء الأمور
-- 📤 إرسال رسائل جماعية
+Simply open [Lovable](https://lovable.dev/projects/5901e610-6a23-469f-803b-aed9690ed218) and click on Share -> Publish.
 
-### للإدارة
-- 👤 إدارة المستخدمين (موافقة/رفض)
-- 👨‍🎓 إدارة التلاميذ والأقسام
-- 📢 إنشاء الإعلانات
-- 📊 عرض التقارير والإحصائيات
-- 📰 إدارة شريط الأخبار
-- ⚙️ إعدادات المنصة
+## Can I connect a custom domain to my Lovable project?
 
-## 🛠️ التقنيات المستخدمة
+Yes, you can!
 
-- **Frontend**: React + TypeScript + Vite
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Backend**: Supabase (Lovable Cloud)
-- **Mobile**: Capacitor
-- **PWA**: vite-plugin-pwa
-- **Fonts**: Cairo (النص) + Aref Ruqaa (الشعارات)
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-## 📝 البنية
-
-```
-src/
-├── components/         # المكونات القابلة لإعادة الاستخدام
-│   ├── admin/         # مكونات لوحة الإدارة
-│   ├── teacher/       # مكونات لوحة المعلمين
-│   ├── parent/        # مكونات لوحة أولياء الأمور
-│   └── ui/            # مكونات واجهة المستخدم
-├── pages/             # صفحات التطبيق
-├── contexts/          # React Contexts
-├── hooks/             # Custom Hooks
-├── utils/             # وظائف مساعدة
-├── integrations/      # تكاملات خارجية (Supabase)
-└── lib/               # مكتبات مساعدة
-
-public/
-├── .well-known/       # ملفات التحقق من التطبيق
-├── icon-*.png         # أيقونات التطبيق
-└── apple-touch-icon.png
-
-android/               # مشروع Android (يُنشأ بعد cap add android)
-capacitor.config.ts    # تكوين Capacitor
-vite.config.ts         # تكوين Vite و PWA
-```
-
-## 🔐 الأمان
-
-- ✅ Row Level Security (RLS) على جميع الجداول
-- ✅ نظام الموافقة على الحسابات
-- ✅ تحقق من الصلاحيات على مستوى قاعدة البيانات
-- ✅ تشفير كلمات المرور
-- ✅ حماية من هجمات SQL Injection
-
-## 📱 PWA و Native App
-
-التطبيق يدعم كل من:
-
-### PWA (Progressive Web App)
-- تثبيت مباشر من المتصفح
-- يعمل بدون اتصال (Offline)
-- تحديثات تلقائية
-
-### Native App (Capacitor)
-- تطبيق أصلي للأندرويد و iOS
-- وصول كامل لمميزات الهاتف
-- إشعارات Push
-- تكامل مع نظام التشغيل
-
-## 🎯 سير عمل التطوير
-
-### تطوير يومي
-```bash
-npm run dev          # تشغيل سيرفر التطوير
-```
-
-### بعد تغييرات في الكود
-```bash
-npm run build        # بناء التطبيق
-npx cap sync android # مزامنة مع Android
-npx cap run android  # تشغيل على جهاز/محاكي
-```
-
-### نشر التحديثات
-```bash
-npm run build        # بناء التطبيق
-# ثم اضغط "Update" في Lovable
-```
-
-## 🌐 النشر
-
-### PWA
-- انقر على "Publish" في Lovable
-- التحديثات تصبح فورية للمستخدمين
-
-### Native App
-- بناء APK جديد في Android Studio
-- رفع APK للمستخدمين أو Google Play Store
-
-## 📞 الدعم
-
-للمساعدة أو الاستفسارات، راجع الملفات التوجيهية:
-- `android-setup.md` - إعداد Android
-- `BUILD_CHECKLIST.md` - قائمة التدقيق
-- [Capacitor Docs](https://capacitorjs.com/docs)
-- [Lovable Docs](https://docs.lovable.dev)
-
-## 🔗 روابط المشروع
-
-- **Lovable Project**: https://lovable.dev/projects/5901e610-6a23-469f-803b-aed9690ed218
-
-## 📄 الترخيص
-
-© 2026 المدرسة الابتدائية العربي التبسي - جميع الحقوق محفوظة
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
