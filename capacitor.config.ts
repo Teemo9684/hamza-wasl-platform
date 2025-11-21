@@ -18,7 +18,8 @@ const config: CapacitorConfig = {
     buildOptions: {
       keystorePath: 'signing.keystore',
       keystoreAlias: 'my-key-alias',
-    }
+    },
+    webContentsDebuggingEnabled: false
   },
   plugins: {
     PushNotifications: {
