@@ -347,47 +347,6 @@
     }
   }
 
-  /* Professional 3D Logo Effect - Al Jazeera Style */
-  .logo-3d {
-    color: #ffffff;
-    text-shadow:
-      /* Deep 3D extrusion layers */
-      1px 1px 0 #e8e8e8,
-      2px 2px 0 #d8d8d8,
-      3px 3px 0 #c8c8c8,
-      4px 4px 0 #b8b8b8,
-      5px 5px 0 #a8a8a8,
-      6px 6px 0 #989898,
-      7px 7px 0 #888888,
-      8px 8px 0 #787878,
-      9px 9px 0 #686868,
-      10px 10px 0 #585858,
-      11px 11px 0 #484848,
-      12px 12px 0 #383838,
-      /* Depth shadow */
-      13px 13px 10px rgba(0, 0, 0, 0.5),
-      15px 15px 20px rgba(0, 0, 0, 0.4),
-      17px 17px 30px rgba(0, 0, 0, 0.3);
-    transform: perspective(1000px) rotateX(10deg);
-    filter: brightness(1.15) contrast(1.1);
-    letter-spacing: 0.05em;
-  }
-
-  .logo-3d-small {
-    color: #ffffff;
-    text-shadow:
-      1px 1px 0 #e8e8e8,
-      2px 2px 0 #d0d0d0,
-      3px 3px 0 #b8b8b8,
-      4px 4px 0 #a0a0a0,
-      5px 5px 0 #888888,
-      6px 6px 0 #707070,
-      7px 7px 5px rgba(0, 0, 0, 0.4),
-      8px 8px 10px rgba(0, 0, 0, 0.3);
-    transform: perspective(500px) rotateX(8deg);
-    filter: brightness(1.12) contrast(1.08);
-  }
-
   /* Magic Rotate Animations */
   @keyframes magicRotate1 {
     0%, 100% {

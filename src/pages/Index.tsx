@@ -103,7 +103,7 @@ const Index = () => {
                   {/* Logo separator */}
                   <div className="relative h-8 w-12 flex-shrink-0">
                     <div className="flex flex-col items-center justify-center">
-                      <span className="text-sm font-bold text-white/80 font-ruqaa leading-[0.8] logo-3d-small">
+                      <span className="text-sm font-bold text-white/80 font-ruqaa leading-[0.8]">
                         {itemIndex % 2 === 0 ? (
                           <>
                             <div>همزة</div>
@@ -132,7 +132,7 @@ const Index = () => {
           <div className="relative h-48 mb-6">
             {/* همزة وصل */}
             <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
-              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9] logo-3d">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
                 <div>همزة</div>
                 <div>وصل</div>
               </h1>
@@ -140,7 +140,7 @@ const Index = () => {
             
             {/* العربي التبسي */}
             <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
-              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9] logo-3d">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
                 <div>العربي</div>
                 <div>التبسي</div>
               </h1>
