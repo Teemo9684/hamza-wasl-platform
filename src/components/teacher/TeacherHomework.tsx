@@ -30,6 +30,7 @@ interface Homework {
   subject: string | null;
   due_date: string;
   attachment_url: string | null;
+  attachments: string[] | null;
   created_at: string;
 }
 
@@ -46,7 +47,7 @@ export const TeacherHomework = () => {
   const [selectedGrade, setSelectedGrade] = useState("");
   const [subject, setSubject] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
 
   const { toast } = useToast();
 
@@ -101,43 +102,49 @@ export const TeacherHomework = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      // Limit file size to 10MB
-      if (selectedFile.size > 10 * 1024 * 1024) {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      // Limit file size to 10MB per file
+      const invalidFiles = selectedFiles.filter(f => f.size > 10 * 1024 * 1024);
+      if (invalidFiles.length > 0) {
         toast({
           title: "خطأ",
-          description: "حجم الملف يجب أن يكون أقل من 10 ميجابايت",
+          description: "حجم كل ملف يجب أن يكون أقل من 10 ميجابايت",
           variant: "destructive",
         });
         return;
       }
-      setFile(selectedFile);
+      setFiles(selectedFiles);
     }
   };
 
-  const uploadFile = async (file: File): Promise<string | null> => {
+  const uploadFiles = async (files: File[]): Promise<string[]> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      if (!user) return [];
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const uploadPromises = files.map(async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('homework')
-        .upload(fileName, file);
+        const { error: uploadError } = await supabase.storage
+          .from('homework')
+          .upload(fileName, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
-        .from('homework')
-        .getPublicUrl(fileName);
+        const { data } = supabase.storage
+          .from('homework')
+          .getPublicUrl(fileName);
 
-      return data.publicUrl;
+        return data.publicUrl;
+      });
+
+      const urls = await Promise.all(uploadPromises);
+      return urls;
     } catch (error) {
-      console.error("Error uploading file:", error);
-      return null;
+      console.error("Error uploading files:", error);
+      return [];
     }
   };
 
@@ -157,9 +164,9 @@ export const TeacherHomework = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      let attachmentUrl = null;
-      if (file) {
-        attachmentUrl = await uploadFile(file);
+      let attachmentsUrls: string[] = [];
+      if (files.length > 0) {
+        attachmentsUrls = await uploadFiles(files);
       }
 
       const { error } = await supabase
@@ -171,7 +178,7 @@ export const TeacherHomework = () => {
           subject: subject || null,
           due_date: dueDate,
           teacher_id: user.id,
-          attachment_url: attachmentUrl,
+          attachments: attachmentsUrls.length > 0 ? attachmentsUrls : null,
         });
 
       if (error) throw error;
@@ -186,7 +193,7 @@ export const TeacherHomework = () => {
       setDescription("");
       setSubject("");
       setDueDate("");
-      setFile(null);
+      setFiles([]);
       setIsDialogOpen(false);
       fetchHomework();
     } catch (error: any) {
@@ -318,23 +325,27 @@ export const TeacherHomework = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="file" className="font-cairo">إرفاق ملف (اختياري)</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="file"
-                        type="file"
-                        onChange={handleFileChange}
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        className="font-cairo"
-                      />
-                      {file && (
-                        <span className="text-sm text-muted-foreground font-cairo">
-                          {file.name}
-                        </span>
-                      )}
-                    </div>
+                    <Label htmlFor="file" className="font-cairo">إرفاق ملفات (اختياري - يمكنك اختيار أكثر من صورة)</Label>
+                    <Input
+                      id="file"
+                      type="file"
+                      onChange={handleFileChange}
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      multiple
+                      className="font-cairo"
+                    />
+                    {files.length > 0 && (
+                      <div className="text-sm text-muted-foreground font-cairo">
+                        تم اختيار {files.length} {files.length === 1 ? "ملف" : "ملفات"}
+                        <ul className="list-disc list-inside mt-1">
+                          {files.map((f, i) => (
+                            <li key={i} className="truncate">{f.name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     <p className="text-xs text-muted-foreground font-cairo">
-                      الحجم الأقصى: 10 ميجابايت | الصيغ المدعومة: PDF, Word, صور
+                      الحجم الأقصى: 10 ميجابايت لكل ملف | الصيغ المدعومة: PDF, Word, صور
                     </p>
                   </div>
 
@@ -389,7 +400,25 @@ export const TeacherHomework = () => {
                             <span className="font-cairo">المادة: {hw.subject}</span>
                           )}
                         </div>
-                        {hw.attachment_url && (
+                        {(hw.attachments && hw.attachments.length > 0) ? (
+                          <div className="mt-2 space-y-1">
+                            <p className="text-sm font-cairo text-muted-foreground">المرفقات ({hw.attachments.length}):</p>
+                            <div className="flex flex-wrap gap-2">
+                              {hw.attachments.map((url, index) => (
+                                <a
+                                  key={index}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-primary hover:underline font-cairo text-sm"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                  مرفق {index + 1}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        ) : hw.attachment_url && (
                           <a
                             href={hw.attachment_url}
                             target="_blank"
