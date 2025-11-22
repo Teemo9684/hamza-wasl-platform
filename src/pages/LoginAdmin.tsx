@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,26 @@ const LoginAdmin = () => {
   const navigate = useNavigate();
   const [pin, setPin] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        
+        if (roleData) {
+          navigate("/dashboard/admin", { replace: true });
+        }
+      }
+    };
+    checkSession();
+  }, [navigate]);
   
   // استخدام بريد إلكتروني ثابت للمسؤول في الخلفية
   const ADMIN_EMAIL = "admin@system.local";
