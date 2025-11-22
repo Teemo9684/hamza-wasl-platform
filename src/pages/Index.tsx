@@ -163,6 +163,9 @@ const Index = () => {
             <p className="text-2xl text-white/90 font-cairo mb-2">
               جسر التواصل بين المدرسة والبيت
             </p>
+            <p className="text-base text-white/80 font-cairo mb-3">
+              منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية
+            </p>
             <p className="text-sm text-white/70 font-cairo">
               المدرسة الابتدائية العربي التبسي
             </p>
