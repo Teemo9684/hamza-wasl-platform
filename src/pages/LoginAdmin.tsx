@@ -29,8 +29,6 @@ const LoginAdmin = () => {
     setIsLoading(true);
 
     try {
-      console.log("Admin login attempt");
-      
       // Sign in with Supabase using fixed admin email and PIN as password
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: ADMIN_EMAIL,
@@ -38,15 +36,12 @@ const LoginAdmin = () => {
       });
 
       if (authError) {
-        console.error("Auth error:", authError.message);
         throw authError;
       }
 
       if (!authData.user) {
         throw new Error("لم يتم العثور على المستخدم");
       }
-
-      console.log("Authentication successful, checking admin role...");
 
       // Check if user has admin role
       const { data: roleData, error: roleError } = await supabase
@@ -57,24 +52,19 @@ const LoginAdmin = () => {
         .maybeSingle();
 
       if (roleError) {
-        console.error("Role check error:", roleError);
         throw roleError;
       }
 
       if (!roleData) {
-        console.log("User does not have admin role");
         await supabase.auth.signOut();
         toast.error("ليس لديك صلاحية المسؤول");
         setIsLoading(false);
         return;
       }
 
-      console.log("Admin role confirmed, navigating to dashboard...");
       toast.success("تم تسجيل الدخول بنجاح");
       navigate("/dashboard/admin", { replace: true });
     } catch (error: any) {
-      console.error("Login error:", error);
-      
       if (error.message?.includes("Invalid login credentials")) {
         toast.error("الرقم السري غير صحيح");
       } else if (error.message?.includes("Email not confirmed")) {
