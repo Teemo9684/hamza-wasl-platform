@@ -425,50 +425,34 @@
     }
   }
 
-  /* Magic Rotate Animations with Mirror Effect */
+  /* Magic Rotate Animations */
   @keyframes magicRotate1 {
     0%, 100% {
       opacity: 0;
-      transform: scale(0.5) rotateY(180deg) scaleX(1);
+      transform: scale(0.5) rotateY(180deg);
     }
-    10%, 25% {
+    10%, 40% {
       opacity: 1;
-      transform: scale(1) rotateY(360deg) scaleX(1);
-    }
-    30% {
-      opacity: 1;
-      transform: scale(1) rotateY(360deg) scaleX(-1);
-    }
-    40% {
-      opacity: 1;
-      transform: scale(1) rotateY(360deg) scaleX(1);
+      transform: scale(1) rotateY(360deg);
     }
     50%, 90% {
       opacity: 0;
-      transform: scale(0.5) rotateY(540deg) scaleX(1);
+      transform: scale(0.5) rotateY(540deg);
     }
   }
 
   @keyframes magicRotate2 {
     0%, 50% {
       opacity: 0;
-      transform: scale(0.5) rotateY(180deg) scaleX(1);
+      transform: scale(0.5) rotateY(180deg);
     }
-    60%, 75% {
+    60%, 90% {
       opacity: 1;
-      transform: scale(1) rotateY(360deg) scaleX(1);
-    }
-    80% {
-      opacity: 1;
-      transform: scale(1) rotateY(360deg) scaleX(-1);
-    }
-    90% {
-      opacity: 1;
-      transform: scale(1) rotateY(360deg) scaleX(1);
+      transform: scale(1) rotateY(360deg);
     }
     100% {
       opacity: 0;
-      transform: scale(0.5) rotateY(540deg) scaleX(1);
+      transform: scale(0.5) rotateY(540deg);
     }
   }
 
