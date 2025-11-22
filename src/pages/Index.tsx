@@ -262,9 +262,10 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Install App Button - Only show if not installed */}
-        {!isInstalled && (
-          <div className="mt-12 text-center animate-fade-in" style={{ animationDelay: "0.35s" }}>
+        {/* Action Buttons */}
+        <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: "0.35s" }}>
+          {/* Install App Button - Only show if not installed */}
+          {!isInstalled && (
             <button
               onClick={() => navigate("/install")}
               className="group inline-flex items-center gap-3 bg-white/20 hover:bg-white/30 backdrop-blur-lg text-white px-8 py-4 rounded-2xl font-cairo text-lg font-bold border-2 border-white/30 hover:border-white/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
@@ -277,8 +278,22 @@ const Index = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-          </div>
-        )}
+          )}
+          
+          {/* About App Button */}
+          <button
+            onClick={() => navigate("/about")}
+            className="group inline-flex items-center gap-3 bg-white/20 hover:bg-white/30 backdrop-blur-lg text-white px-8 py-4 rounded-2xl font-cairo text-lg font-bold border-2 border-white/30 hover:border-white/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+          >
+            <svg className="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>عن التطبيق</span>
+            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
 
         {/* Footer */}
         <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
