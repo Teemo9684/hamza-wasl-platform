@@ -30,20 +30,16 @@ const LoginTeacher = () => {
     setIsLoading(true);
 
     try {
-      console.log("Teacher login attempt for:", email);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password.trim(),
       });
 
       if (error) {
-        console.error("Login error:", error.message);
         throw error;
       }
 
       if (data.user) {
-        console.log("User authenticated, checking teacher role...");
         
         // Check if user is approved
         const { data: profileData, error: profileError } = await supabase
@@ -53,12 +49,10 @@ const LoginTeacher = () => {
           .single();
 
         if (profileError) {
-          console.error("Profile check error:", profileError);
           throw profileError;
         }
 
         if (!profileData.is_approved) {
-          console.log("User account is not approved yet");
           toast.error("حسابك قيد المراجعة من قبل الإدارة. الرجاء الانتظار حتى يتم اعتماد حسابك.");
           await supabase.auth.signOut();
           setIsLoading(false);
@@ -74,19 +68,16 @@ const LoginTeacher = () => {
           .maybeSingle();
 
         if (roleError) {
-          console.error("Role check error:", roleError);
           throw roleError;
         }
 
         if (!roleData) {
-          console.log("User does not have teacher role");
           toast.error("هذا الحساب ليس حساب معلم");
           await supabase.auth.signOut();
           setIsLoading(false);
           return;
         }
 
-        console.log("Teacher role confirmed, navigating to dashboard...");
         toast.success("تم تسجيل الدخول بنجاح");
         
         // Use setTimeout to ensure toast is shown before navigation
@@ -95,8 +86,6 @@ const LoginTeacher = () => {
         }, 100);
       }
     } catch (error: any) {
-      console.error("Login failed:", error);
-      
       if (error.message?.includes("Invalid login credentials")) {
         toast.error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
       } else if (error.message?.includes("Email not confirmed")) {
