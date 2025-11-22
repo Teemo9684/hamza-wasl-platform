@@ -11,6 +11,7 @@ import { ParentOverview } from "@/components/parent/ParentOverview";
 import { ParentAttendance } from "@/components/parent/ParentAttendance";
 import { ParentMessages } from "@/components/parent/ParentMessages";
 import { ParentHomework } from "@/components/parent/ParentHomework";
+import { ParentSchedule } from "@/components/parent/ParentSchedule";
 import { NewsTicker } from "@/components/NewsTicker";
 
 const DashboardParent = () => {
@@ -222,6 +223,10 @@ const DashboardParent = () => {
 
               <section id="homework">
                 <ParentHomework />
+              </section>
+
+              <section id="schedule">
+                <ParentSchedule selectedChild={selectedChild} children={children} />
               </section>
 
               <section id="messages">
