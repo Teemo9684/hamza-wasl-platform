@@ -285,7 +285,7 @@ const Index = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
+        <div className="mt-4 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <p className="text-white/70 font-cairo text-lg">
             اختر نوع الحساب للدخول إلى المنصة
           </p>
