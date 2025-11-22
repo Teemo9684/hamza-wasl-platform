@@ -163,9 +163,6 @@ const Index = () => {
             <p className="text-2xl text-white/90 font-cairo mb-2">
               جسر التواصل بين المدرسة والبيت
             </p>
-            <p className="text-base text-white/80 font-cairo mb-3">
-              منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية
-            </p>
             <p className="text-sm text-white/70 font-cairo">
               المدرسة الابتدائية العربي التبسي
             </p>
@@ -265,10 +262,9 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: "0.35s" }}>
-          {/* Install App Button - Only show if not installed */}
-          {!isInstalled && (
+        {/* Install App Button - Only show if not installed */}
+        {!isInstalled && (
+          <div className="mt-12 text-center animate-fade-in" style={{ animationDelay: "0.35s" }}>
             <button
               onClick={() => navigate("/install")}
               className="group inline-flex items-center gap-3 bg-white/20 hover:bg-white/30 backdrop-blur-lg text-white px-8 py-4 rounded-2xl font-cairo text-lg font-bold border-2 border-white/30 hover:border-white/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
@@ -281,11 +277,11 @@ const Index = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Footer */}
-        <div className="mt-4 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
+        <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <p className="text-white/70 font-cairo text-lg">
             اختر نوع الحساب للدخول إلى المنصة
           </p>
