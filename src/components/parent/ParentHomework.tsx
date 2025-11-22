@@ -13,6 +13,8 @@ interface Homework {
   subject: string | null;
   due_date: string;
   attachment_url: string | null;
+  attachments: string[] | null;
+  teacher_id: string;
   created_at: string;
 }
 
@@ -67,11 +69,29 @@ export const ParentHomework = () => {
       // Get homework for students' grade levels
       const gradeLevels = [...new Set(studentsList.map((s: Student) => s.grade_level))];
 
-      const { data: homeworkData, error: homeworkError } = await supabase
+      // Get teachers for the parent's students
+      const { data: teachersData } = await supabase
+        .from("teacher_students")
+        .select("teacher_id")
+        .in("student_id", studentsList.map((s: Student) => s.id));
+
+      const teacherIds = teachersData?.map(t => t.teacher_id) || [];
+
+      let query = supabase
         .from("homework")
         .select("*")
         .in("grade_level", gradeLevels)
         .order("due_date", { ascending: true });
+
+      // If in preview mode (default teacher/parent), show only homework from specific teacher
+      // You can identify preview mode by checking for specific IDs
+      const isPreviewMode = user.id === "22222222-2222-2222-2222-222222222222"; // Default parent ID
+      
+      if (isPreviewMode && teacherIds.length > 0) {
+        query = query.in("teacher_id", teacherIds);
+      }
+
+      const { data: homeworkData, error: homeworkError } = await query;
 
       if (homeworkError) throw homeworkError;
 
@@ -198,7 +218,25 @@ export const ParentHomework = () => {
                           )}
                         </div>
 
-                        {hw.attachment_url && (
+                        {(hw.attachments && hw.attachments.length > 0) ? (
+                          <div className="mt-2 space-y-1">
+                            <p className="text-sm font-cairo text-muted-foreground">المرفقات ({hw.attachments.length}):</p>
+                            <div className="flex flex-wrap gap-2">
+                              {hw.attachments.map((url, index) => (
+                                <a
+                                  key={index}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-primary hover:underline font-cairo text-sm"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                  مرفق {index + 1}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        ) : hw.attachment_url && (
                           <a
                             href={hw.attachment_url}
                             target="_blank"

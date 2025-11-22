@@ -132,6 +132,7 @@ export type Database = {
       homework: {
         Row: {
           attachment_url: string | null
+          attachments: string[] | null
           created_at: string | null
           description: string
           due_date: string
@@ -144,6 +145,7 @@ export type Database = {
         }
         Insert: {
           attachment_url?: string | null
+          attachments?: string[] | null
           created_at?: string | null
           description: string
           due_date: string
@@ -156,6 +158,7 @@ export type Database = {
         }
         Update: {
           attachment_url?: string | null
+          attachments?: string[] | null
           created_at?: string | null
           description?: string
           due_date?: string
