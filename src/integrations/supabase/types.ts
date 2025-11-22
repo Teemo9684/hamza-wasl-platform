@@ -52,6 +52,33 @@ export type Database = {
           },
         ]
       }
+      class_schedules: {
+        Row: {
+          created_at: string
+          grade_level: string
+          id: string
+          is_active: boolean
+          schedule_image_url: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          grade_level: string
+          id?: string
+          is_active?: boolean
+          schedule_image_url: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          grade_level?: string
+          id?: string
+          is_active?: boolean
+          schedule_image_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       grades: {
         Row: {
           created_at: string | null

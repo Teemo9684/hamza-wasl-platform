@@ -23,6 +23,7 @@ const menuItems = [
   { title: "نظرة عامة", icon: Home, section: "overview" },
   { title: "الحضور", icon: Calendar, section: "attendance" },
   { title: "الواجبات", icon: BookOpen, section: "homework" },
+  { title: "جدول الحصص", icon: Calendar, section: "schedule" },
   { title: "المراسلة", icon: MessageSquare, section: "messages" },
 ];
 

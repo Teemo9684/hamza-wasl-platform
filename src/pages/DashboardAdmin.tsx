@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home, Send } from "lucide-react";
+import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home, Send, Calendar } from "lucide-react";
 import { NewsTickerManager } from "@/components/NewsTickerManager";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { StudentManagement } from "@/components/admin/StudentManagement";
@@ -11,6 +11,7 @@ import { ReportsView } from "@/components/admin/ReportsView";
 import { SettingsManager } from "@/components/admin/SettingsManager";
 import { MessagesView } from "@/components/admin/MessagesView";
 import { GroupMessaging } from "@/components/admin/GroupMessaging";
+import { ScheduleManager } from "@/components/admin/ScheduleManager";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -134,6 +135,7 @@ const DashboardAdmin = () => {
               {activeSection === "settings" && <SettingsManager />}
               {activeSection === "messages" && <MessagesView />}
               {activeSection === "groupMessages" && <GroupMessaging />}
+              {activeSection === "schedule" && <ScheduleManager />}
             </div>
           ) : (
             <>
@@ -325,6 +327,23 @@ const DashboardAdmin = () => {
                   </p>
                   <Button className="w-full bg-gradient-secondary text-white font-cairo">
                     إرسال
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("schedule")}>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
+                    <Calendar className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 font-cairo">جدول الحصص</h3>
+                  <p className="text-sm text-muted-foreground font-cairo mb-4">
+                    إدارة جداول الحصص الأسبوعية لكل الأقسام
+                  </p>
+                  <Button className="w-full bg-accent text-white font-cairo">
+                    إدارة
                   </Button>
                 </div>
               </CardContent>
