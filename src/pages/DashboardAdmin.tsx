@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home, Send, Calendar } from "lucide-react";
 import { NewsTickerManager } from "@/components/NewsTickerManager";
-import { NewsTicker } from "@/components/NewsTicker";
-import { WeatherInfoBar } from "@/components/WeatherInfoBar";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { StudentManagement } from "@/components/admin/StudentManagement";
 import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
@@ -96,9 +94,6 @@ const DashboardAdmin = () => {
       <div className="absolute inset-0 animated-bg opacity-10" />
       
       <div className="relative z-10">
-        <NewsTicker />
-        <WeatherInfoBar />
-        
         {/* Header */}
         <header className="glass-card border-b">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">

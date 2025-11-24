@@ -14,7 +14,6 @@ import { TeacherMessages } from "@/components/teacher/TeacherMessages";
 import { TeacherGroupMessaging } from "@/components/teacher/TeacherGroupMessaging";
 import { TeacherHomework } from "@/components/teacher/TeacherHomework";
 import { NewsTicker } from "@/components/NewsTicker";
-import { WeatherInfoBar } from "@/components/WeatherInfoBar";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 
 const DashboardTeacher = () => {
@@ -314,7 +313,6 @@ const DashboardTeacher = () => {
 
         <div className="flex-1 flex flex-col min-w-0">
           <NewsTicker />
-          <WeatherInfoBar />
           <header className="sticky top-0 z-20 border-b bg-background shadow-sm">
             <div className="flex h-16 items-center justify-between px-4 md:px-6">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
