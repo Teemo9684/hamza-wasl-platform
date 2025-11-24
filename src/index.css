@@ -496,6 +496,38 @@
     }
   }
 
+  /* Crystal Text Effect */
+  .crystal-text {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 0.9) 25%,
+      rgba(200, 220, 255, 0.95) 50%,
+      rgba(255, 255, 255, 0.9) 75%,
+      rgba(255, 255, 255, 1) 100%
+    );
+    background-size: 200% 200%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 
+      0 0 20px rgba(255, 255, 255, 0.8),
+      0 0 40px rgba(200, 220, 255, 0.6),
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      2px 2px 8px rgba(255, 255, 255, 0.5);
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.7));
+    animation: crystal-shimmer 4s ease-in-out infinite;
+  }
+
+  @keyframes crystal-shimmer {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
   @keyframes splash-particle {
     0% {
       opacity: 1;
