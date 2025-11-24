@@ -97,7 +97,8 @@ export const ScheduleManager = () => {
       const response = await fetch(enhancedImageData);
       const blob = await response.blob();
       const fileExt = file.name.split('.').pop();
-      const fileName = `${selectedGrade}-${Date.now()}.${fileExt}`;
+      // Use timestamp and random string instead of Arabic grade name
+      const fileName = `schedule-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const finalFile = new File([blob], fileName, { type: blob.type });
 
       toast.info("جاري رفع الصورة...");
