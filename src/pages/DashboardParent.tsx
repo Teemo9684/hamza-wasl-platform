@@ -13,6 +13,7 @@ import { ParentMessages } from "@/components/parent/ParentMessages";
 import { ParentHomework } from "@/components/parent/ParentHomework";
 import { ParentSchedule } from "@/components/parent/ParentSchedule";
 import { NewsTicker } from "@/components/NewsTicker";
+import { WeatherInfoBar } from "@/components/WeatherInfoBar";
 
 const DashboardParent = () => {
   const navigate = useNavigate();
@@ -185,6 +186,7 @@ const DashboardParent = () => {
 
         <div className="flex-1 flex flex-col min-w-0">
           <NewsTicker />
+          <WeatherInfoBar />
           <header className="sticky top-0 z-20 border-b bg-background shadow-sm">
             <div className="flex h-16 items-center justify-between px-4 md:px-6">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
