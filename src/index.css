@@ -414,6 +414,22 @@
     animation: ticker-rtl 30s linear infinite;
     will-change: transform;
   }
+  
+  /* Slower Ticker Animation for Info Bar */
+  .ticker-animation-slow {
+    animation: ticker-rtl 60s linear infinite;
+    will-change: transform;
+  }
+  
+  /* Scrollbar Hide */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 
   /* Left-to-right smooth scroll (repeat 3x, move by +33.333%) */
   @keyframes ticker-rtl {
