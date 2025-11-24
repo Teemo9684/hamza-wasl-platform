@@ -52,15 +52,60 @@ export const ScheduleManager = () => {
     }
 
     const file = event.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${selectedGrade}-${Date.now()}.${fileExt}`;
-
+    
     setUploading(true);
     try {
+      // Convert file to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      toast.info("جاري تحسين الصورة بالذكاء الاصطناعي...");
+      const imageData = await base64Promise;
+
+      // Enhance image using AI
+      let enhancedImageData = imageData;
+      let enhancementFailed = false;
+
+      try {
+        const { data: functionData, error: functionError } = await supabase.functions.invoke(
+          'enhance-schedule-image',
+          { body: { imageData } }
+        );
+
+        if (functionError) {
+          console.error("Enhancement function error:", functionError);
+          enhancementFailed = true;
+          toast.warning("لم يتمكن من تحسين الصورة، سيتم رفع الصورة الأصلية");
+        } else if (functionData?.enhancedImage) {
+          enhancedImageData = functionData.enhancedImage;
+          toast.success("تم تحسين الصورة بنجاح!");
+        } else if (functionData?.fallback) {
+          enhancementFailed = true;
+          toast.warning("لم يتمكن من تحسين الصورة، سيتم رفع الصورة الأصلية");
+        }
+      } catch (enhanceError) {
+        console.error("Enhancement error:", enhanceError);
+        enhancementFailed = true;
+        toast.warning("لم يتمكن من تحسين الصورة، سيتم رفع الصورة الأصلية");
+      }
+
+      // Convert base64 back to file
+      const response = await fetch(enhancedImageData);
+      const blob = await response.blob();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${selectedGrade}-${Date.now()}.${fileExt}`;
+      const finalFile = new File([blob], fileName, { type: blob.type });
+
+      toast.info("جاري رفع الصورة...");
+
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('schedules')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, finalFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -97,7 +142,9 @@ export const ScheduleManager = () => {
         if (insertError) throw insertError;
       }
 
-      toast.success("تم رفع جدول الحصص بنجاح");
+      toast.success(enhancementFailed 
+        ? "تم رفع جدول الحصص بنجاح" 
+        : "تم رفع وتحسين جدول الحصص بنجاح");
       fetchSchedules();
       setSelectedGrade("");
     } catch (error: any) {
