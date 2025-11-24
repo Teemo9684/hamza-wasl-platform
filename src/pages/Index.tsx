@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, GraduationCap, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { WeatherInfoBar } from "@/components/WeatherInfoBar";
 
 interface NewsItem {
   id: string;
@@ -136,6 +137,11 @@ const Index = () => {
           </div>
         </div>
       )}
+
+      {/* Weather Info Bar */}
+      <div className="absolute top-[52px] left-0 right-0 z-20">
+        <WeatherInfoBar />
+      </div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-24">
