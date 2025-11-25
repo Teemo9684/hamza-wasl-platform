@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Users, GraduationCap, Shield, ArrowRight } from "lucide-react";
+import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 interface NewsItem {
   id: string;
@@ -31,6 +33,7 @@ const Index = () => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const loginSectionRef = useRef<HTMLDivElement>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     // Check if app is installed (running in standalone mode)
@@ -46,6 +49,15 @@ const Index = () => {
 
   useEffect(() => {
     fetchNewsItems();
+  }, []);
+
+  useEffect(() => {
+    // Update time every second
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const fetchNewsItems = async () => {
@@ -254,9 +266,38 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Date and Time Display */}
+      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-start gap-4 animate-fade-in">
+        {/* Date */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl px-6 py-3 border border-white/20 shadow-lg">
+          <div className="flex items-center gap-3">
+            <Calendar className="w-5 h-5 text-white" />
+            <div className="text-white font-cairo">
+              <div className="text-sm opacity-80">التاريخ</div>
+              <div className="text-lg font-bold leading-tight">
+                {format(currentTime, "EEEE، d MMMM yyyy", { locale: ar })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Time */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl px-6 py-3 border border-white/20 shadow-lg">
+          <div className="flex items-center gap-3">
+            <Clock className="w-5 h-5 text-white animate-pulse" />
+            <div className="text-white font-cairo">
+              <div className="text-sm opacity-80">الساعة</div>
+              <div className="text-2xl font-bold font-mono leading-tight" dir="ltr">
+                {format(currentTime, "HH:mm:ss")}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* News Ticker */}
       {newsItems.length > 0 && (
-        <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden">
+        <div className="absolute top-24 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden">
           <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
             {/* Repeat items 3 times for seamless scrolling */}
             {[...Array(3)].map((_, repeatIndex) => (
@@ -295,7 +336,7 @@ const Index = () => {
       )}
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-24">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-36">
         {/* Logo and Title */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="relative h-48 mb-6">
