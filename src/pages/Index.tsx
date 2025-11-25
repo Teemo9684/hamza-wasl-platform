@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
+import { Users, GraduationCap, Shield, ArrowRight } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { DateTimeBar } from "@/components/DateTimeBar";
 
 interface NewsItem {
   id: string;
@@ -33,7 +32,6 @@ const Index = () => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const loginSectionRef = useRef<HTMLDivElement>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     // Check if app is installed (running in standalone mode)
@@ -49,15 +47,6 @@ const Index = () => {
 
   useEffect(() => {
     fetchNewsItems();
-  }, []);
-
-  useEffect(() => {
-    // Update time every second
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
   }, []);
 
   const fetchNewsItems = async () => {
@@ -306,26 +295,13 @@ const Index = () => {
         </div>
       )}
 
-      {/* Date and Time Display - Below News Ticker */}
-      <div className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2">
-        <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
-          {/* Date */}
-          <div className="font-medium">
-            {format(currentTime, "EEEE، d MMMM yyyy", { locale: ar })}
-          </div>
-          
-          {/* Separator */}
-          <div className="w-px h-4 bg-white/30"></div>
-          
-          {/* Time */}
-          <div className="font-mono font-medium" dir="ltr">
-            {format(currentTime, "HH:mm:ss")}
-          </div>
-        </div>
+      {/* Date and Time Bar */}
+      <div className="absolute top-[52px] left-0 right-0 z-20">
+        <DateTimeBar />
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-36">
         {/* Logo and Title */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="relative h-48 mb-6">
