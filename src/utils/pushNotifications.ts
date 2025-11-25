@@ -1,30 +1,34 @@
 import { PushNotifications } from '@capacitor/push-notifications';
+import { Device } from '@capacitor/device';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export const initializePushNotifications = async () => {
   try {
-    // Request permission to use push notifications
-    let permStatus = await PushNotifications.checkPermissions();
-
-    if (permStatus.receive === 'prompt') {
-      permStatus = await PushNotifications.requestPermissions();
-    }
+    console.log('Initializing push notifications...');
+    
+    // Always request permission explicitly
+    const permStatus = await PushNotifications.requestPermissions();
 
     if (permStatus.receive !== 'granted') {
-      toast.error('الرجاء السماح بالإشعارات لتلقي التحديثات');
+      console.warn('Push notification permission not granted');
+      toast.error('الرجاء السماح بالإشعارات لتلقي التحديثات المهمة من المدرسة');
       return;
     }
 
+    console.log('Push notification permission granted');
+    
     // Register with Apple / Google to receive push via APNS/FCM
     await PushNotifications.register();
 
     // Set up listeners
     setupPushNotificationListeners();
     
+    toast.success('تم تفعيل التنبيهات بنجاح');
     console.log('Push notifications initialized successfully');
   } catch (error) {
     console.error('Error initializing push notifications:', error);
+    toast.error('حدث خطأ في تفعيل التنبيهات');
   }
 };
 
@@ -33,18 +37,33 @@ const setupPushNotificationListeners = () => {
   PushNotifications.addListener('registration', async (token) => {
     console.log('Push registration success, token: ' + token.value);
     
-    // Save the token to the user's profile or a separate table
+    // Save the token to the push_tokens table
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Store the token in user metadata or a separate table
-        await supabase
-          .from('profiles')
-          .update({ 
-            // You'll need to add a 'push_token' column to profiles table
-            // For now, we'll store it in a way that won't break existing structure
-          })
-          .eq('id', user.id);
+        // Get device info
+        const deviceInfo = await Device.getInfo();
+        const deviceId = await Device.getId();
+        
+        // Upsert the token in the database
+        const { error } = await supabase
+          .from('push_tokens')
+          .upsert({
+            user_id: user.id,
+            token: token.value,
+            platform: deviceInfo.platform,
+            device_name: deviceId.identifier || 'Unknown Device',
+            last_used_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id,token',
+            ignoreDuplicates: false
+          });
+
+        if (error) {
+          console.error('Error saving push token:', error);
+        } else {
+          console.log('Push token saved successfully');
+        }
       }
     } catch (error) {
       console.error('Error saving push token:', error);

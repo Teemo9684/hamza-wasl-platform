@@ -30,11 +30,6 @@ const App = () => {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // Initialize push notifications if available (native app)
-    if (isPushNotificationsAvailable()) {
-      initializePushNotifications();
-    }
-
     // Set up real-time notifications for authenticated users
     let cleanupRealtime: (() => void) | undefined;
 
@@ -51,6 +46,11 @@ const App = () => {
 
         if (roleData) {
           cleanupRealtime = await setupRealtimeNotifications(user.id, roleData.role);
+        }
+
+        // Initialize push notifications for authenticated users (native app only)
+        if (isPushNotificationsAvailable()) {
+          await initializePushNotifications();
         }
       }
     };
@@ -70,6 +70,11 @@ const App = () => {
 
           if (roleData) {
             cleanupRealtime = await setupRealtimeNotifications(session.user.id, roleData.role);
+          }
+
+          // Initialize push notifications after successful login
+          if (isPushNotificationsAvailable()) {
+            await initializePushNotifications();
           }
         }, 0);
       } else if (event === 'SIGNED_OUT') {
