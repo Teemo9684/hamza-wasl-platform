@@ -1,7 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { Users, GraduationCap, Shield } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Users, GraduationCap, Shield, ArrowRight } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface NewsItem {
   id: string;
@@ -12,9 +18,19 @@ interface NewsItem {
   is_active: boolean;
 }
 
+type UserType = "parent" | "teacher" | "admin" | null;
+
 const Index = () => {
   const navigate = useNavigate();
   const [isInstalled, setIsInstalled] = useState(false);
+  const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const loginSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Check if app is installed (running in standalone mode)
@@ -41,6 +57,144 @@ const Index = () => {
 
     if (data) {
       setNewsItems(data);
+    }
+  };
+
+  const handleCardClick = (userType: UserType) => {
+    setSelectedUserType(userType);
+    setEmail("");
+    setPassword("");
+    setTimeout(() => {
+      loginSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      toast.error("الرجاء إدخال البريد الإلكتروني وكلمة المرور");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_approved')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) throw profileError;
+
+        if (!profileData.is_approved) {
+          toast.error("حسابك قيد المراجعة من قبل الإدارة. الرجاء الانتظار حتى يتم اعتماد حسابك.");
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+        
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .eq('role', selectedUserType)
+          .maybeSingle();
+
+        if (roleError) throw roleError;
+
+        if (!roleData) {
+          const roleNames = {
+            parent: "ولي أمر",
+            teacher: "معلم",
+            admin: "إداري"
+          };
+          toast.error(`هذا الحساب ليس حساب ${roleNames[selectedUserType!]}`);
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+
+        toast.success("تم تسجيل الدخول بنجاح");
+        
+        setTimeout(() => {
+          navigate(`/dashboard/${selectedUserType}`, { replace: true });
+        }, 100);
+      }
+    } catch (error: any) {
+      if (error.message?.includes("Invalid login credentials")) {
+        toast.error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+      } else if (error.message?.includes("Email not confirmed")) {
+        toast.error("الرجاء تأكيد بريدك الإلكتروني أولاً");
+      } else {
+        toast.error(error.message || "خطأ في تسجيل الدخول");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetEmail) {
+      toast.error("الرجاء إدخال البريد الإلكتروني");
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/login/${selectedUserType}`,
+      });
+
+      if (error) throw error;
+
+      toast.success("تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني");
+      setIsResetDialogOpen(false);
+      setResetEmail("");
+    } catch (error: any) {
+      toast.error(error.message || "حدث خطأ في إرسال رابط إعادة التعيين");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const getUserTypeInfo = () => {
+    switch (selectedUserType) {
+      case "parent":
+        return {
+          icon: Users,
+          title: "تسجيل دخول ولي الأمر",
+          description: "أدخل بياناتك للوصول إلى حساب ولي الأمر",
+          gradient: "bg-gradient-primary",
+          registerPath: "/register/parent"
+        };
+      case "teacher":
+        return {
+          icon: GraduationCap,
+          title: "تسجيل دخول المعلم",
+          description: "أدخل بياناتك للوصول إلى حساب المعلم",
+          gradient: "bg-gradient-secondary",
+          registerPath: "/register/teacher"
+        };
+      case "admin":
+        return {
+          icon: Shield,
+          title: "تسجيل دخول الإدارة",
+          description: "أدخل بياناتك للوصول إلى لوحة التحكم الإدارية",
+          gradient: "bg-gradient-accent",
+          registerPath: "/register"
+        };
+      default:
+        return null;
     }
   };
 
@@ -176,7 +330,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
           {/* Parent Card */}
           <div 
-            onClick={() => navigate("/login/parent")}
+            onClick={() => handleCardClick("parent")}
             className="group relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/20 border border-white/20 hover:border-white/40 animate-fade-in"
             style={{ animationDelay: "0.1s" }}
           >
@@ -206,7 +360,7 @@ const Index = () => {
 
           {/* Teacher Card */}
           <div 
-            onClick={() => navigate("/login/teacher")}
+            onClick={() => handleCardClick("teacher")}
             className="group relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/20 border border-white/20 hover:border-white/40 animate-fade-in"
             style={{ animationDelay: "0.2s" }}
           >
@@ -236,7 +390,7 @@ const Index = () => {
 
           {/* Admin Card */}
           <div 
-            onClick={() => navigate("/login/admin")}
+            onClick={() => handleCardClick("admin")}
             className="group relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/20 border border-white/20 hover:border-white/40 animate-fade-in"
             style={{ animationDelay: "0.3s" }}
           >
@@ -297,6 +451,134 @@ const Index = () => {
           </p>
         </div>
       </div>
+
+      {/* Login Section */}
+      {selectedUserType && (
+        <div ref={loginSectionRef} className="relative z-10 min-h-screen flex items-center justify-center p-8">
+          <div className="w-full max-w-md slide-in-up">
+            <Button
+              variant="ghost"
+              onClick={() => setSelectedUserType(null)}
+              className="mb-4 text-white hover:bg-white/10"
+            >
+              <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              </svg>
+              العودة للأعلى
+            </Button>
+
+            <Card className="glass-card border-none shadow-2xl">
+              <CardHeader className="text-center">
+                {(() => {
+                  const userInfo = getUserTypeInfo();
+                  const IconComponent = userInfo?.icon;
+                  return (
+                    <>
+                      <div className={`mx-auto w-20 h-20 ${userInfo?.gradient} rounded-full flex items-center justify-center mb-4`}>
+                        {IconComponent && <IconComponent className="w-10 h-10 text-white" />}
+                      </div>
+                      <CardTitle className="text-3xl font-cairo">{userInfo?.title}</CardTitle>
+                      <CardDescription className="font-cairo">
+                        {userInfo?.description}
+                      </CardDescription>
+                    </>
+                  );
+                })()}
+              </CardHeader>
+              
+              <form onSubmit={handleLogin}>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="font-cairo">البريد الإلكتروني</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="example@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="font-cairo"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="font-cairo">كلمة المرور</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="font-cairo"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto">
+                          نسيت كلمة المرور؟
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>إعادة تعيين كلمة المرور</DialogTitle>
+                          <DialogDescription>
+                            أدخل بريدك الإلكتروني وسنرسل لك رابط لإعادة تعيين كلمة المرور
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="reset-email">البريد الإلكتروني</Label>
+                            <Input
+                              id="reset-email"
+                              type="email"
+                              placeholder="example@email.com"
+                              value={resetEmail}
+                              onChange={(e) => setResetEmail(e.target.value)}
+                            />
+                          </div>
+                          <Button 
+                            onClick={handleResetPassword} 
+                            disabled={isResetting}
+                            className="w-full"
+                          >
+                            {isResetting ? "جاري الإرسال..." : "إرسال رابط إعادة التعيين"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="flex flex-col space-y-4">
+                  <Button
+                    type="submit"
+                    className={`w-full ${getUserTypeInfo()?.gradient} text-white font-cairo`}
+                    size="lg"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "جاري التحميل..." : "تسجيل الدخول"}
+                    <ArrowRight className="mr-2 h-5 w-5" />
+                  </Button>
+                  
+                  {selectedUserType !== "admin" && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => navigate(getUserTypeInfo()?.registerPath || "")}
+                      className="w-full font-cairo"
+                    >
+                      ليس لديك حساب؟ سجل الآن
+                    </Button>
+                  )}
+                </CardFooter>
+              </form>
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
