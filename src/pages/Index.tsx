@@ -72,8 +72,11 @@ const Index = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error("الرجاء إدخال البريد الإلكتروني وكلمة المرور");
+    // For admin, use fixed email
+    const loginEmail = selectedUserType === "admin" ? "admin@school.local" : email;
+    
+    if (!loginEmail || !password) {
+      toast.error(selectedUserType === "admin" ? "الرجاء إدخال كلمة المرور" : "الرجاء إدخال البريد الإلكتروني وكلمة المرور");
       return;
     }
 
@@ -81,7 +84,7 @@ const Index = () => {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: loginEmail.trim(),
         password: password.trim(),
       });
 
@@ -488,18 +491,20 @@ const Index = () => {
               
               <form onSubmit={handleLogin}>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="font-cairo">البريد الإلكتروني</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="example@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="font-cairo"
-                      required
-                    />
-                  </div>
+                  {selectedUserType !== "admin" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="font-cairo">البريد الإلكتروني</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="example@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="font-cairo"
+                        required
+                      />
+                    </div>
+                  )}
                   
                   <div className="space-y-2">
                     <Label htmlFor="password" className="font-cairo">كلمة المرور</Label>
@@ -514,13 +519,14 @@ const Index = () => {
                     />
                   </div>
 
-                  <div className="flex justify-end">
-                    <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto">
-                          نسيت كلمة المرور؟
-                        </Button>
-                      </DialogTrigger>
+                  {selectedUserType !== "admin" && (
+                    <div className="flex justify-end">
+                      <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto">
+                            نسيت كلمة المرور؟
+                          </Button>
+                        </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>إعادة تعيين كلمة المرور</DialogTitle>
@@ -549,7 +555,8 @@ const Index = () => {
                         </div>
                       </DialogContent>
                     </Dialog>
-                  </div>
+                    </div>
+                  )}
                 </CardContent>
                 
                 <CardFooter className="flex flex-col space-y-4">
