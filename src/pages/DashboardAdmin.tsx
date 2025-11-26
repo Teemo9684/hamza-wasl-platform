@@ -291,7 +291,7 @@ const DashboardAdmin = () => {
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
                     إعدادات النظام والتخصيص
                   </p>
-                  <Button variant="outline" className="w-full font-tajawal">
+                  <Button className="w-full bg-gradient-primary text-white font-cairo">
                     إعدادات
                   </Button>
                 </div>
