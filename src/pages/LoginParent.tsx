@@ -232,53 +232,53 @@ const LoginParent = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center space-x-2 space-x-reverse">
                   <Checkbox 
-                    id="remember" 
+                    id="remember-parent" 
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   />
-                  <Label htmlFor="remember" className="text-sm font-cairo cursor-pointer">
+                  <Label htmlFor="remember-parent" className="text-sm font-cairo cursor-pointer select-none">
                     تذكر بياناتي
                   </Label>
                 </div>
-                <div>
+                
                 <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto">
+                    <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto font-cairo">
                       نسيت كلمة المرور؟
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>إعادة تعيين كلمة المرور</DialogTitle>
-                      <DialogDescription>
+                      <DialogTitle className="font-cairo">إعادة تعيين كلمة المرور</DialogTitle>
+                      <DialogDescription className="font-cairo">
                         أدخل بريدك الإلكتروني وسنرسل لك رابط لإعادة تعيين كلمة المرور
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
-                        <Label htmlFor="reset-email">البريد الإلكتروني</Label>
+                        <Label htmlFor="reset-email" className="font-cairo">البريد الإلكتروني</Label>
                         <Input
                           id="reset-email"
                           type="email"
                           placeholder="example@email.com"
                           value={resetEmail}
                           onChange={(e) => setResetEmail(e.target.value)}
+                          className="font-cairo"
                         />
                       </div>
                       <Button 
                         onClick={handleResetPassword} 
                         disabled={isResetting}
-                        className="w-full"
+                        className="w-full font-cairo"
                       >
                         {isResetting ? "جاري الإرسال..." : "إرسال رابط إعادة التعيين"}
                       </Button>
                     </div>
                   </DialogContent>
                 </Dialog>
-                </div>
               </div>
             </CardContent>
             
