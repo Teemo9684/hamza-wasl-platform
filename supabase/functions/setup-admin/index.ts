@@ -89,11 +89,22 @@ Deno.serve(async (req) => {
 
     // Check if the specific admin user already exists
     const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
-    const adminExists = existingUser?.users?.some(u => u.email === ADMIN_EMAIL);
+    const adminUser = existingUser?.users?.find(u => u.email === ADMIN_EMAIL);
 
-    if (adminExists) {
+    if (adminUser) {
+      // Update admin password if it exists
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        adminUser.id,
+        { password: ADMIN_PIN }
+      );
+
+      if (updateError) {
+        console.error('Error updating admin password:', updateError);
+        throw new Error('فشل تحديث كلمة المرور');
+      }
+
       return new Response(
-        JSON.stringify({ message: 'حساب المسؤول موجود بالفعل' }),
+        JSON.stringify({ message: 'تم تحديث كلمة مرور المسؤول بنجاح' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
