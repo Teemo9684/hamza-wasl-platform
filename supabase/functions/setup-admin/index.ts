@@ -16,46 +16,7 @@ Deno.serve(async (req) => {
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Extract JWT from Authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      console.error('Setup admin: Missing Authorization header');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Verify the JWT and get user
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (userError || !user) {
-      console.error('Setup admin: Invalid or expired token:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Check if the user making the request is already an admin
-    const { data: callerRole, error: callerRoleError } = await supabaseAdmin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
-
-    if (callerRoleError) {
-      console.error('Setup admin: Error checking caller role:', callerRoleError);
-      return new Response(
-        JSON.stringify({ error: 'Error verifying permissions' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Check if any admin exists in the system
+    // Check if any admin exists in the system first
     const { data: existingAdmins, error: adminCheckError } = await supabaseAdmin
       .from('user_roles')
       .select('user_id')
@@ -72,12 +33,52 @@ Deno.serve(async (req) => {
 
     const hasExistingAdmin = existingAdmins && existingAdmins.length > 0;
 
-    // If an admin exists and caller is not an admin, deny access
-    if (hasExistingAdmin && !callerRole) {
-      return new Response(
-        JSON.stringify({ error: 'Forbidden - Admin access required' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // If an admin exists, require authentication
+    if (hasExistingAdmin) {
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        console.error('Setup admin: Missing Authorization header');
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized - Authentication required' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      // Verify the JWT and get user
+      const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+      
+      if (userError || !user) {
+        console.error('Setup admin: Invalid or expired token:', userError);
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized - Invalid token' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check if the user making the request is already an admin
+      const { data: callerRole, error: callerRoleError } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (callerRoleError) {
+        console.error('Setup admin: Error checking caller role:', callerRoleError);
+        return new Response(
+          JSON.stringify({ error: 'Error verifying permissions' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (!callerRole) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden - Admin access required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL');
