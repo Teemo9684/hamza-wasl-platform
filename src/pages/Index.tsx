@@ -529,10 +529,8 @@ const Index = () => {
 
         {/* Copyright */}
         <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
-          <p className="text-white/60 font-cairo text-sm flex items-center justify-center gap-2">
-            <span>جميع الحقوق محفوظة - مدرسة العربي التبسي</span>
-            <span className="mx-2">|</span>
-            <span>© 2026</span>
+          <p className="text-white/60 font-cairo text-sm">
+            جميع الحقوق محفوظة-العربي التبسي 2026©
           </p>
         </div>
       </div>
