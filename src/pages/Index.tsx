@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
+import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar, Settings } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ const Index = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
   const loginSectionRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -79,6 +80,26 @@ const Index = () => {
     setTimeout(() => {
       loginSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
+  };
+
+  const handleSetupAdmin = async () => {
+    setIsSettingUp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('setup-admin');
+      
+      if (error) {
+        console.error('Setup error:', error);
+        toast.error("حدث خطأ في إعداد حساب المسؤول");
+        return;
+      }
+
+      toast.success(data.message || "تم إعداد حساب المسؤول بنجاح");
+    } catch (error) {
+      console.error('Setup admin error:', error);
+      toast.error("حدث خطأ في إعداد حساب المسؤول");
+    } finally {
+      setIsSettingUp(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -599,6 +620,20 @@ const Index = () => {
                     {isLoading ? "جاري التحميل..." : "تسجيل الدخول"}
                     <ArrowRight className="mr-2 h-5 w-5" />
                   </Button>
+                  
+                  {selectedUserType === "admin" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full font-cairo"
+                      size="lg"
+                      disabled={isSettingUp}
+                      onClick={handleSetupAdmin}
+                    >
+                      {isSettingUp ? "جاري الإعداد..." : "إعداد حساب المسؤول"}
+                      <Settings className="mr-2 h-5 w-5" />
+                    </Button>
+                  )}
                   
                   {selectedUserType !== "admin" && (
                     <Button
