@@ -34,9 +34,6 @@ const LoginAdmin = () => {
     checkSession();
   }, [navigate]);
   
-  // استخدام بريد إلكتروني ثابت للمسؤول في الخلفية
-  const ADMIN_EMAIL = "admin@system.local";
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -49,9 +46,20 @@ const LoginAdmin = () => {
     setIsLoading(true);
 
     try {
-      // Sign in with Supabase using fixed admin email and PIN as password
+      // استدعاء edge function للتحقق من كلمة المرور والحصول على البريد الإلكتروني
+      const { data: loginData, error: loginError } = await supabase.functions.invoke('admin-login', {
+        body: { password: pin.trim() }
+      });
+
+      if (loginError || !loginData?.success) {
+        toast.error("الرقم السري غير صحيح");
+        setIsLoading(false);
+        return;
+      }
+
+      // تسجيل الدخول باستخدام البريد الإلكتروني المرجع
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: ADMIN_EMAIL,
+        email: loginData.email,
         password: pin.trim(),
       });
 
@@ -63,7 +71,7 @@ const LoginAdmin = () => {
         throw new Error("لم يتم العثور على المستخدم");
       }
 
-      // Check if user has admin role
+      // التحقق من صلاحية المسؤول
       const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
         .select("role")

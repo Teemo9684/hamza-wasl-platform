@@ -3,6 +3,9 @@ project_id = "caeltaubipulyrdyqsjn"
 [functions.setup-admin]
 verify_jwt = true
 
+[functions.admin-login]
+verify_jwt = false
+
 [functions.extract-students-from-image]
 verify_jwt = true
 
