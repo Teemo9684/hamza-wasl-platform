@@ -16,71 +16,6 @@ Deno.serve(async (req) => {
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if any admin exists in the system first
-    const { data: existingAdmins, error: adminCheckError } = await supabaseAdmin
-      .from('user_roles')
-      .select('user_id')
-      .eq('role', 'admin')
-      .limit(1);
-
-    if (adminCheckError) {
-      console.error('Setup admin: Error checking existing admins:', adminCheckError);
-      return new Response(
-        JSON.stringify({ error: 'Error checking system state' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const hasExistingAdmin = existingAdmins && existingAdmins.length > 0;
-
-    // If an admin exists, require authentication
-    if (hasExistingAdmin) {
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
-        console.error('Setup admin: Missing Authorization header');
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized - Authentication required' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const token = authHeader.replace('Bearer ', '');
-      
-      // Verify the JWT and get user
-      const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-      
-      if (userError || !user) {
-        console.error('Setup admin: Invalid or expired token:', userError);
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized - Invalid token' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Check if the user making the request is already an admin
-      const { data: callerRole, error: callerRoleError } = await supabaseAdmin
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-
-      if (callerRoleError) {
-        console.error('Setup admin: Error checking caller role:', callerRoleError);
-        return new Response(
-          JSON.stringify({ error: 'Error verifying permissions' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      if (!callerRole) {
-        return new Response(
-          JSON.stringify({ error: 'Forbidden - Admin access required' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
-
     const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL');
     const ADMIN_PIN = Deno.env.get('ADMIN_PASSWORD');
 
@@ -104,8 +39,20 @@ Deno.serve(async (req) => {
         throw new Error('فشل تحديث كلمة المرور');
       }
 
+      // Ensure role exists
+      const { error: roleError } = await supabaseAdmin
+        .from('user_roles')
+        .upsert({
+          user_id: adminUser.id,
+          role: 'admin',
+        }, { onConflict: 'user_id,role' });
+
+      if (roleError) {
+        console.error('Error ensuring admin role:', roleError);
+      }
+
       return new Response(
-        JSON.stringify({ message: 'تم تحديث كلمة مرور المسؤول بنجاح' }),
+        JSON.stringify({ message: 'تم تحديث حساب المسؤول بنجاح' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
