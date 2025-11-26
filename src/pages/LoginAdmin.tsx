@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, ArrowRight, Home } from "lucide-react";
+import { Shield, ArrowRight, Home, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,6 +13,7 @@ const LoginAdmin = () => {
   const navigate = useNavigate();
   const [pin, setPin] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
   
   // Check if user is already logged in
   useEffect(() => {
@@ -34,6 +35,26 @@ const LoginAdmin = () => {
     checkSession();
   }, [navigate]);
   
+  const handleSetupAdmin = async () => {
+    setIsSettingUp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('setup-admin');
+      
+      if (error) {
+        console.error('Setup error:', error);
+        toast.error("حدث خطأ في إعداد حساب المسؤول");
+        return;
+      }
+
+      toast.success(data.message || "تم إعداد حساب المسؤول بنجاح");
+    } catch (error) {
+      console.error('Setup admin error:', error);
+      toast.error("حدث خطأ في إعداد حساب المسؤول");
+    } finally {
+      setIsSettingUp(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -156,6 +177,18 @@ const LoginAdmin = () => {
               >
                 {isLoading ? "جاري التحميل..." : "تسجيل الدخول"}
                 <ArrowRight className="mr-2 h-5 w-5" />
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full font-cairo"
+                size="lg"
+                disabled={isSettingUp}
+                onClick={handleSetupAdmin}
+              >
+                {isSettingUp ? "جاري الإعداد..." : "إعداد حساب المسؤول"}
+                <Settings className="mr-2 h-5 w-5" />
               </Button>
             </CardFooter>
           </form>
