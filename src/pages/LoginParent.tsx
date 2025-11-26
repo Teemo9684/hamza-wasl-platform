@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Users, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,10 +14,22 @@ const LoginParent = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  // Load saved credentials if remember me was enabled
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('parent_email');
+    const savedPassword = localStorage.getItem('parent_password');
+    if (savedEmail && savedPassword) {
+      setEmail(savedEmail);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
 
   // Check if user is already logged in
   useEffect(() => {
@@ -106,6 +119,15 @@ const LoginParent = () => {
           return;
         }
 
+        // Save credentials if remember me is checked
+        if (rememberMe) {
+          localStorage.setItem('parent_email', email.trim());
+          localStorage.setItem('parent_password', password.trim());
+        } else {
+          localStorage.removeItem('parent_email');
+          localStorage.removeItem('parent_password');
+        }
+
         toast.success("تم تسجيل الدخول بنجاح");
         
         // Use setTimeout to ensure toast is shown before navigation
@@ -150,6 +172,13 @@ const LoginParent = () => {
     }
   };
 
+  const handleBackToHome = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem('parent_email');
+    localStorage.removeItem('parent_password');
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute inset-0 animated-bg opacity-90" />
@@ -157,7 +186,7 @@ const LoginParent = () => {
       <div className="relative z-10 w-full max-w-md slide-in-up">
         <Button
           variant="ghost"
-          onClick={() => navigate(-1)}
+          onClick={handleBackToHome}
           className="mb-4 text-white hover:bg-white/10"
         >
           <Home className="ml-2 h-4 w-4" />
@@ -203,7 +232,18 @@ const LoginParent = () => {
                 />
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Checkbox 
+                    id="remember" 
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  />
+                  <Label htmlFor="remember" className="text-sm font-cairo cursor-pointer">
+                    تذكر بياناتي
+                  </Label>
+                </div>
+                <div>
                 <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
                   <DialogTrigger asChild>
                     <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto">
@@ -238,6 +278,7 @@ const LoginParent = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
+                </div>
               </div>
             </CardContent>
             

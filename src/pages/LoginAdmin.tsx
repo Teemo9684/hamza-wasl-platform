@@ -126,6 +126,11 @@ const LoginAdmin = () => {
     }
   };
 
+  const handleBackToHome = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute inset-0 animated-bg opacity-90" />
@@ -133,7 +138,7 @@ const LoginAdmin = () => {
       <div className="relative z-10 w-full max-w-md slide-in-up">
         <Button
           variant="ghost"
-          onClick={() => navigate(-1)}
+          onClick={handleBackToHome}
           className="mb-4 text-white hover:bg-white/10"
         >
           <Home className="ml-2 h-4 w-4" />
