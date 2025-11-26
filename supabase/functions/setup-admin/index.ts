@@ -16,22 +16,19 @@ Deno.serve(async (req) => {
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL');
-    const ADMIN_PIN = Deno.env.get('ADMIN_PASSWORD');
+    // Fixed admin credentials
+    const ADMIN_EMAIL = "admin@arbit.local";
+    const ADMIN_PASSWORD = "ARBIT1922@";
 
-    if (!ADMIN_EMAIL || !ADMIN_PIN) {
-      throw new Error('Admin credentials not configured');
-    }
-
-    // Check if the specific admin user already exists
+    // Check if the admin user already exists
     const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
     const adminUser = existingUser?.users?.find(u => u.email === ADMIN_EMAIL);
 
     if (adminUser) {
-      // Update admin password if it exists
+      // Update admin password
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
         adminUser.id,
-        { password: ADMIN_PIN }
+        { password: ADMIN_PASSWORD }
       );
 
       if (updateError) {
@@ -57,10 +54,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create admin user
+    // Create new admin user
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: ADMIN_EMAIL,
-      password: ADMIN_PIN,
+      password: ADMIN_PASSWORD,
       email_confirm: true,
       user_metadata: {
         full_name: 'المسؤول',
@@ -82,7 +79,6 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         message: 'تم إنشاء حساب المسؤول بنجاح',
-        email: ADMIN_EMAIL 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );

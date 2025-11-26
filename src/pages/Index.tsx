@@ -106,7 +106,9 @@ const Index = () => {
     e.preventDefault();
     
     if (selectedUserType === "admin") {
-      // For admin login, use edge function to verify password and get email
+      // For admin login, use a fixed email
+      const ADMIN_EMAIL = "admin@arbit.local";
+      
       if (!password) {
         toast.error("الرجاء إدخال كلمة المرور");
         return;
@@ -115,24 +117,16 @@ const Index = () => {
       setIsLoading(true);
 
       try {
-        // Call admin-login edge function
-        const { data: loginData, error: loginError } = await supabase.functions.invoke('admin-login', {
-          body: { password: password.trim() }
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: ADMIN_EMAIL,
+          password: password.trim(),
         });
 
-        if (loginError || !loginData?.success) {
+        if (authError) {
           toast.error("كلمة المرور غير صحيحة");
           setIsLoading(false);
           return;
         }
-
-        // Login with the returned email
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email: loginData.email,
-          password: password.trim(),
-        });
-
-        if (authError) throw authError;
 
         if (authData.user) {
           const { data: roleData, error: roleError } = await supabase
