@@ -105,11 +105,67 @@ const Index = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // For admin, use fixed email
-    const loginEmail = selectedUserType === "admin" ? "admin@school.local" : email;
+    if (selectedUserType === "admin") {
+      // For admin login, use edge function to verify password and get email
+      if (!password) {
+        toast.error("الرجاء إدخال كلمة المرور");
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        // Call admin-login edge function
+        const { data: loginData, error: loginError } = await supabase.functions.invoke('admin-login', {
+          body: { password: password.trim() }
+        });
+
+        if (loginError || !loginData?.success) {
+          toast.error("كلمة المرور غير صحيحة");
+          setIsLoading(false);
+          return;
+        }
+
+        // Login with the returned email
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: loginData.email,
+          password: password.trim(),
+        });
+
+        if (authError) throw authError;
+
+        if (authData.user) {
+          const { data: roleData, error: roleError } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", authData.user.id)
+            .eq("role", "admin")
+            .maybeSingle();
+
+          if (roleError || !roleData) {
+            await supabase.auth.signOut();
+            toast.error("ليس لديك صلاحية المسؤول");
+            setIsLoading(false);
+            return;
+          }
+
+          toast.success("تم تسجيل الدخول بنجاح");
+          navigate("/dashboard/admin");
+        }
+      } catch (error: any) {
+        console.error("Admin login error:", error);
+        toast.error("حدث خطأ في تسجيل الدخول");
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+    
+    // For parent/teacher login
+    const loginEmail = email;
     
     if (!loginEmail || !password) {
-      toast.error(selectedUserType === "admin" ? "الرجاء إدخال كلمة المرور" : "الرجاء إدخال البريد الإلكتروني وكلمة المرور");
+      toast.error("الرجاء إدخال البريد الإلكتروني وكلمة المرور");
       return;
     }
 
