@@ -326,13 +326,12 @@ const DashboardTeacher = () => {
                   </div>
                 </div>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleLogout}
-                  className="gap-2 shrink-0"
-                  size="sm"
+                  className="font-cairo"
                 >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">تسجيل الخروج</span>
+                  <LogOut className="ml-2 h-4 w-4" />
+                  تسجيل الخروج
                 </Button>
               </div>
             </header>
