@@ -9,9 +9,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Users, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useHolidayMode } from "@/hooks/useHolidayMode";
+import { HolidayModeDialog } from "@/components/HolidayModeDialog";
 
 const LoginParent = () => {
   const navigate = useNavigate();
+  const { isHolidayMode, holidayMessage, loading: holidayLoading } = useHolidayMode();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -61,6 +64,12 @@ const LoginParent = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check holiday mode first
+    if (isHolidayMode) {
+      toast.error("التطبيق في وضع العطلة");
+      return;
+    }
     
     // Validate inputs
     if (!email || !password) {
@@ -180,7 +189,9 @@ const LoginParent = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+    <>
+      <HolidayModeDialog open={isHolidayMode} message={holidayMessage} />
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute inset-0 animated-bg opacity-90" />
       
       <div className="relative z-10 w-full max-w-md slide-in-up">
@@ -306,6 +317,7 @@ const LoginParent = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 
