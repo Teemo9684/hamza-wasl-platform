@@ -188,10 +188,13 @@ const LoginParent = () => {
     navigate("/");
   };
 
+  // Show holiday mode dialog if holiday mode is active
+  if (isHolidayMode) {
+    return <HolidayModeDialog open={true} message={holidayMessage} />;
+  }
+
   return (
-    <>
-      <HolidayModeDialog open={isHolidayMode} message={holidayMessage} />
-      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute inset-0 animated-bg opacity-90" />
       
       <div className="relative z-10 w-full max-w-md slide-in-up">
@@ -317,7 +320,6 @@ const LoginParent = () => {
         </Card>
       </div>
     </div>
-    </>
   );
 };
 
