@@ -14,6 +14,8 @@ import { GroupMessaging } from "@/components/admin/GroupMessaging";
 import { ScheduleManager } from "@/components/admin/ScheduleManager";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AnimatePresence } from "framer-motion";
+import { AnimatedSection } from "@/components/AnimatedSection";
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -117,30 +119,34 @@ const DashboardAdmin = () => {
             </p>
           </div>
 
-          {activeSection ? (
-            <div className="mb-8">
-              <Button 
-                onClick={handleBackToDashboard} 
-                variant="ghost" 
-                className="mb-4 font-cairo"
-              >
-                <Home className="ml-2 h-4 w-4" />
-                العودة إلى لوحة التحكم
-              </Button>
-              {activeSection === "news" && <NewsTickerManager />}
-              {activeSection === "users" && <UserManagement />}
-              {activeSection === "students" && <StudentManagement />}
-              {activeSection === "announcements" && <AnnouncementsManager />}
-              {activeSection === "reports" && <ReportsView />}
-              {activeSection === "settings" && <SettingsManager />}
-              {activeSection === "messages" && <MessagesView />}
-              {activeSection === "groupMessages" && <GroupMessaging />}
-              {activeSection === "schedule" && <ScheduleManager />}
-            </div>
-          ) : (
+          <AnimatePresence mode="wait">
+            {activeSection ? (
+              <AnimatedSection key={activeSection}>
+                <div className="mb-8">
+                  <Button 
+                    onClick={handleBackToDashboard} 
+                    variant="ghost" 
+                    className="mb-4 font-cairo"
+                  >
+                    <Home className="ml-2 h-4 w-4" />
+                    العودة إلى لوحة التحكم
+                  </Button>
+                  {activeSection === "news" && <NewsTickerManager />}
+                  {activeSection === "users" && <UserManagement />}
+                  {activeSection === "students" && <StudentManagement />}
+                  {activeSection === "announcements" && <AnnouncementsManager />}
+                  {activeSection === "reports" && <ReportsView />}
+                  {activeSection === "settings" && <SettingsManager />}
+                  {activeSection === "messages" && <MessagesView />}
+                  {activeSection === "groupMessages" && <GroupMessaging />}
+                  {activeSection === "schedule" && <ScheduleManager />}
+                </div>
+              </AnimatedSection>
+            ) : (
             <>
-              {/* Statistics */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <AnimatedSection key="dashboard">
+                {/* Statistics */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="glass-card hover-lift">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-cairo">
@@ -349,8 +355,10 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
           </div>
-          </>
-          )}
+              </AnimatedSection>
+            </>
+            )}
+          </AnimatePresence>
         </main>
       </div>
     </div>
