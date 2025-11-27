@@ -14,6 +14,8 @@ import { TeacherMessages } from "@/components/teacher/TeacherMessages";
 import { TeacherGroupMessaging } from "@/components/teacher/TeacherGroupMessaging";
 import { TeacherHomework } from "@/components/teacher/TeacherHomework";
 import { NewsTicker } from "@/components/NewsTicker";
+import { AnimatePresence } from "framer-motion";
+import { AnimatedSection } from "@/components/AnimatedSection";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 
 const DashboardTeacher = () => {
@@ -337,7 +339,9 @@ const DashboardTeacher = () => {
           </div>
 
           <main className="flex-1 overflow-y-auto p-4 w-full">
-            <div className="max-w-6xl mx-auto space-y-8 w-full">
+            <AnimatePresence mode="wait">
+              <AnimatedSection key="teacher-dashboard">
+                <div className="max-w-6xl mx-auto space-y-8 w-full">
               <section id="overview">
                 <TeacherOverview
                   teacherInfo={teacherInfo}
@@ -370,7 +374,9 @@ const DashboardTeacher = () => {
               <section id="groupMessages">
                 <TeacherGroupMessaging />
               </section>
-            </div>
+                </div>
+              </AnimatedSection>
+            </AnimatePresence>
           </main>
         </div>
       </div>

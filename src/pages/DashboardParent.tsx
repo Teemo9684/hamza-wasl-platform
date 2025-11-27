@@ -13,6 +13,9 @@ import { ParentMessages } from "@/components/parent/ParentMessages";
 import { ParentHomework } from "@/components/parent/ParentHomework";
 import { ParentSchedule } from "@/components/parent/ParentSchedule";
 import { NewsTicker } from "@/components/NewsTicker";
+import { DateTimeBar } from "@/components/DateTimeBar";
+import { AnimatePresence } from "framer-motion";
+import { AnimatedSection } from "@/components/AnimatedSection";
 
 const DashboardParent = () => {
   const navigate = useNavigate();
@@ -209,7 +212,9 @@ const DashboardParent = () => {
           </div>
 
           <main className="flex-1 overflow-y-auto p-4 w-full">
-            <div className="max-w-6xl mx-auto space-y-8 w-full">
+            <AnimatePresence mode="wait">
+              <AnimatedSection key="parent-dashboard">
+                <div className="max-w-6xl mx-auto space-y-8 w-full">
               <section id="overview">
                 <ParentOverview
                   children={children}
@@ -239,7 +244,9 @@ const DashboardParent = () => {
                   onMessageSent={fetchParentData}
                 />
               </section>
-            </div>
+                </div>
+              </AnimatedSection>
+            </AnimatePresence>
           </main>
         </div>
       </div>
