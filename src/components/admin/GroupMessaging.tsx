@@ -23,6 +23,7 @@ interface GradeLevel {
 export const GroupMessaging = () => {
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
+  const [recipientType, setRecipientType] = useState<"parents" | "teachers">("parents");
   const [targetAudience, setTargetAudience] = useState<"all" | "grade">("all");
   const [selectedGrade, setSelectedGrade] = useState("");
   const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([]);
@@ -36,7 +37,7 @@ export const GroupMessaging = () => {
 
   useEffect(() => {
     calculateRecipientCount();
-  }, [targetAudience, selectedGrade]);
+  }, [targetAudience, selectedGrade, recipientType]);
 
   const fetchGradeLevels = async () => {
     try {
@@ -64,24 +65,52 @@ export const GroupMessaging = () => {
 
   const calculateRecipientCount = async () => {
     try {
-      let query = supabase
-        .from("parent_students")
-        .select("parent_id", { count: "exact", head: true });
+      if (recipientType === "teachers") {
+        // Count teachers based on target audience
+        let query = supabase
+          .from("user_roles")
+          .select("user_id", { count: "exact", head: true })
+          .eq("role", "teacher");
 
-      if (targetAudience === "grade" && selectedGrade) {
-        const { data: students } = await supabase
-          .from("students")
-          .select("id")
-          .eq("grade_level", selectedGrade);
+        if (targetAudience === "grade" && selectedGrade) {
+          // Get teachers for specific grade
+          const { data: teachers } = await supabase
+            .from("teacher_grade_levels")
+            .select("teacher_id")
+            .eq("grade_level", selectedGrade);
 
-        if (students && students.length > 0) {
-          const studentIds = students.map(s => s.id);
-          query = query.in("student_id", studentIds);
+          if (teachers && teachers.length > 0) {
+            const teacherIds = teachers.map(t => t.teacher_id);
+            query = query.in("user_id", teacherIds);
+          } else {
+            setRecipientCount(0);
+            return;
+          }
         }
-      }
 
-      const { count } = await query;
-      setRecipientCount(count || 0);
+        const { count } = await query;
+        setRecipientCount(count || 0);
+      } else {
+        // Count parents
+        let query = supabase
+          .from("parent_students")
+          .select("parent_id", { count: "exact", head: true });
+
+        if (targetAudience === "grade" && selectedGrade) {
+          const { data: students } = await supabase
+            .from("students")
+            .select("id")
+            .eq("grade_level", selectedGrade);
+
+          if (students && students.length > 0) {
+            const studentIds = students.map(s => s.id);
+            query = query.in("student_id", studentIds);
+          }
+        }
+
+        const { count } = await query;
+        setRecipientCount(count || 0);
+      }
     } catch (error) {
       console.error("Error calculating recipient count:", error);
     }
@@ -112,32 +141,56 @@ export const GroupMessaging = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // Get recipient IDs based on target audience
+      // Get recipient IDs based on target audience and recipient type
       let recipientIds: string[] = [];
 
-      if (targetAudience === "all") {
-        const { data: allParents } = await supabase
-          .from("parent_students")
-          .select("parent_id");
-        
-        if (allParents) {
-          recipientIds = [...new Set(allParents.map(p => p.parent_id))];
+      if (recipientType === "teachers") {
+        if (targetAudience === "all") {
+          // Get all teachers
+          const { data: allTeachers } = await supabase
+            .from("user_roles")
+            .select("user_id")
+            .eq("role", "teacher");
+          
+          if (allTeachers) {
+            recipientIds = allTeachers.map(t => t.user_id);
+          }
+        } else {
+          // Get teachers for specific grade
+          const { data: teachers } = await supabase
+            .from("teacher_grade_levels")
+            .select("teacher_id")
+            .eq("grade_level", selectedGrade);
+
+          if (teachers) {
+            recipientIds = teachers.map(t => t.teacher_id);
+          }
         }
       } else {
-        const { data: students } = await supabase
-          .from("students")
-          .select("id")
-          .eq("grade_level", selectedGrade);
-
-        if (students && students.length > 0) {
-          const studentIds = students.map(s => s.id);
-          const { data: parents } = await supabase
+        if (targetAudience === "all") {
+          const { data: allParents } = await supabase
             .from("parent_students")
-            .select("parent_id")
-            .in("student_id", studentIds);
+            .select("parent_id");
+          
+          if (allParents) {
+            recipientIds = [...new Set(allParents.map(p => p.parent_id))];
+          }
+        } else {
+          const { data: students } = await supabase
+            .from("students")
+            .select("id")
+            .eq("grade_level", selectedGrade);
 
-          if (parents) {
-            recipientIds = [...new Set(parents.map(p => p.parent_id))];
+          if (students && students.length > 0) {
+            const studentIds = students.map(s => s.id);
+            const { data: parents } = await supabase
+              .from("parent_students")
+              .select("parent_id")
+              .in("student_id", studentIds);
+
+            if (parents) {
+              recipientIds = [...new Set(parents.map(p => p.parent_id))];
+            }
           }
         }
       }
@@ -175,6 +228,7 @@ export const GroupMessaging = () => {
       // Reset form
       setSubject("");
       setContent("");
+      setRecipientType("parents");
       setTargetAudience("all");
       setSelectedGrade("");
     } catch (error) {
@@ -200,13 +254,28 @@ export const GroupMessaging = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="audience" className="font-cairo">المستلمون</Label>
+            <Label htmlFor="recipientType" className="font-cairo">نوع المستلمين</Label>
+            <Select value={recipientType} onValueChange={(value: "parents" | "teachers") => setRecipientType(value)}>
+              <SelectTrigger className="font-cairo">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="parents" className="font-cairo">أولياء الأمور</SelectItem>
+                <SelectItem value="teachers" className="font-cairo">الأساتذة</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="audience" className="font-cairo">نطاق الإرسال</Label>
             <Select value={targetAudience} onValueChange={(value: "all" | "grade") => setTargetAudience(value)}>
               <SelectTrigger className="font-cairo">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" className="font-cairo">جميع أولياء الأمور</SelectItem>
+                <SelectItem value="all" className="font-cairo">
+                  {recipientType === "parents" ? "جميع أولياء الأمور" : "جميع الأساتذة"}
+                </SelectItem>
                 <SelectItem value="grade" className="font-cairo">قسم محدد</SelectItem>
               </SelectContent>
             </Select>
@@ -233,7 +302,7 @@ export const GroupMessaging = () => {
           <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
             <Users className="w-5 h-5 text-primary" />
             <span className="font-cairo text-sm">
-              عدد المستلمين: <strong>{recipientCount}</strong> ولي أمر
+              عدد المستلمين: <strong>{recipientCount}</strong> {recipientType === "parents" ? "ولي أمر" : "أستاذ"}
             </span>
           </div>
 
