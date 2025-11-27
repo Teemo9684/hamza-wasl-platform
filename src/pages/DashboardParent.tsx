@@ -32,6 +32,14 @@ const DashboardParent = () => {
   const [parentName, setParentName] = useState<string>("");
   const [receivedMessages, setReceivedMessages] = useState<any[]>([]);
 
+  // Auto logout when holiday mode is activated
+  useEffect(() => {
+    if (isHolidayMode && !holidayLoading) {
+      supabase.auth.signOut();
+      navigate("/login/parent");
+    }
+  }, [isHolidayMode, holidayLoading, navigate]);
+
   useEffect(() => {
     fetchParentData();
 
