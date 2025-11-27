@@ -195,9 +195,13 @@ const DashboardParent = () => {
     );
   }
 
+  // Show only holiday dialog if holiday mode is active
+  if (isHolidayMode) {
+    return <HolidayModeDialog open={true} message={holidayMessage} />;
+  }
+
   return (
     <>
-      <HolidayModeDialog open={isHolidayMode} message={holidayMessage} />
       <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <ParentSidebar
