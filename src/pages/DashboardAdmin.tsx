@@ -12,7 +12,7 @@ import { SettingsManager } from "@/components/admin/SettingsManager";
 import { MessagesView } from "@/components/admin/MessagesView";
 import { GroupMessaging } from "@/components/admin/GroupMessaging";
 import { ScheduleManager } from "@/components/admin/ScheduleManager";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
@@ -32,17 +32,26 @@ const DashboardAdmin = () => {
     fetchStatistics();
   }, []);
 
-  useEffect(() => {
-    // Restore scroll position when returning to dashboard
-    if (activeSection === null && scrollPositionRef.current > 0) {
-      // Delay scroll restoration to allow animation to complete
-      setTimeout(() => {
-        window.scrollTo(0, scrollPositionRef.current);
-        scrollPositionRef.current = 0; // Reset after restoring
-      }, 100);
-    } else if (activeSection !== null) {
+  useLayoutEffect(() => {
+    if (activeSection !== null) {
       // Scroll to top when opening a section
       window.scrollTo(0, 0);
+    }
+  }, [activeSection]);
+
+  useEffect(() => {
+    // Restore scroll position when returning to dashboard with longer delay
+    if (activeSection === null && scrollPositionRef.current > 0) {
+      const scrollPos = scrollPositionRef.current;
+      // Wait for animation to complete before restoring scroll
+      const timeoutId = setTimeout(() => {
+        window.scrollTo({
+          top: scrollPos,
+          behavior: 'instant'
+        });
+      }, 400);
+      scrollPositionRef.current = 0; // Reset after setting timeout
+      return () => clearTimeout(timeoutId);
     }
   }, [activeSection]);
 
