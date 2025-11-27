@@ -184,9 +184,9 @@ const DashboardParent = () => {
         />
 
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="sticky top-0 z-30">
+          <div className="sticky top-0 z-30 backdrop-blur-lg bg-background/70 border-b shadow-lg">
             <NewsTicker />
-            <header className="backdrop-blur-md bg-background/80 border-b shadow-sm">
+            <header>
               <div className="flex h-16 items-center justify-between px-4 md:px-6">
                 <div className="flex items-center gap-2 md:gap-4 min-w-0">
                   <SidebarTrigger className="shrink-0" />
