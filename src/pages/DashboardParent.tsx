@@ -183,7 +183,7 @@ const DashboardParent = () => {
           }}
         />
 
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
           <div className="sticky top-0 z-30 backdrop-blur-lg bg-background/70 border-b shadow-lg">
             <NewsTicker />
             <header>
@@ -208,7 +208,7 @@ const DashboardParent = () => {
             </header>
           </div>
 
-          <main className="flex-1 overflow-auto p-4 w-full">
+          <main className="p-4 w-full">
             <div className="max-w-6xl mx-auto space-y-8 w-full">
               <section id="overview">
                 <ParentOverview
