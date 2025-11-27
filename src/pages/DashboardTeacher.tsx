@@ -18,25 +18,14 @@ import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
-import { useHolidayMode } from "@/hooks/useHolidayMode";
-import { HolidayModeDialog } from "@/components/HolidayModeDialog";
 
 const DashboardTeacher = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isHolidayMode, holidayMessage, loading: holidayLoading } = useHolidayMode();
   const [students, setStudents] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
-
-  // Auto logout when holiday mode is activated
-  useEffect(() => {
-    if (isHolidayMode && !holidayLoading) {
-      supabase.auth.signOut();
-      navigate("/login/teacher");
-    }
-  }, [isHolidayMode, holidayLoading, navigate]);
 
   useEffect(() => {
     fetchTeacherData();
@@ -327,22 +316,8 @@ const DashboardTeacher = () => {
     }
   };
 
-  if (holidayLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  // Show only holiday dialog if holiday mode is active
-  if (isHolidayMode) {
-    return <HolidayModeDialog open={true} message={holidayMessage} />;
-  }
-
   return (
-    <>
-      <SidebarProvider>
+    <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <TeacherSidebar unreadCount={unreadCount} />
 
@@ -415,7 +390,6 @@ const DashboardTeacher = () => {
         <FloatingMessageBadge unreadCount={unreadCount} onClick={scrollToMessages} />
       </div>
     </SidebarProvider>
-    </>
   );
 };
 

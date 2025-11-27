@@ -7,13 +7,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Shield, ArrowRight, Home, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useHolidayMode } from "@/hooks/useHolidayMode";
-import { HolidayModeDialog } from "@/components/HolidayModeDialog";
 
 
 const LoginAdmin = () => {
   const navigate = useNavigate();
-  const { isHolidayMode, holidayMessage, loading: holidayLoading } = useHolidayMode();
   const [pin, setPin] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingUp, setIsSettingUp] = useState(false);
@@ -138,9 +135,7 @@ const LoginAdmin = () => {
   };
 
   return (
-    <>
-      {/* Admin is NOT blocked by holiday mode - they can always login to disable it */}
-      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute inset-0 animated-bg opacity-90" />
       
       <div className="relative z-10 w-full max-w-md slide-in-up">
@@ -208,7 +203,6 @@ const LoginAdmin = () => {
         </Card>
       </div>
     </div>
-    </>
   );
 };
 
