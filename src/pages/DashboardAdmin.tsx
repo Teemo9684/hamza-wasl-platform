@@ -95,7 +95,7 @@ const DashboardAdmin = () => {
       
       <div className="relative z-10">
         {/* Header */}
-        <header className="glass-card border-b">
+        <header className="sticky top-0 z-20 backdrop-blur-md bg-background/80 border-b">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Shield className="w-8 h-8 text-accent" />
