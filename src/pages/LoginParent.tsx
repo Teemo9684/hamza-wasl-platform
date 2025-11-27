@@ -65,6 +65,11 @@ const LoginParent = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Wait for holiday mode check to complete
+    if (holidayLoading) {
+      return;
+    }
+    
     // Check holiday mode first
     if (isHolidayMode) {
       toast.error("التطبيق في وضع العطلة");
@@ -301,9 +306,9 @@ const LoginParent = () => {
                 type="submit"
                 className="w-full bg-gradient-primary text-white font-cairo"
                 size="lg"
-                disabled={isLoading}
+                disabled={isLoading || holidayLoading}
               >
-                {isLoading ? "جاري التحميل..." : "تسجيل الدخول"}
+                {holidayLoading ? "جاري التحقق..." : isLoading ? "جاري التحميل..." : "تسجيل الدخول"}
                 <ArrowRight className="mr-2 h-5 w-5" />
               </Button>
               
