@@ -17,10 +17,13 @@ import { DateTimeBar } from "@/components/DateTimeBar";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
+import { useHolidayMode } from "@/hooks/useHolidayMode";
+import { HolidayModeDialog } from "@/components/HolidayModeDialog";
 
 const DashboardParent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isHolidayMode, holidayMessage, loading: holidayLoading } = useHolidayMode();
   const [children, setChildren] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [selectedChild, setSelectedChild] = useState<string>("");
@@ -184,8 +187,18 @@ const DashboardParent = () => {
     }
   };
 
+  if (holidayLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <SidebarProvider>
+    <>
+      <HolidayModeDialog open={isHolidayMode} message={holidayMessage} />
+      <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <ParentSidebar
           children={children}
@@ -262,6 +275,7 @@ const DashboardParent = () => {
         <FloatingMessageBadge unreadCount={unreadMessagesCount} onClick={scrollToMessages} />
       </div>
     </SidebarProvider>
+    </>
   );
 };
 

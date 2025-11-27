@@ -1,106 +1,226 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Save, Bell, Shield, Database, Users } from "lucide-react";
+import { Settings, Save, Calendar, Bell, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+interface HolidayModeSettings {
+  enabled: boolean;
+  message: string;
+}
+
+interface NotificationSettings {
+  enabled: boolean;
+}
+
+interface AutoApprovalSettings {
+  enabled: boolean;
+}
 
 export const SettingsManager = () => {
-  const [settings, setSettings] = useState({
-    schoolName: "مدرسة همزة وصل الابتدائية",
-    schoolAddress: "العنوان الكامل للمدرسة",
-    schoolPhone: "0123456789",
-    schoolEmail: "info@school.edu",
-    enableNotifications: true,
-    enableParentAccess: true,
-    enableTeacherAccess: true,
-    autoApproveRegistrations: false,
-    maintenanceMode: false,
+  const [holidayMode, setHolidayMode] = useState<HolidayModeSettings>({
+    enabled: false,
+    message: "التطبيق في وضع العطلة، سيعود العمل قريباً بإذن الله"
   });
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [autoApprove, setAutoApprove] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   const { toast } = useToast();
 
-  const handleSave = () => {
-    toast({
-      title: "نجاح",
-      description: "تم حفظ الإعدادات بنجاح",
-    });
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setFetching(true);
+      
+      // Fetch holiday mode settings
+      const { data: holidayData } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "holiday_mode")
+        .maybeSingle();
+
+      if (holidayData) {
+        const settings = holidayData.setting_value as unknown as HolidayModeSettings;
+        setHolidayMode(settings);
+      }
+
+      // Fetch notifications settings
+      const { data: notifData } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "notifications_enabled")
+        .maybeSingle();
+
+      if (notifData) {
+        const settings = notifData.setting_value as unknown as NotificationSettings;
+        setNotificationsEnabled(settings.enabled);
+      }
+
+      // Fetch auto approval settings
+      const { data: autoApprovalData } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "auto_approve_registrations")
+        .maybeSingle();
+
+      if (autoApprovalData) {
+        const settings = autoApprovalData.setting_value as unknown as AutoApprovalSettings;
+        setAutoApprove(settings.enabled);
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تحميل الإعدادات",
+        variant: "destructive"
+      });
+    } finally {
+      setFetching(false);
+    }
   };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+
+      // Update holiday mode
+      const { error: holidayError } = await supabase
+        .from("app_settings")
+        .update({
+          setting_value: holidayMode as any,
+          updated_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq("setting_key", "holiday_mode");
+
+      if (holidayError) throw holidayError;
+
+      // Update notifications
+      const { error: notifError } = await supabase
+        .from("app_settings")
+        .update({
+          setting_value: { enabled: notificationsEnabled } as any,
+          updated_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq("setting_key", "notifications_enabled");
+
+      if (notifError) throw notifError;
+
+      // Update auto approval
+      const { error: autoError } = await supabase
+        .from("app_settings")
+        .update({
+          setting_value: { enabled: autoApprove } as any,
+          updated_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq("setting_key", "auto_approve_registrations");
+
+      if (autoError) throw autoError;
+
+      toast({
+        title: "نجاح",
+        description: "تم حفظ الإعدادات بنجاح",
+      });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حفظ الإعدادات",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (fetching) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold font-cairo">الإعدادات</h2>
-        <Button onClick={handleSave} className="font-cairo">
+        <Button onClick={handleSave} disabled={loading} className="font-cairo">
           <Save className="ml-2 h-4 w-4" />
-          حفظ التغييرات
+          {loading ? "جاري الحفظ..." : "حفظ التغييرات"}
         </Button>
       </div>
 
-      {/* School Information */}
-      <Card className="glass-card">
+      {holidayMode.enabled && (
+        <Alert className="border-orange-500 bg-orange-50 dark:bg-orange-950/20">
+          <Calendar className="h-4 w-4 text-orange-500" />
+          <AlertTitle className="font-cairo text-orange-700 dark:text-orange-400">
+            وضع العطلة مفعّل
+          </AlertTitle>
+          <AlertDescription className="font-cairo text-orange-600 dark:text-orange-300">
+            التطبيق حالياً في وضع العطلة. سيرى المستخدمون رسالة العطلة عند محاولة الدخول.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Holiday Mode Settings */}
+      <Card className="glass-card border-2 border-orange-200 dark:border-orange-800">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-cairo">
-            <Settings className="w-5 h-5 text-primary" />
-            معلومات المدرسة
+          <CardTitle className="flex items-center gap-2 font-cairo text-orange-600 dark:text-orange-400">
+            <Calendar className="w-5 h-5" />
+            وضع العطلة
           </CardTitle>
           <CardDescription className="font-cairo">
-            قم بتحديث المعلومات الأساسية للمدرسة
+            تفعيل وضع العطلة يمنع المستخدمين من الدخول ويعرض رسالة مخصصة
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="schoolName" className="font-cairo">
-                اسم المدرسة
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+            <div className="space-y-1">
+              <Label className="font-cairo font-semibold text-orange-700 dark:text-orange-400">
+                تفعيل وضع العطلة
               </Label>
-              <Input
-                id="schoolName"
-                value={settings.schoolName}
-                onChange={(e) => setSettings({ ...settings, schoolName: e.target.value })}
-                className="font-cairo"
-              />
+              <p className="text-sm text-muted-foreground font-cairo">
+                عند التفعيل، سيتم منع جميع المستخدمين من الدخول للتطبيق
+              </p>
             </div>
+            <Switch
+              checked={holidayMode.enabled}
+              onCheckedChange={(checked) =>
+                setHolidayMode({ ...holidayMode, enabled: checked })
+              }
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="schoolPhone" className="font-cairo">
-                رقم الهاتف
-              </Label>
-              <Input
-                id="schoolPhone"
-                value={settings.schoolPhone}
-                onChange={(e) => setSettings({ ...settings, schoolPhone: e.target.value })}
-                  className="font-cairo"
-              />
-            </div>
+          <Separator />
 
-            <div className="space-y-2">
-              <Label htmlFor="schoolEmail" className="font-cairo">
-                البريد الإلكتروني
-              </Label>
-              <Input
-                id="schoolEmail"
-                type="email"
-                value={settings.schoolEmail}
-                onChange={(e) => setSettings({ ...settings, schoolEmail: e.target.value })}
-                className="font-cairo"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="schoolAddress" className="font-cairo">
-                العنوان
-              </Label>
-              <Input
-                id="schoolAddress"
-                value={settings.schoolAddress}
-                onChange={(e) => setSettings({ ...settings, schoolAddress: e.target.value })}
-                className="font-cairo"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="holidayMessage" className="font-cairo">
+              رسالة العطلة
+            </Label>
+            <p className="text-sm text-muted-foreground font-cairo">
+              هذه الرسالة ستظهر للمستخدمين عند محاولة الدخول للتطبيق
+            </p>
+            <Textarea
+              id="holidayMessage"
+              value={holidayMode.message}
+              onChange={(e) =>
+                setHolidayMode({ ...holidayMode, message: e.target.value })
+              }
+              className="font-cairo min-h-[100px]"
+              placeholder="أدخل رسالة العطلة..."
+            />
           </div>
         </CardContent>
       </Card>
@@ -109,26 +229,27 @@ export const SettingsManager = () => {
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-cairo">
-            <Shield className="w-5 h-5 text-secondary" />
+            <Settings className="w-5 h-5 text-primary" />
             إعدادات النظام
           </CardTitle>
           <CardDescription className="font-cairo">
-            تحكم في إعدادات الوصول والأمان
+            تحكم في الإعدادات الأساسية للتطبيق
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="font-cairo">تفعيل الإشعارات</Label>
+              <Label className="font-cairo flex items-center gap-2">
+                <Bell className="w-4 h-4 text-secondary" />
+                تفعيل الإشعارات
+              </Label>
               <p className="text-sm text-muted-foreground font-cairo">
                 إرسال إشعارات للمستخدمين عند وجود تحديثات
               </p>
             </div>
             <Switch
-              checked={settings.enableNotifications}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, enableNotifications: checked })
-              }
+              checked={notificationsEnabled}
+              onCheckedChange={setNotificationsEnabled}
             />
           </div>
 
@@ -136,158 +257,15 @@ export const SettingsManager = () => {
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="font-cairo">السماح لأولياء الأمور بالدخول</Label>
+              <Label className="font-cairo flex items-center gap-2">
+                <Shield className="w-4 h-4 text-accent" />
+                الموافقة التلقائية على التسجيلات
+              </Label>
               <p className="text-sm text-muted-foreground font-cairo">
-                تمكين أولياء الأمور من الوصول إلى المنصة
+                قبول التسجيلات الجديدة تلقائياً بدون مراجعة إدارية
               </p>
             </div>
-            <Switch
-              checked={settings.enableParentAccess}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, enableParentAccess: checked })
-              }
-            />
-          </div>
-
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label className="font-cairo">السماح للمعلمين بالدخول</Label>
-              <p className="text-sm text-muted-foreground font-tajawal">
-                تمكين المعلمين من الوصول إلى المنصة
-              </p>
-            </div>
-            <Switch
-              checked={settings.enableTeacherAccess}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, enableTeacherAccess: checked })
-              }
-            />
-          </div>
-
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label className="font-cairo">الموافقة التلقائية على التسجيلات</Label>
-              <p className="text-sm text-muted-foreground font-tajawal">
-                قبول التسجيلات الجديدة تلقائياً بدون مراجعة
-              </p>
-            </div>
-            <Switch
-              checked={settings.autoApproveRegistrations}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, autoApproveRegistrations: checked })
-              }
-            />
-          </div>
-
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label className="font-cairo text-destructive">وضع الصيانة</Label>
-              <p className="text-sm text-muted-foreground font-tajawal">
-                إيقاف الوصول للمستخدمين مؤقتاً للصيانة
-              </p>
-            </div>
-            <Switch
-              checked={settings.maintenanceMode}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, maintenanceMode: checked })
-              }
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Database Settings */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-cairo">
-            <Database className="w-5 h-5 text-accent" />
-            إدارة قاعدة البيانات
-          </CardTitle>
-          <CardDescription className="font-cairo">
-            أدوات الصيانة والنسخ الاحتياطي
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-            <div>
-              <p className="font-cairo font-semibold">نسخ احتياطي للبيانات</p>
-              <p className="text-sm text-muted-foreground font-tajawal">
-                آخر نسخة احتياطية: منذ 3 أيام
-              </p>
-            </div>
-            <Button variant="outline" className="font-cairo">
-              إنشاء نسخة احتياطية
-            </Button>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-            <div>
-              <p className="font-cairo font-semibold">تنظيف البيانات القديمة</p>
-              <p className="text-sm text-muted-foreground font-tajawal">
-                حذف السجلات القديمة وغير المستخدمة
-              </p>
-            </div>
-            <Button variant="outline" className="font-tajawal">
-              تنظيف البيانات
-            </Button>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-            <div>
-              <p className="font-cairo font-semibold">استعادة من نسخة احتياطية</p>
-              <p className="text-sm text-muted-foreground font-tajawal">
-                استعادة البيانات من نسخة سابقة
-              </p>
-            </div>
-            <Button variant="outline" className="font-tajawal text-destructive">
-              استعادة البيانات
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* User Management Settings */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-cairo">
-            <Users className="w-5 h-5 text-primary" />
-            إعدادات المستخدمين
-          </CardTitle>
-          <CardDescription className="font-tajawal">
-            ضبط إعدادات حسابات المستخدمين
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="maxStudentsPerTeacher" className="font-cairo">
-                الحد الأقصى للتلاميذ لكل معلم
-              </Label>
-              <Input
-                id="maxStudentsPerTeacher"
-                type="number"
-                defaultValue="30"
-                className="font-tajawal"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="sessionTimeout" className="font-cairo">
-                مدة الجلسة (بالدقائق)
-              </Label>
-              <Input
-                id="sessionTimeout"
-                type="number"
-                defaultValue="60"
-                className="font-tajawal"
-              />
-            </div>
+            <Switch checked={autoApprove} onCheckedChange={setAutoApprove} />
           </div>
         </CardContent>
       </Card>
