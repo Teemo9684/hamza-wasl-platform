@@ -12,7 +12,7 @@ import { SettingsManager } from "@/components/admin/SettingsManager";
 import { MessagesView } from "@/components/admin/MessagesView";
 import { GroupMessaging } from "@/components/admin/GroupMessaging";
 import { ScheduleManager } from "@/components/admin/ScheduleManager";
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
@@ -32,26 +32,20 @@ const DashboardAdmin = () => {
     fetchStatistics();
   }, []);
 
-  useLayoutEffect(() => {
-    if (activeSection !== null) {
-      // Scroll to top when opening a section
-      window.scrollTo(0, 0);
-    }
-  }, [activeSection]);
-
   useEffect(() => {
-    // Restore scroll position when returning to dashboard with longer delay
+    // Restore scroll position when returning to dashboard
     if (activeSection === null && scrollPositionRef.current > 0) {
       const scrollPos = scrollPositionRef.current;
-      // Wait for animation to complete before restoring scroll
-      const timeoutId = setTimeout(() => {
-        window.scrollTo({
-          top: scrollPos,
-          behavior: 'instant'
+      // Use requestAnimationFrame for better timing
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({
+            top: scrollPos,
+            behavior: 'instant'
+          });
+          scrollPositionRef.current = 0;
         });
-      }, 400);
-      scrollPositionRef.current = 0; // Reset after setting timeout
-      return () => clearTimeout(timeoutId);
+      });
     }
   }, [activeSection]);
 
@@ -131,7 +125,7 @@ const DashboardAdmin = () => {
             </p>
           </div>
 
-          <AnimatePresence initial={false}>
+          <AnimatePresence mode="wait">
             {activeSection ? (
               <AnimatedSection key={activeSection}>
                 <div className="mb-8">
@@ -155,8 +149,7 @@ const DashboardAdmin = () => {
                 </div>
               </AnimatedSection>
             ) : (
-            <>
-              <AnimatedSection key="dashboard">
+              <>
                 {/* Statistics */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="glass-card hover-lift">
@@ -367,8 +360,7 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
           </div>
-              </AnimatedSection>
-            </>
+              </>
             )}
           </AnimatePresence>
         </main>
