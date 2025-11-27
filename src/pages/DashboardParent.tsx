@@ -16,6 +16,7 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { DateTimeBar } from "@/components/DateTimeBar";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 
 const DashboardParent = () => {
   const navigate = useNavigate();
@@ -174,6 +175,15 @@ const DashboardParent = () => {
     );
   }
 
+  const unreadMessagesCount = receivedMessages.filter(m => !m.is_read).length;
+
+  const scrollToMessages = () => {
+    const messagesSection = document.getElementById('messages');
+    if (messagesSection) {
+      messagesSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -248,6 +258,8 @@ const DashboardParent = () => {
             </AnimatePresence>
           </main>
         </div>
+
+        <FloatingMessageBadge unreadCount={unreadMessagesCount} onClick={scrollToMessages} />
       </div>
     </SidebarProvider>
   );

@@ -16,6 +16,7 @@ import { TeacherHomework } from "@/components/teacher/TeacherHomework";
 import { NewsTicker } from "@/components/NewsTicker";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 
 const DashboardTeacher = () => {
@@ -308,6 +309,13 @@ const DashboardTeacher = () => {
 
   const unreadCount = messages.filter(m => !m.is_read).length;
 
+  const scrollToMessages = () => {
+    const messagesSection = document.getElementById('messages');
+    if (messagesSection) {
+      messagesSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -378,6 +386,8 @@ const DashboardTeacher = () => {
             </AnimatePresence>
           </main>
         </div>
+
+        <FloatingMessageBadge unreadCount={unreadCount} onClick={scrollToMessages} />
       </div>
     </SidebarProvider>
   );
