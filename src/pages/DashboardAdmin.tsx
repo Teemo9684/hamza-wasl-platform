@@ -35,8 +35,11 @@ const DashboardAdmin = () => {
   useEffect(() => {
     // Restore scroll position when returning to dashboard
     if (activeSection === null && scrollPositionRef.current > 0) {
-      window.scrollTo(0, scrollPositionRef.current);
-      scrollPositionRef.current = 0; // Reset after restoring
+      // Delay scroll restoration to allow animation to complete
+      setTimeout(() => {
+        window.scrollTo(0, scrollPositionRef.current);
+        scrollPositionRef.current = 0; // Reset after restoring
+      }, 100);
     } else if (activeSection !== null) {
       // Scroll to top when opening a section
       window.scrollTo(0, 0);
@@ -119,7 +122,7 @@ const DashboardAdmin = () => {
             </p>
           </div>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence initial={false}>
             {activeSection ? (
               <AnimatedSection key={activeSection}>
                 <div className="mb-8">
