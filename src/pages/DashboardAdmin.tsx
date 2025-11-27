@@ -12,7 +12,7 @@ import { SettingsManager } from "@/components/admin/SettingsManager";
 import { MessagesView } from "@/components/admin/MessagesView";
 import { GroupMessaging } from "@/components/admin/GroupMessaging";
 import { ScheduleManager } from "@/components/admin/ScheduleManager";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
@@ -32,20 +32,14 @@ const DashboardAdmin = () => {
     fetchStatistics();
   }, []);
 
-  useEffect(() => {
-    // Restore scroll position when returning to dashboard
+  useLayoutEffect(() => {
     if (activeSection === null && scrollPositionRef.current > 0) {
-      const scrollPos = scrollPositionRef.current;
-      // Use requestAnimationFrame for better timing
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.scrollTo({
-            top: scrollPos,
-            behavior: 'instant'
-          });
-          scrollPositionRef.current = 0;
-        });
-      });
+      // Restore scroll position immediately
+      window.scrollTo(0, scrollPositionRef.current);
+      scrollPositionRef.current = 0;
+    } else if (activeSection !== null) {
+      // Scroll to top when opening a section
+      window.scrollTo(0, 0);
     }
   }, [activeSection]);
 
@@ -125,8 +119,8 @@ const DashboardAdmin = () => {
             </p>
           </div>
 
-          <AnimatePresence mode="wait">
-            {activeSection ? (
+          {activeSection ? (
+            <AnimatePresence mode="wait">
               <AnimatedSection key={activeSection}>
                 <div className="mb-8">
                   <Button 
@@ -148,8 +142,9 @@ const DashboardAdmin = () => {
                   {activeSection === "schedule" && <ScheduleManager />}
                 </div>
               </AnimatedSection>
-            ) : (
-              <>
+            </AnimatePresence>
+          ) : (
+            <>
               {/* Statistics */}
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="glass-card hover-lift">
@@ -361,8 +356,7 @@ const DashboardAdmin = () => {
             </Card>
             </div>
             </>
-            )}
-          </AnimatePresence>
+          )}
         </main>
       </div>
     </div>
