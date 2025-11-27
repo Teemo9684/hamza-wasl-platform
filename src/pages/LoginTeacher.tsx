@@ -9,12 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { UserCheck, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useHolidayMode } from "@/hooks/useHolidayMode";
-import { HolidayModeDialog } from "@/components/HolidayModeDialog";
 
 const LoginTeacher = () => {
   const navigate = useNavigate();
-  const { isHolidayMode, holidayMessage, loading: holidayLoading } = useHolidayMode();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -64,17 +61,6 @@ const LoginTeacher = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Wait for holiday mode check to complete
-    if (holidayLoading) {
-      return;
-    }
-    
-    // Check holiday mode first
-    if (isHolidayMode) {
-      toast.error("التطبيق في وضع العطلة");
-      return;
-    }
     
     // Validate inputs
     if (!email || !password) {
@@ -193,11 +179,6 @@ const LoginTeacher = () => {
     navigate("/");
   };
 
-  // Show holiday mode dialog if holiday mode is active
-  if (isHolidayMode) {
-    return <HolidayModeDialog open={true} message={holidayMessage} />;
-  }
-
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute inset-0 animated-bg opacity-90" />
@@ -306,9 +287,9 @@ const LoginTeacher = () => {
                 type="submit"
                 className="w-full bg-gradient-secondary text-white font-cairo"
                 size="lg"
-                disabled={isLoading || holidayLoading}
+                disabled={isLoading}
               >
-                {holidayLoading ? "جاري التحقق..." : isLoading ? "جاري التحميل..." : "تسجيل الدخول"}
+                {isLoading ? "جاري التحميل..." : "تسجيل الدخول"}
                 <ArrowRight className="mr-2 h-5 w-5" />
               </Button>
               
