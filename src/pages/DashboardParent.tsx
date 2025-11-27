@@ -184,27 +184,29 @@ const DashboardParent = () => {
         />
 
         <div className="flex-1 flex flex-col min-w-0">
-          <NewsTicker />
-          <header className="sticky top-0 z-30 backdrop-blur-md bg-background/80 border-b shadow-sm">
-            <div className="flex h-16 items-center justify-between px-4 md:px-6">
-              <div className="flex items-center gap-2 md:gap-4 min-w-0">
-                <SidebarTrigger className="shrink-0" />
-                <div className="min-w-0">
-                  <h1 className="text-base md:text-lg font-bold truncate">مرحباً، {parentName}</h1>
-                  <p className="text-xs text-muted-foreground truncate hidden sm:block">لوحة تحكم ولي الأمر</p>
+          <div className="sticky top-0 z-30">
+            <NewsTicker />
+            <header className="backdrop-blur-md bg-background/80 border-b shadow-sm">
+              <div className="flex h-16 items-center justify-between px-4 md:px-6">
+                <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                  <SidebarTrigger className="shrink-0" />
+                  <div className="min-w-0">
+                    <h1 className="text-base md:text-lg font-bold truncate">مرحباً، {parentName}</h1>
+                    <p className="text-xs text-muted-foreground truncate hidden sm:block">لوحة تحكم ولي الأمر</p>
+                  </div>
                 </div>
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="gap-2 shrink-0"
+                  size="sm"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">تسجيل الخروج</span>
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="gap-2 shrink-0"
-                size="sm"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">تسجيل الخروج</span>
-              </Button>
-            </div>
-          </header>
+            </header>
+          </div>
 
           <main className="flex-1 overflow-auto p-4 w-full">
             <div className="max-w-6xl mx-auto space-y-8 w-full">
