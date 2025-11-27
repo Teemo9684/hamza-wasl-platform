@@ -150,8 +150,8 @@ const DashboardAdmin = () => {
               </AnimatedSection>
             ) : (
               <>
-                {/* Statistics */}
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {/* Statistics */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="glass-card hover-lift">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-cairo">
@@ -359,8 +359,8 @@ const DashboardAdmin = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
-              </>
+            </div>
+            </>
             )}
           </AnimatePresence>
         </main>
