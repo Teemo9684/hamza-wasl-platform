@@ -30,6 +30,14 @@ const DashboardTeacher = () => {
   const [loading, setLoading] = useState(true);
   const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
 
+  // Auto logout when holiday mode is activated
+  useEffect(() => {
+    if (isHolidayMode && !holidayLoading) {
+      supabase.auth.signOut();
+      navigate("/login/teacher");
+    }
+  }, [isHolidayMode, holidayLoading, navigate]);
+
   useEffect(() => {
     fetchTeacherData();
 
