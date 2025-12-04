@@ -34,6 +34,7 @@ const Index = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const loginSectionRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -94,6 +95,19 @@ const Index = () => {
     setTimeout(() => {
       loginSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
+  };
+
+  const handleBackToTop = () => {
+    setIsExiting(true);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    
+    // After animation completes, hide the login section
+    setTimeout(() => {
+      setSelectedUserType(null);
+      setIsExiting(false);
+    }, 500);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -574,11 +588,12 @@ const Index = () => {
       {/* Login Section */}
       {selectedUserType && (
         <div ref={loginSectionRef} className="relative z-10 min-h-screen flex items-center justify-center p-8">
-          <div className="w-full max-w-md slide-in-up">
+          <div className={`w-full max-w-md transition-all duration-500 ${isExiting ? 'opacity-0 scale-90 translate-y-10' : 'slide-in-up'}`}>
             <Button
               variant="ghost"
-              onClick={() => setSelectedUserType(null)}
+              onClick={handleBackToTop}
               className="mb-4 text-white hover:bg-white/10"
+              disabled={isExiting}
             >
               <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
