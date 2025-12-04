@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -28,6 +29,7 @@ const Index = () => {
   const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -76,6 +78,19 @@ const Index = () => {
     setSelectedUserType(userType);
     setEmail("");
     setPassword("");
+    setRememberMe(false);
+    
+    // Load saved credentials for this user type
+    if (userType && userType !== "admin") {
+      const savedEmail = localStorage.getItem(`${userType}_email`);
+      const savedPassword = localStorage.getItem(`${userType}_password`);
+      if (savedEmail && savedPassword) {
+        setEmail(savedEmail);
+        setPassword(savedPassword);
+        setRememberMe(true);
+      }
+    }
+    
     setTimeout(() => {
       loginSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -187,6 +202,15 @@ const Index = () => {
           await supabase.auth.signOut();
           setIsLoading(false);
           return;
+        }
+
+        // Handle remember me
+        if (rememberMe && selectedUserType) {
+          localStorage.setItem(`${selectedUserType}_email`, loginEmail);
+          localStorage.setItem(`${selectedUserType}_password`, password);
+        } else if (selectedUserType) {
+          localStorage.removeItem(`${selectedUserType}_email`);
+          localStorage.removeItem(`${selectedUserType}_password`);
         }
 
         toast.success("تم تسجيل الدخول بنجاح");
@@ -600,7 +624,17 @@ const Index = () => {
                   </div>
 
                   {selectedUserType !== "admin" && (
-                    <div className="flex justify-end">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Checkbox
+                          id="rememberMe"
+                          checked={rememberMe}
+                          onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                        />
+                        <Label htmlFor="rememberMe" className="font-cairo text-sm cursor-pointer">
+                          تذكرني
+                        </Label>
+                      </div>
                       <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
                         <DialogTrigger asChild>
                           <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto">
