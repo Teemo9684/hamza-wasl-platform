@@ -225,7 +225,7 @@
 
   /* Float Logo Animation - Continuous movement without stopping */
   .float-logo-animation {
-    animation: float-logo-animation 25s linear infinite;
+    animation: float-logo-animation 60s linear infinite;
   }
 
   @keyframes float-logo-animation {
@@ -269,7 +269,7 @@
 
   /* Variant 2 - Continuous circular-like movement */
   .float-logo-variant-2 {
-    animation: float-logo-variant-2 30s linear infinite;
+    animation: float-logo-variant-2 70s linear infinite;
   }
 
   @keyframes float-logo-variant-2 {
@@ -305,7 +305,7 @@
 
   /* Variant 3 - Continuous wave-like movement */
   .float-logo-variant-3 {
-    animation: float-logo-variant-3 35s linear infinite;
+    animation: float-logo-variant-3 80s linear infinite;
   }
 
   @keyframes float-logo-variant-3 {
