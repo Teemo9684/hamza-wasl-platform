@@ -438,7 +438,11 @@ const Index = () => {
           {/* Parent Card */}
           <div 
             onClick={() => handleCardClick("parent")}
-            className="group relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/20 border border-white/20 hover:border-white/40 animate-fade-in"
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
+              selectedUserType === "parent" 
+                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
+            }`}
             style={{ animationDelay: "0.1s" }}
           >
             <div className="flex flex-col items-center text-center space-y-6">
@@ -468,7 +472,11 @@ const Index = () => {
           {/* Teacher Card */}
           <div 
             onClick={() => handleCardClick("teacher")}
-            className="group relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/20 border border-white/20 hover:border-white/40 animate-fade-in"
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
+              selectedUserType === "teacher" 
+                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
+            }`}
             style={{ animationDelay: "0.2s" }}
           >
             <div className="flex flex-col items-center text-center space-y-6">
@@ -498,7 +506,11 @@ const Index = () => {
           {/* Admin Card */}
           <div 
             onClick={() => handleCardClick("admin")}
-            className="group relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 hover:bg-white/20 border border-white/20 hover:border-white/40 animate-fade-in"
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
+              selectedUserType === "admin" 
+                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
+            }`}
             style={{ animationDelay: "0.3s" }}
           >
             <div className="flex flex-col items-center text-center space-y-6">
