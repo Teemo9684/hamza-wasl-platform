@@ -223,99 +223,123 @@
     }
   }
 
-  /* Float Logo Animation - Slow movement across entire viewport with fade */
+  /* Float Logo Animation - Continuous movement without stopping */
   .float-logo-animation {
-    animation: float-logo-animation 30s ease-in-out infinite;
+    animation: float-logo-animation 25s linear infinite;
   }
 
   @keyframes float-logo-animation {
     0% { 
       transform: translate(0, 0) rotate(0deg);
-      opacity: 0.2;
-    }
-    15% {
-      opacity: 0.35;
-    }
-    25% { 
-      transform: translate(-100px, 80px) rotate(3deg);
-      opacity: 0.15;
-    }
-    40% {
-      opacity: 0.3;
-    }
-    50% { 
-      transform: translate(120px, -60px) rotate(-2deg);
-      opacity: 0.1;
-    }
-    65% {
       opacity: 0.25;
     }
-    75% { 
-      transform: translate(-80px, 100px) rotate(4deg);
+    12.5% { 
+      transform: translate(-80px, 60px) rotate(3deg);
+      opacity: 0.3;
+    }
+    25% { 
+      transform: translate(100px, -40px) rotate(-2deg);
       opacity: 0.2;
     }
-    90% {
+    37.5% { 
+      transform: translate(-60px, -80px) rotate(4deg);
+      opacity: 0.35;
+    }
+    50% { 
+      transform: translate(120px, 70px) rotate(-3deg);
+      opacity: 0.25;
+    }
+    62.5% { 
+      transform: translate(-100px, 30px) rotate(2deg);
       opacity: 0.3;
+    }
+    75% { 
+      transform: translate(70px, -60px) rotate(-4deg);
+      opacity: 0.2;
+    }
+    87.5% { 
+      transform: translate(-40px, 90px) rotate(3deg);
+      opacity: 0.35;
     }
     100% { 
       transform: translate(0, 0) rotate(0deg);
-      opacity: 0.2;
+      opacity: 0.25;
     }
   }
 
-  /* Variant 2 - Different movement pattern */
+  /* Variant 2 - Continuous circular-like movement */
   .float-logo-variant-2 {
-    animation: float-logo-variant-2 35s ease-in-out infinite;
+    animation: float-logo-variant-2 30s linear infinite;
   }
 
   @keyframes float-logo-variant-2 {
     0% { 
       transform: translate(0, 0) rotate(0deg);
-      opacity: 0.25;
+      opacity: 0.3;
     }
-    20% { 
-      transform: translate(80px, -100px) rotate(-4deg);
-      opacity: 0.15;
+    16.67% { 
+      transform: translate(90px, -70px) rotate(-3deg);
+      opacity: 0.2;
     }
-    45% { 
-      transform: translate(-120px, 40px) rotate(5deg);
+    33.33% { 
+      transform: translate(-70px, -100px) rotate(4deg);
       opacity: 0.35;
     }
-    70% { 
-      transform: translate(60px, 90px) rotate(-3deg);
+    50% { 
+      transform: translate(-110px, 50px) rotate(-2deg);
+      opacity: 0.25;
+    }
+    66.67% { 
+      transform: translate(60px, 100px) rotate(3deg);
+      opacity: 0.3;
+    }
+    83.33% { 
+      transform: translate(100px, -30px) rotate(-4deg);
       opacity: 0.2;
     }
     100% { 
       transform: translate(0, 0) rotate(0deg);
-      opacity: 0.25;
+      opacity: 0.3;
     }
   }
 
-  /* Variant 3 - Slower with more fade */
+  /* Variant 3 - Continuous wave-like movement */
   .float-logo-variant-3 {
-    animation: float-logo-variant-3 40s ease-in-out infinite;
+    animation: float-logo-variant-3 35s linear infinite;
   }
 
   @keyframes float-logo-variant-3 {
     0% { 
       transform: translate(0, 0) rotate(0deg) scale(1);
-      opacity: 0.3;
-    }
-    25% { 
-      transform: translate(-90px, -70px) rotate(2deg) scale(1.05);
-      opacity: 0.1;
-    }
-    50% { 
-      transform: translate(100px, 80px) rotate(-4deg) scale(0.95);
       opacity: 0.25;
     }
-    75% { 
-      transform: translate(-60px, -50px) rotate(3deg) scale(1.02);
-      opacity: 0.15;
+    14.28% { 
+      transform: translate(-80px, -50px) rotate(2deg) scale(1.03);
+      opacity: 0.3;
+    }
+    28.57% { 
+      transform: translate(100px, 60px) rotate(-3deg) scale(0.97);
+      opacity: 0.2;
+    }
+    42.85% { 
+      transform: translate(-60px, 90px) rotate(4deg) scale(1.02);
+      opacity: 0.35;
+    }
+    57.14% { 
+      transform: translate(80px, -70px) rotate(-2deg) scale(0.98);
+      opacity: 0.25;
+    }
+    71.42% { 
+      transform: translate(-100px, 30px) rotate(3deg) scale(1.04);
+      opacity: 0.3;
+    }
+    85.71% { 
+      transform: translate(50px, -90px) rotate(-4deg) scale(0.96);
+      opacity: 0.2;
     }
     100% { 
       transform: translate(0, 0) rotate(0deg) scale(1);
-      opacity: 0.3;
+      opacity: 0.25;
     }
   }
 
