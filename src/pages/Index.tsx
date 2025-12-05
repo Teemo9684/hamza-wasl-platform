@@ -100,14 +100,17 @@ const Index = () => {
   const handleBackToTop = () => {
     setIsExiting(true);
     
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    
-    // After animation completes, hide the login section
+    // After exit animation, scroll to top and hide section
     setTimeout(() => {
       setSelectedUserType(null);
       setIsExiting(false);
-    }, 500);
+      // Scroll to top after hiding the section
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "instant" });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    }, 400);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
