@@ -2,19 +2,68 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Audio context singleton for notification sounds
+let audioContext: AudioContext | null = null;
+let isAudioUnlocked = false;
+
+// Initialize audio context (call after user interaction)
+const getAudioContext = (): AudioContext | null => {
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (error) {
+      console.error('Failed to create AudioContext:', error);
+      return null;
+    }
+  }
+  
+  // Resume if suspended
+  if (audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+  
+  return audioContext;
+};
+
+// Unlock audio on first user interaction
+export const unlockAudio = () => {
+  if (isAudioUnlocked) return;
+  
+  const ctx = getAudioContext();
+  if (ctx) {
+    // Create a silent buffer to unlock audio
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+    isAudioUnlocked = true;
+    console.log('Audio unlocked');
+  }
+};
+
 // Play notification sound
 export const playNotificationSound = () => {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const ctx = getAudioContext();
+    if (!ctx) {
+      console.warn('AudioContext not available');
+      return;
+    }
+
+    // Resume context if needed
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
     
     // Create a more pleasant notification sound
-    const oscillator1 = audioContext.createOscillator();
-    const oscillator2 = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+    const oscillator1 = ctx.createOscillator();
+    const oscillator2 = ctx.createOscillator();
+    const gainNode = ctx.createGain();
 
     oscillator1.connect(gainNode);
     oscillator2.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    gainNode.connect(ctx.destination);
 
     // First tone
     oscillator1.frequency.value = 880; // A5
@@ -24,13 +73,13 @@ export const playNotificationSound = () => {
     oscillator2.frequency.value = 1100; // C#6
     oscillator2.type = 'sine';
 
-    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
 
-    oscillator1.start(audioContext.currentTime);
-    oscillator2.start(audioContext.currentTime + 0.1);
-    oscillator1.stop(audioContext.currentTime + 0.4);
-    oscillator2.stop(audioContext.currentTime + 0.5);
+    oscillator1.start(ctx.currentTime);
+    oscillator2.start(ctx.currentTime + 0.1);
+    oscillator1.stop(ctx.currentTime + 0.5);
+    oscillator2.stop(ctx.currentTime + 0.6);
     
     console.log('Notification sound played');
   } catch (error) {

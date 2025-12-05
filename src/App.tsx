@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { initializePushNotifications, isPushNotificationsAvailable } from "@/utils/pushNotifications";
+import { initializePushNotifications, isPushNotificationsAvailable, unlockAudio } from "@/utils/pushNotifications";
 import { setupRealtimeNotifications, requestBrowserNotificationPermission } from "@/utils/realtimeNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "@/components/SplashScreen";
@@ -30,6 +30,19 @@ const App = () => {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
+    // Unlock audio on first user interaction
+    const handleUserInteraction = () => {
+      unlockAudio();
+      // Remove listeners after first interaction
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+    };
+
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
+    document.addEventListener('keydown', handleUserInteraction);
+
     // Initialize push notifications if available (native app)
     if (isPushNotificationsAvailable()) {
       initializePushNotifications();
@@ -82,6 +95,9 @@ const App = () => {
     });
 
     return () => {
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
       subscription.unsubscribe();
       cleanupRealtime?.();
     };
