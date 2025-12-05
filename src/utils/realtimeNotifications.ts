@@ -1,5 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { playNotificationSound } from './pushNotifications';
+
+// App logo URL for notifications
+const APP_ICON_URL = '/icon-192.png';
 
 // Set up real-time listeners for notifications
 export const setupRealtimeNotifications = async (userId: string, userRole: 'admin' | 'teacher' | 'parent') => {
@@ -17,14 +21,17 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
       (payload) => {
         console.log('New message notification:', payload);
         
+        // Play notification sound
+        playNotificationSound();
+        
         // Show notification
         toast.success('رسالة جديدة', {
-          description: 'لديك رسالة جديدة من ولي أمر',
+          description: 'لديك رسالة جديدة',
           duration: 5000,
         });
 
-        // Play notification sound (optional)
-        playNotificationSound();
+        // Show browser notification if supported
+        showBrowserNotification('رسالة جديدة', 'لديك رسالة جديدة');
       }
     )
     .subscribe();
@@ -44,12 +51,16 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
         
         const announcement = payload.new as any;
         if (announcement.is_active) {
+          // Play notification sound
+          playNotificationSound();
+          
           toast.info('إعلان جديد', {
             description: announcement.title,
             duration: 5000,
           });
 
-          playNotificationSound();
+          // Show browser notification if supported
+          showBrowserNotification('إعلان جديد', announcement.title);
         }
       }
     )
@@ -62,26 +73,24 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
   };
 };
 
-// Play notification sound
-const playNotificationSound = () => {
-  try {
-    // Create a simple notification beep
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
-  } catch (error) {
-    console.error('Error playing notification sound:', error);
+// Show browser notification with app icon
+const showBrowserNotification = (title: string, body: string) => {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: APP_ICON_URL,
+      badge: APP_ICON_URL,
+      tag: 'hamza-wasl-notification',
+      requireInteraction: false,
+    });
   }
+};
+
+// Request browser notification permission
+export const requestBrowserNotificationPermission = async () => {
+  if ('Notification' in window) {
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  }
+  return false;
 };

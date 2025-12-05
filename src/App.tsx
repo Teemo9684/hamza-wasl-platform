@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { initializePushNotifications, isPushNotificationsAvailable } from "@/utils/pushNotifications";
-import { setupRealtimeNotifications } from "@/utils/realtimeNotifications";
+import { setupRealtimeNotifications, requestBrowserNotificationPermission } from "@/utils/realtimeNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "@/components/SplashScreen";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
@@ -34,6 +34,9 @@ const App = () => {
     if (isPushNotificationsAvailable()) {
       initializePushNotifications();
     }
+
+    // Request browser notification permission for PWA
+    requestBrowserNotificationPermission();
 
     // Set up real-time notifications for authenticated users
     let cleanupRealtime: (() => void) | undefined;
