@@ -16,9 +16,16 @@ Deno.serve(async (req) => {
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fixed admin credentials
-    const ADMIN_EMAIL = "admin@arbit.local";
-    const ADMIN_PASSWORD = "ARBIT1922@";
+    // Admin credentials from environment secrets
+    const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL');
+    const ADMIN_PASSWORD = Deno.env.get('ADMIN_PASSWORD');
+
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+      return new Response(
+        JSON.stringify({ error: 'بيانات اعتماد المسؤول غير مُعدَّة في الأسرار' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
 
     // Check if the admin user already exists
     const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();

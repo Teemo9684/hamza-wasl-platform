@@ -20,15 +20,15 @@ const LoginParent = () => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
-  // Load saved credentials if remember me was enabled
+  // Load saved email only (not password for security)
   useEffect(() => {
     const savedEmail = localStorage.getItem('parent_email');
-    const savedPassword = localStorage.getItem('parent_password');
-    if (savedEmail && savedPassword) {
+    if (savedEmail) {
       setEmail(savedEmail);
-      setPassword(savedPassword);
       setRememberMe(true);
     }
+    // Clean up any old stored passwords
+    localStorage.removeItem('parent_password');
   }, []);
 
   // Check if user is already logged in
@@ -119,13 +119,11 @@ const LoginParent = () => {
           return;
         }
 
-        // Save credentials if remember me is checked
+        // Save email only if remember me is checked (never store passwords)
         if (rememberMe) {
           localStorage.setItem('parent_email', email.trim());
-          localStorage.setItem('parent_password', password.trim());
         } else {
           localStorage.removeItem('parent_email');
-          localStorage.removeItem('parent_password');
         }
 
         toast.success("تم تسجيل الدخول بنجاح");
@@ -175,7 +173,6 @@ const LoginParent = () => {
   const handleBackToHome = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('parent_email');
-    localStorage.removeItem('parent_password');
     navigate("/");
   };
 

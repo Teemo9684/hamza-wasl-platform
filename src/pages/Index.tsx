@@ -81,15 +81,15 @@ const Index = () => {
     setPassword("");
     setRememberMe(false);
     
-    // Load saved credentials for this user type
+    // Load saved email for this user type (not password for security)
     if (userType && userType !== "admin") {
       const savedEmail = localStorage.getItem(`${userType}_email`);
-      const savedPassword = localStorage.getItem(`${userType}_password`);
-      if (savedEmail && savedPassword) {
+      if (savedEmail) {
         setEmail(savedEmail);
-        setPassword(savedPassword);
         setRememberMe(true);
       }
+      // Clean up any old stored passwords
+      localStorage.removeItem(`${userType}_password`);
     }
     
     setTimeout(() => {
@@ -221,13 +221,11 @@ const Index = () => {
           return;
         }
 
-        // Handle remember me
+        // Handle remember me (save email only, never password)
         if (rememberMe && selectedUserType) {
           localStorage.setItem(`${selectedUserType}_email`, loginEmail);
-          localStorage.setItem(`${selectedUserType}_password`, password);
         } else if (selectedUserType) {
           localStorage.removeItem(`${selectedUserType}_email`);
-          localStorage.removeItem(`${selectedUserType}_password`);
         }
 
         toast.success("تم تسجيل الدخول بنجاح");
