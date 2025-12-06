@@ -223,124 +223,131 @@
     }
   }
 
-  /* Float Logo Animation - Continuous movement without stopping */
+  /* Float Logo Animation - Continuous movement with fade in/out */
   .float-logo-animation {
-    animation: float-logo-animation 60s linear infinite;
+    animation: 
+      float-logo-animation 60s linear infinite,
+      fade-pulse-1 8s ease-in-out infinite;
   }
 
   @keyframes float-logo-animation {
     0% { 
       transform: translate(0, 0) rotate(0deg);
-      opacity: 0.25;
     }
     12.5% { 
       transform: translate(-80px, 60px) rotate(3deg);
-      opacity: 0.3;
     }
     25% { 
       transform: translate(100px, -40px) rotate(-2deg);
-      opacity: 0.2;
     }
     37.5% { 
       transform: translate(-60px, -80px) rotate(4deg);
-      opacity: 0.35;
     }
     50% { 
       transform: translate(120px, 70px) rotate(-3deg);
-      opacity: 0.25;
     }
     62.5% { 
       transform: translate(-100px, 30px) rotate(2deg);
-      opacity: 0.3;
     }
     75% { 
       transform: translate(70px, -60px) rotate(-4deg);
-      opacity: 0.2;
     }
     87.5% { 
       transform: translate(-40px, 90px) rotate(3deg);
-      opacity: 0.35;
     }
     100% { 
       transform: translate(0, 0) rotate(0deg);
-      opacity: 0.25;
     }
   }
 
-  /* Variant 2 - Continuous circular-like movement */
+  /* Fade pulse animations for appearing/disappearing effect */
+  @keyframes fade-pulse-1 {
+    0%, 100% { opacity: 0.3; }
+    15% { opacity: 0; }
+    30% { opacity: 0.35; }
+    50% { opacity: 0.25; }
+    70% { opacity: 0; }
+    85% { opacity: 0.3; }
+  }
+
+  /* Variant 2 - Continuous circular-like movement with fade */
   .float-logo-variant-2 {
-    animation: float-logo-variant-2 70s linear infinite;
+    animation: 
+      float-logo-variant-2 70s linear infinite,
+      fade-pulse-2 12s ease-in-out infinite;
   }
 
   @keyframes float-logo-variant-2 {
     0% { 
       transform: translate(0, 0) rotate(0deg);
-      opacity: 0.3;
     }
     16.67% { 
       transform: translate(90px, -70px) rotate(-3deg);
-      opacity: 0.2;
     }
     33.33% { 
       transform: translate(-70px, -100px) rotate(4deg);
-      opacity: 0.35;
     }
     50% { 
       transform: translate(-110px, 50px) rotate(-2deg);
-      opacity: 0.25;
     }
     66.67% { 
       transform: translate(60px, 100px) rotate(3deg);
-      opacity: 0.3;
     }
     83.33% { 
       transform: translate(100px, -30px) rotate(-4deg);
-      opacity: 0.2;
     }
     100% { 
       transform: translate(0, 0) rotate(0deg);
-      opacity: 0.3;
     }
   }
 
-  /* Variant 3 - Continuous wave-like movement */
+  @keyframes fade-pulse-2 {
+    0%, 100% { opacity: 0.25; }
+    20% { opacity: 0.35; }
+    40% { opacity: 0; }
+    60% { opacity: 0.3; }
+    80% { opacity: 0; }
+  }
+
+  /* Variant 3 - Continuous wave-like movement with fade */
   .float-logo-variant-3 {
-    animation: float-logo-variant-3 80s linear infinite;
+    animation: 
+      float-logo-variant-3 80s linear infinite,
+      fade-pulse-3 10s ease-in-out infinite;
   }
 
   @keyframes float-logo-variant-3 {
     0% { 
       transform: translate(0, 0) rotate(0deg) scale(1);
-      opacity: 0.25;
     }
     14.28% { 
       transform: translate(-80px, -50px) rotate(2deg) scale(1.03);
-      opacity: 0.3;
     }
     28.57% { 
       transform: translate(100px, 60px) rotate(-3deg) scale(0.97);
-      opacity: 0.2;
     }
     42.85% { 
       transform: translate(-60px, 90px) rotate(4deg) scale(1.02);
-      opacity: 0.35;
     }
     57.14% { 
       transform: translate(80px, -70px) rotate(-2deg) scale(0.98);
-      opacity: 0.25;
     }
     71.42% { 
       transform: translate(-100px, 30px) rotate(3deg) scale(1.04);
-      opacity: 0.3;
     }
     85.71% { 
       transform: translate(50px, -90px) rotate(-4deg) scale(0.96);
-      opacity: 0.2;
     }
     100% { 
       transform: translate(0, 0) rotate(0deg) scale(1);
-      opacity: 0.25;
     }
+  }
+
+  @keyframes fade-pulse-3 {
+    0%, 100% { opacity: 0.3; }
+    25% { opacity: 0; }
+    50% { opacity: 0.35; }
+    75% { opacity: 0; }
   }
 
   @keyframes float {
