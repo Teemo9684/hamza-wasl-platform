@@ -20,15 +20,15 @@ const LoginTeacher = () => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
-  // Load saved credentials if remember me was enabled
+  // Load saved email only (not password for security)
   useEffect(() => {
     const savedEmail = localStorage.getItem('teacher_email');
-    const savedPassword = localStorage.getItem('teacher_password');
-    if (savedEmail && savedPassword) {
+    if (savedEmail) {
       setEmail(savedEmail);
-      setPassword(savedPassword);
       setRememberMe(true);
     }
+    // Clean up any old stored passwords
+    localStorage.removeItem('teacher_password');
   }, []);
 
   // Check if user is already logged in
@@ -119,13 +119,11 @@ const LoginTeacher = () => {
           return;
         }
 
-        // Save credentials if remember me is checked
+        // Save email only if remember me is checked (never store passwords)
         if (rememberMe) {
           localStorage.setItem('teacher_email', email.trim());
-          localStorage.setItem('teacher_password', password.trim());
         } else {
           localStorage.removeItem('teacher_email');
-          localStorage.removeItem('teacher_password');
         }
 
         toast.success("تم تسجيل الدخول بنجاح");
@@ -175,7 +173,6 @@ const LoginTeacher = () => {
   const handleBackToHome = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('teacher_email');
-    localStorage.removeItem('teacher_password');
     navigate("/");
   };
 
