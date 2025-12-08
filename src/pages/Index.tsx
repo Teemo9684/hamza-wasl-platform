@@ -442,7 +442,7 @@ const Index = () => {
             <p className="text-lg text-white/80 font-cairo mb-3 max-w-3xl mx-auto leading-relaxed">
               منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية
             </p>
-            <p className="text-sm text-white/70 font-ruqaa">
+            <p className="text-lg text-white/70 font-ruqaa">
               المدرسة الابتدائية العربي التبسي
             </p>
           </div>
