@@ -359,56 +359,56 @@ const Index = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-radial from-white/8 to-transparent rounded-full blur-3xl" />
         <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-br from-pink-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1400ms" }} />
         
-        {/* Floating Logo Text - Large with premium effects */}
-        <div className="absolute top-[8%] right-[10%] text-white font-ruqaa text-8xl leading-[0.85] float-logo-animation" style={{ animationDelay: "0s" }}>
+        {/* Floating Logo Text - Large, very subtle */}
+        <div className="absolute top-[8%] right-[10%] text-white/10 font-ruqaa text-8xl leading-[0.85] float-logo-animation" style={{ animationDelay: "0s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute bottom-[15%] left-[8%] text-white font-ruqaa text-9xl leading-[0.85] float-logo-variant-2" style={{ animationDelay: "5s" }}>
+        <div className="absolute bottom-[15%] left-[8%] text-white/8 font-ruqaa text-9xl leading-[0.85] float-logo-variant-2" style={{ animationDelay: "5s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
         {/* Medium Logos with varied animations */}
-        <div className="absolute top-[30%] left-[20%] text-white font-ruqaa text-7xl leading-[0.85] float-logo-variant-3" style={{ animationDelay: "10s" }}>
+        <div className="absolute top-[30%] left-[20%] text-white/10 font-ruqaa text-7xl leading-[0.85] float-logo-variant-3" style={{ animationDelay: "10s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute top-[60%] right-[18%] text-white font-ruqaa text-7xl leading-[0.85] float-logo-variant-4" style={{ animationDelay: "15s" }}>
+        <div className="absolute top-[60%] right-[18%] text-white/8 font-ruqaa text-7xl leading-[0.85] float-logo-variant-4" style={{ animationDelay: "15s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
         {/* Small Logos scattered with different variants */}
-        <div className="absolute bottom-[25%] right-[30%] text-white font-ruqaa text-5xl leading-[0.85] float-logo-animation" style={{ animationDelay: "8s" }}>
+        <div className="absolute bottom-[25%] right-[30%] text-white/12 font-ruqaa text-5xl leading-[0.85] float-logo-animation" style={{ animationDelay: "8s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute top-[45%] left-[45%] text-white font-ruqaa text-6xl leading-[0.85] float-logo-variant-2" style={{ animationDelay: "20s" }}>
+        <div className="absolute top-[45%] left-[45%] text-white/10 font-ruqaa text-6xl leading-[0.85] float-logo-variant-2" style={{ animationDelay: "20s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute top-[75%] left-[28%] text-white font-ruqaa text-4xl leading-[0.85] float-logo-variant-3" style={{ animationDelay: "12s" }}>
+        <div className="absolute top-[75%] left-[28%] text-white/8 font-ruqaa text-4xl leading-[0.85] float-logo-variant-3" style={{ animationDelay: "12s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute top-[20%] left-[55%] text-white font-ruqaa text-6xl leading-[0.85] float-logo-variant-4" style={{ animationDelay: "25s" }}>
+        <div className="absolute top-[20%] left-[55%] text-white/10 font-ruqaa text-6xl leading-[0.85] float-logo-variant-4" style={{ animationDelay: "25s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
 
         {/* Extra floating logos for depth */}
-        <div className="absolute bottom-[40%] left-[5%] text-white font-ruqaa text-5xl leading-[0.85] float-logo-animation" style={{ animationDelay: "30s" }}>
+        <div className="absolute bottom-[40%] left-[5%] text-white/8 font-ruqaa text-5xl leading-[0.85] float-logo-animation" style={{ animationDelay: "30s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
         
-        <div className="absolute top-[12%] left-[35%] text-white font-ruqaa text-4xl leading-[0.85] float-logo-variant-2" style={{ animationDelay: "35s" }}>
+        <div className="absolute top-[12%] left-[35%] text-white/10 font-ruqaa text-4xl leading-[0.85] float-logo-variant-2" style={{ animationDelay: "35s" }}>
           <div>همزة</div>
           <div>وصل</div>
         </div>
