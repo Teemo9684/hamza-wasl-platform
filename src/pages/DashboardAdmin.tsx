@@ -17,6 +17,8 @@ import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { toast } from "sonner";
+import { playNotificationSound } from "@/utils/pushNotifications";
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -32,6 +34,65 @@ const DashboardAdmin = () => {
 
   useEffect(() => {
     fetchStatistics();
+  }, []);
+
+  // Real-time notifications for new document requests and user registrations
+  useEffect(() => {
+    const documentRequestsChannel = supabase
+      .channel('admin-document-requests')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'document_requests'
+        },
+        (payload) => {
+          console.log('New document request:', payload);
+          playNotificationSound();
+          toast.info('طلب وثيقة جديد', {
+            description: 'تم استلام طلب وثيقة جديد',
+            duration: 5000,
+          });
+          setStats(prev => ({
+            ...prev,
+            pendingDocuments: prev.pendingDocuments + 1
+          }));
+        }
+      )
+      .subscribe();
+
+    const profilesChannel = supabase
+      .channel('admin-user-registrations')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          const newProfile = payload.new as any;
+          if (!newProfile.is_approved) {
+            console.log('New user registration:', payload);
+            playNotificationSound();
+            toast.info('تسجيل مستخدم جديد', {
+              description: `${newProfile.full_name} في انتظار الموافقة`,
+              duration: 5000,
+            });
+            setStats(prev => ({
+              ...prev,
+              pendingRequests: prev.pendingRequests + 1
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(documentRequestsChannel);
+      supabase.removeChannel(profilesChannel);
+    };
   }, []);
 
   useLayoutEffect(() => {
