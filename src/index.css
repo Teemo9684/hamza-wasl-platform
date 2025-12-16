@@ -170,7 +170,7 @@
       hsl(200, 80%, 50%)
     );
     background-size: 400% 400%;
-    animation: gradient-flow 12s ease infinite;
+    animation: gradient-flow 45s ease infinite;
   }
 
   @keyframes gradient-flow {
