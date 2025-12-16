@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify the caller is an admin
+    // Verify the caller's token
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     
@@ -36,7 +36,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if the caller has admin role
+    // STRICT: Only allow existing admins to call this function
+    // No bootstrap case - first admin must be created directly in the database
     const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
@@ -45,28 +46,11 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (roleError || !roleData) {
-      // Allow first-time setup if no admins exist
-      const { data: existingAdmins, error: adminCheckError } = await supabaseAdmin
-        .from('user_roles')
-        .select('id')
-        .eq('role', 'admin')
-        .limit(1);
-
-      if (adminCheckError) {
-        console.error('Error checking existing admins:', adminCheckError);
-        return new Response(
-          JSON.stringify({ error: 'فشل التحقق من صلاحيات المسؤول' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-        );
-      }
-
-      // If admins exist and caller is not admin, deny access
-      if (existingAdmins && existingAdmins.length > 0) {
-        return new Response(
-          JSON.stringify({ error: 'هذه العملية متاحة للمسؤولين فقط' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
-        );
-      }
+      console.log(`Access denied for user ${user.id} - not an admin`);
+      return new Response(
+        JSON.stringify({ error: 'هذه العملية متاحة للمسؤولين فقط' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
     }
 
     // Admin credentials from environment secrets
@@ -97,15 +81,15 @@ Deno.serve(async (req) => {
       }
 
       // Ensure role exists
-      const { error: roleError } = await supabaseAdmin
+      const { error: ensureRoleError } = await supabaseAdmin
         .from('user_roles')
         .upsert({
           user_id: adminUser.id,
           role: 'admin',
         }, { onConflict: 'user_id,role' });
 
-      if (roleError) {
-        console.error('Error ensuring admin role:', roleError);
+      if (ensureRoleError) {
+        console.error('Error ensuring admin role:', ensureRoleError);
       }
 
       return new Response(
