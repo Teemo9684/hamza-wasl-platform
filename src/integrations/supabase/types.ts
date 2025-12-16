@@ -103,6 +103,42 @@ export type Database = {
         }
         Relationships: []
       }
+      document_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          document_type: string
+          id: string
+          notes: string | null
+          parent_id: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          document_type: string
+          id?: string
+          notes?: string | null
+          parent_id: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          document_type?: string
+          id?: string
+          notes?: string | null
+          parent_id?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       grades: {
         Row: {
           created_at: string | null

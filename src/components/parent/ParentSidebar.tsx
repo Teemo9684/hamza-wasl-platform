@@ -1,4 +1,4 @@
-import { Home, BookOpen, Calendar, MessageSquare, Users } from "lucide-react";
+import { Home, BookOpen, Calendar, MessageSquare, Users, FileText } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -25,6 +25,7 @@ const menuItems = [
   { title: "الواجبات", icon: BookOpen, section: "homework" },
   { title: "جدول الحصص", icon: Calendar, section: "schedule" },
   { title: "المراسلة", icon: MessageSquare, section: "messages" },
+  { title: "طلب وثائق", icon: FileText, section: "documents" },
 ];
 
 export const ParentSidebar = ({ children, selectedChild, onChildChange }: ParentSidebarProps) => {
