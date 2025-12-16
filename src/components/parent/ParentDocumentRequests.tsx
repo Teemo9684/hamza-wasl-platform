@@ -17,9 +17,7 @@ interface ParentDocumentRequestsProps {
 
 const documentTypes = [
   { value: "شهادة مدرسية", label: "شهادة مدرسية" },
-  { value: "شهادة انتقال", label: "شهادة انتقال" },
   { value: "كشف نقاط", label: "كشف نقاط" },
-  { value: "شهادة حضور", label: "شهادة حضور" },
   { value: "وثيقة أخرى", label: "وثيقة أخرى" },
 ];
 
