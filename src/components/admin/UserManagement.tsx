@@ -161,8 +161,14 @@ export const UserManagement = () => {
   const rejectMutation = useMutation({
     mutationFn: async (userId: string) => {
       setLoadingApproval(userId);
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      
+      // Use Edge Function for secure user deletion
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
+      
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
