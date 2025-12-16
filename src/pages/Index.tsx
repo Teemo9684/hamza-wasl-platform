@@ -312,67 +312,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-accent">
-      {/* Animated Background Elements with Floating Logo */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Redesigned Particles Layer */}
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Glowing orbs - large ambient particles with blue/purple gradients */}
-          <div className="particle-orb particle-orb-blue w-32 h-32 top-[10%] left-[5%]" style={{ animationDelay: "0s" }} />
-          <div className="particle-orb particle-orb-purple w-28 h-28 top-[60%] right-[8%]" style={{ animationDelay: "3s" }} />
-          <div className="particle-orb particle-orb-mixed w-24 h-24 bottom-[20%] left-[15%]" style={{ animationDelay: "6s" }} />
-          <div className="particle-orb particle-orb-blue w-20 h-20 top-[35%] right-[20%]" style={{ animationDelay: "9s" }} />
-          <div className="particle-orb particle-orb-purple w-36 h-36 bottom-[40%] right-[5%]" style={{ animationDelay: "2s" }} />
-          
-          {/* Floating bubbles - medium size with blue/purple gradient */}
-          <div className="particle-bubble particle-bubble-blue w-6 h-6 top-[20%] left-[20%]" style={{ animationDelay: "0s" }} />
-          <div className="particle-bubble particle-bubble-purple w-8 h-8 top-[40%] right-[25%]" style={{ animationDelay: "2s" }} />
-          <div className="particle-bubble particle-bubble-mixed w-5 h-5 top-[70%] left-[40%]" style={{ animationDelay: "4s" }} />
-          <div className="particle-bubble particle-bubble-blue w-7 h-7 bottom-[30%] right-[35%]" style={{ animationDelay: "1s" }} />
-          <div className="particle-bubble particle-bubble-purple w-4 h-4 top-[15%] right-[15%]" style={{ animationDelay: "5s" }} />
-          <div className="particle-bubble particle-bubble-mixed w-6 h-6 bottom-[45%] left-[60%]" style={{ animationDelay: "3.5s" }} />
-          <div className="particle-bubble particle-bubble-blue w-5 h-5 top-[50%] left-[8%]" style={{ animationDelay: "6s" }} />
-          <div className="particle-bubble particle-bubble-purple w-7 h-7 top-[25%] right-[40%]" style={{ animationDelay: "1.5s" }} />
-          <div className="particle-bubble particle-bubble-mixed w-4 h-4 bottom-[15%] left-[70%]" style={{ animationDelay: "4.5s" }} />
-          
-          {/* Gradient blobs - soft colored shapes */}
-          <div className="particle-blob particle-blob-blue w-16 h-16 top-[12%] left-[45%]" style={{ animationDelay: "0s" }} />
-          <div className="particle-blob particle-blob-purple w-14 h-14 top-[65%] left-[25%]" style={{ animationDelay: "3s" }} />
-          <div className="particle-blob particle-blob-mixed w-12 h-12 top-[45%] right-[12%]" style={{ animationDelay: "5s" }} />
-          <div className="particle-blob particle-blob-blue w-10 h-10 bottom-[35%] left-[55%]" style={{ animationDelay: "2s" }} />
-          <div className="particle-blob particle-blob-purple w-18 h-18 top-[80%] right-[30%]" style={{ animationDelay: "7s" }} />
-          
-          {/* Diamond shapes with gradient */}
-          <div className="particle-diamond particle-diamond-blue w-3 h-3 top-[18%] left-[65%]" style={{ animationDelay: "0s" }} />
-          <div className="particle-diamond particle-diamond-purple w-4 h-4 top-[55%] left-[8%]" style={{ animationDelay: "2s" }} />
-          <div className="particle-diamond particle-diamond-mixed w-2 h-2 top-[75%] right-[22%]" style={{ animationDelay: "4s" }} />
-          <div className="particle-diamond particle-diamond-blue w-3 h-3 bottom-[35%] left-[50%]" style={{ animationDelay: "1s" }} />
-          <div className="particle-diamond particle-diamond-purple w-2.5 h-2.5 top-[30%] right-[55%]" style={{ animationDelay: "3s" }} />
-          <div className="particle-diamond particle-diamond-mixed w-3.5 h-3.5 bottom-[55%] right-[18%]" style={{ animationDelay: "5s" }} />
-          
-          {/* Rising light beams with colors */}
-          <div className="particle-beam particle-beam-blue left-[12%]" style={{ animationDelay: "0s" }} />
-          <div className="particle-beam particle-beam-purple left-[28%]" style={{ animationDelay: "4s" }} />
-          <div className="particle-beam particle-beam-mixed left-[52%]" style={{ animationDelay: "8s" }} />
-          <div className="particle-beam particle-beam-blue left-[73%]" style={{ animationDelay: "2s" }} />
-          <div className="particle-beam particle-beam-purple left-[88%]" style={{ animationDelay: "6s" }} />
-          <div className="particle-beam particle-beam-mixed left-[38%]" style={{ animationDelay: "10s" }} />
-          
-          {/* Floating rings with gradients */}
-          <div className="particle-ring particle-ring-blue w-12 h-12 top-[22%] right-[12%]" style={{ animationDelay: "0s" }} />
-          <div className="particle-ring particle-ring-purple w-8 h-8 top-[58%] left-[22%]" style={{ animationDelay: "3s" }} />
-          <div className="particle-ring particle-ring-mixed w-10 h-10 bottom-[25%] right-[45%]" style={{ animationDelay: "5s" }} />
-          <div className="particle-ring particle-ring-blue w-14 h-14 top-[42%] left-[78%]" style={{ animationDelay: "2s" }} />
-          <div className="particle-ring particle-ring-purple w-6 h-6 bottom-[60%] left-[35%]" style={{ animationDelay: "7s" }} />
-        </div>
-
-        {/* Enhanced gradient orbs with animated glow */}
-        <div className="absolute top-20 left-10 w-80 h-80 bg-gradient-to-br from-white/10 to-accent/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-[450px] h-[450px] bg-gradient-to-tl from-accent/15 to-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "700ms" }} />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-radial from-white/8 to-transparent rounded-full blur-3xl" />
-        <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-br from-pink-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1400ms" }} />
-        
-      </div>
+    <div className="min-h-screen w-full relative overflow-hidden">
+      {/* Animated Gradient Background */}
+      <div className="absolute inset-0 animated-gradient-bg" />
 
       {/* News Ticker */}
       {newsItems.length > 0 && (

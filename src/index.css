@@ -158,6 +158,39 @@
     pointer-events: none; /* Ensure background never blocks clicks */
   }
 
+  /* Continuously Animated Gradient Background */
+  .animated-gradient-bg {
+    background: linear-gradient(
+      -45deg,
+      hsl(265, 89%, 55%),
+      hsl(240, 80%, 60%),
+      hsl(280, 75%, 50%),
+      hsl(220, 85%, 55%),
+      hsl(260, 90%, 60%),
+      hsl(200, 80%, 50%)
+    );
+    background-size: 400% 400%;
+    animation: gradient-flow 12s ease infinite;
+  }
+
+  @keyframes gradient-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    25% {
+      background-position: 50% 100%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    75% {
+      background-position: 50% 0%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
   @keyframes gradient-shift {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
