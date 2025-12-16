@@ -52,6 +52,15 @@ const Index = () => {
 
   useEffect(() => {
     fetchNewsItems();
+    
+    // Re-fetch news items when auth state changes (e.g., after logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetchNewsItems();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
