@@ -16,6 +16,59 @@ Deno.serve(async (req) => {
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Get the JWT from the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Verify the caller is an admin
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Check if the caller has admin role
+    const { data: roleData, error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    if (roleError || !roleData) {
+      // Allow first-time setup if no admins exist
+      const { data: existingAdmins, error: adminCheckError } = await supabaseAdmin
+        .from('user_roles')
+        .select('id')
+        .eq('role', 'admin')
+        .limit(1);
+
+      if (adminCheckError) {
+        console.error('Error checking existing admins:', adminCheckError);
+        return new Response(
+          JSON.stringify({ error: 'فشل التحقق من صلاحيات المسؤول' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      // If admins exist and caller is not admin, deny access
+      if (existingAdmins && existingAdmins.length > 0) {
+        return new Response(
+          JSON.stringify({ error: 'هذه العملية متاحة للمسؤولين فقط' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        );
+      }
+    }
+
     // Admin credentials from environment secrets
     const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL');
     const ADMIN_PASSWORD = Deno.env.get('ADMIN_PASSWORD');
@@ -74,14 +127,14 @@ Deno.serve(async (req) => {
     if (createError) throw createError;
 
     // Assign admin role
-    const { error: roleError } = await supabaseAdmin
+    const { error: newRoleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
         user_id: newUser.user.id,
         role: 'admin',
       });
 
-    if (roleError) throw roleError;
+    if (newRoleError) throw newRoleError;
 
     return new Response(
       JSON.stringify({ 
