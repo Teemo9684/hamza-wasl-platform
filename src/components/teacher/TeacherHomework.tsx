@@ -133,11 +133,15 @@ export const TeacherHomework = () => {
 
         if (uploadError) throw uploadError;
 
-        const { data } = supabase.storage
+        // Get signed URL (valid for 30 days - 2592000 seconds)
+        const { data, error: signedError } = await supabase.storage
           .from('homework')
-          .getPublicUrl(fileName);
+          .createSignedUrl(fileName, 2592000);
 
-        return data.publicUrl;
+        if (signedError || !data?.signedUrl) {
+          throw new Error('Failed to generate signed URL');
+        }
+        return data.signedUrl;
       });
 
       const urls = await Promise.all(uploadPromises);

@@ -110,10 +110,15 @@ export const ScheduleManager = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL (valid for 7 days - 604800 seconds)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('schedules')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 604800);
+
+      if (signedUrlError || !signedUrlData?.signedUrl) {
+        throw new Error('Failed to generate signed URL');
+      }
+      const signedUrl = signedUrlData.signedUrl;
 
       // Check if schedule exists for this grade
       const { data: existingSchedule } = await supabase
@@ -126,7 +131,7 @@ export const ScheduleManager = () => {
         // Update existing
         const { error: updateError } = await supabase
           .from('class_schedules')
-          .update({ schedule_image_url: publicUrl, updated_at: new Date().toISOString() })
+          .update({ schedule_image_url: signedUrl, updated_at: new Date().toISOString() })
           .eq('id', existingSchedule.id);
 
         if (updateError) throw updateError;
@@ -136,7 +141,7 @@ export const ScheduleManager = () => {
           .from('class_schedules')
           .insert({
             grade_level: selectedGrade,
-            schedule_image_url: publicUrl,
+            schedule_image_url: signedUrl,
             is_active: true
           });
 
