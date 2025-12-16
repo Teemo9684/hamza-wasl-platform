@@ -26,6 +26,7 @@ const DashboardAdmin = () => {
     teachers: 0,
     students: 0,
     pendingRequests: 0,
+    pendingDocuments: 0,
   });
   const scrollPositionRef = useRef<number>(0);
 
@@ -65,11 +66,17 @@ const DashboardAdmin = () => {
         .select("*", { count: "exact", head: true })
         .eq("is_approved", false);
 
+      const { count: pendingDocsCount } = await supabase
+        .from("document_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+
       setStats({
         parents: parentsCount || 0,
         teachers: teachersCount || 0,
         students: studentsCount || 0,
         pendingRequests: pendingCount || 0,
+        pendingDocuments: pendingDocsCount || 0,
       });
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -221,7 +228,12 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("users")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer relative" onClick={() => handleOpenSection("users")}>
+              {stats.pendingRequests > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white animate-pulse">
+                  {stats.pendingRequests}
+                </Badge>
+              )}
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
@@ -357,7 +369,12 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("documentRequests")}>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer relative" onClick={() => handleOpenSection("documentRequests")}>
+              {stats.pendingDocuments > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white animate-pulse">
+                  {stats.pendingDocuments}
+                </Badge>
+              )}
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
