@@ -223,15 +223,26 @@
     }
   }
 
-  /* ========== Redesigned Particle System ========== */
+  /* ========== Redesigned Particle System with Blue/Purple Gradients ========== */
   
   /* Glowing Orbs - Large ambient particles */
   .particle-orb {
     position: absolute;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), rgba(255,255,255,0.02) 60%, transparent);
-    filter: blur(20px);
+    filter: blur(25px);
     animation: orb-float 20s ease-in-out infinite, orb-pulse 8s ease-in-out infinite;
+  }
+
+  .particle-orb-blue {
+    background: radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.4), rgba(37, 99, 235, 0.2) 50%, transparent);
+  }
+
+  .particle-orb-purple {
+    background: radial-gradient(circle at 30% 30%, rgba(168, 85, 247, 0.4), rgba(139, 92, 246, 0.2) 50%, transparent);
+  }
+
+  .particle-orb-mixed {
+    background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.15) 40%, rgba(59, 130, 246, 0.1) 70%, transparent);
   }
 
   @keyframes orb-float {
@@ -242,120 +253,145 @@
   }
 
   @keyframes orb-pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.7; }
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
   }
 
   /* Floating Bubbles - Medium gradient spheres */
   .particle-bubble {
     position: absolute;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 100%);
-    box-shadow: 
-      inset 0 -2px 4px rgba(255,255,255,0.1),
-      inset 0 2px 4px rgba(255,255,255,0.3),
-      0 0 20px rgba(255,255,255,0.1);
     animation: bubble-float 15s ease-in-out infinite;
+  }
+
+  .particle-bubble-blue {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.5) 0%, rgba(37, 99, 235, 0.3) 50%, rgba(59, 130, 246, 0.1) 100%);
+    box-shadow: 
+      inset 0 -2px 4px rgba(37, 99, 235, 0.2),
+      inset 0 2px 4px rgba(147, 197, 253, 0.4),
+      0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  .particle-bubble-purple {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.5) 0%, rgba(139, 92, 246, 0.3) 50%, rgba(168, 85, 247, 0.1) 100%);
+    box-shadow: 
+      inset 0 -2px 4px rgba(139, 92, 246, 0.2),
+      inset 0 2px 4px rgba(196, 181, 253, 0.4),
+      0 0 20px rgba(168, 85, 247, 0.3);
+  }
+
+  .particle-bubble-mixed {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.5) 0%, rgba(139, 92, 246, 0.3) 50%, rgba(59, 130, 246, 0.1) 100%);
+    box-shadow: 
+      inset 0 -2px 4px rgba(99, 102, 241, 0.2),
+      inset 0 2px 4px rgba(165, 180, 252, 0.4),
+      0 0 20px rgba(99, 102, 241, 0.3);
   }
 
   @keyframes bubble-float {
     0%, 100% { 
       transform: translateY(0) translateX(0) scale(1);
-      opacity: 0.6;
+      opacity: 0.7;
     }
     25% { 
       transform: translateY(-30px) translateX(15px) scale(1.1);
-      opacity: 0.8;
+      opacity: 0.9;
     }
     50% { 
       transform: translateY(-50px) translateX(-10px) scale(0.9);
-      opacity: 0.5;
+      opacity: 0.6;
     }
     75% { 
       transform: translateY(-25px) translateX(-20px) scale(1.05);
-      opacity: 0.7;
+      opacity: 0.8;
     }
   }
 
-  /* Sparkles - Tiny twinkling dots */
-  .particle-sparkle {
+  /* Gradient Blobs - Soft colored shapes */
+  .particle-blob {
     position: absolute;
-    width: 4px;
-    height: 4px;
-    background: white;
-    border-radius: 50%;
-    animation: sparkle-twinkle 2.5s ease-in-out infinite;
+    border-radius: 60% 40% 50% 70% / 50% 60% 40% 50%;
+    filter: blur(8px);
+    animation: blob-morph 25s ease-in-out infinite, blob-float 18s ease-in-out infinite;
   }
 
-  .particle-sparkle::before,
-  .particle-sparkle::after {
-    content: '';
-    position: absolute;
-    background: white;
+  .particle-blob-blue {
+    background: linear-gradient(145deg, rgba(59, 130, 246, 0.4), rgba(96, 165, 250, 0.2));
   }
 
-  .particle-sparkle::before {
-    width: 12px;
-    height: 2px;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 1px;
+  .particle-blob-purple {
+    background: linear-gradient(145deg, rgba(168, 85, 247, 0.4), rgba(192, 132, 252, 0.2));
   }
 
-  .particle-sparkle::after {
-    width: 2px;
-    height: 12px;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 1px;
+  .particle-blob-mixed {
+    background: linear-gradient(145deg, rgba(99, 102, 241, 0.4), rgba(129, 140, 248, 0.2));
   }
 
-  @keyframes sparkle-twinkle {
-    0%, 100% { 
-      opacity: 0;
-      transform: scale(0.5) rotate(0deg);
-    }
-    50% { 
-      opacity: 1;
-      transform: scale(1) rotate(45deg);
-    }
+  @keyframes blob-morph {
+    0%, 100% { border-radius: 60% 40% 50% 70% / 50% 60% 40% 50%; }
+    25% { border-radius: 40% 60% 70% 30% / 60% 40% 50% 60%; }
+    50% { border-radius: 50% 50% 40% 60% / 40% 70% 60% 30%; }
+    75% { border-radius: 70% 30% 60% 40% / 50% 50% 30% 70%; }
   }
 
-  /* Diamond shapes */
+  @keyframes blob-float {
+    0%, 100% { transform: translate(0, 0); opacity: 0.5; }
+    33% { transform: translate(25px, -35px); opacity: 0.7; }
+    66% { transform: translate(-20px, -50px); opacity: 0.4; }
+  }
+
+  /* Diamond shapes with gradients */
   .particle-diamond {
     position: absolute;
-    background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.1));
     transform: rotate(45deg);
     animation: diamond-float 18s ease-in-out infinite, diamond-shine 4s ease-in-out infinite;
   }
 
+  .particle-diamond-blue {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.7), rgba(37, 99, 235, 0.3));
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+  }
+
+  .particle-diamond-purple {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.7), rgba(139, 92, 246, 0.3));
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+  }
+
+  .particle-diamond-mixed {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.7), rgba(129, 140, 248, 0.3));
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+  }
+
   @keyframes diamond-float {
-    0%, 100% { 
-      transform: rotate(45deg) translateY(0) translateX(0);
-    }
-    33% { 
-      transform: rotate(45deg) translateY(-40px) translateX(20px);
-    }
-    66% { 
-      transform: rotate(45deg) translateY(-20px) translateX(-30px);
-    }
+    0%, 100% { transform: rotate(45deg) translateY(0) translateX(0); }
+    33% { transform: rotate(45deg) translateY(-40px) translateX(20px); }
+    66% { transform: rotate(45deg) translateY(-20px) translateX(-30px); }
   }
 
   @keyframes diamond-shine {
-    0%, 100% { opacity: 0.3; filter: brightness(1); }
-    50% { opacity: 0.7; filter: brightness(1.5); }
+    0%, 100% { opacity: 0.4; filter: brightness(1); }
+    50% { opacity: 0.8; filter: brightness(1.3); }
   }
 
-  /* Rising Light Beams */
+  /* Rising Light Beams with colors */
   .particle-beam {
     position: absolute;
-    width: 2px;
-    height: 80px;
-    background: linear-gradient(to top, transparent, rgba(255,255,255,0.4), transparent);
-    bottom: -100px;
+    width: 3px;
+    height: 100px;
+    bottom: -120px;
     animation: beam-rise 12s linear infinite;
+  }
+
+  .particle-beam-blue {
+    background: linear-gradient(to top, transparent, rgba(59, 130, 246, 0.6), rgba(96, 165, 250, 0.3), transparent);
+  }
+
+  .particle-beam-purple {
+    background: linear-gradient(to top, transparent, rgba(168, 85, 247, 0.6), rgba(192, 132, 252, 0.3), transparent);
+  }
+
+  .particle-beam-mixed {
+    background: linear-gradient(to top, transparent, rgba(99, 102, 241, 0.6), rgba(139, 92, 246, 0.3), transparent);
   }
 
   @keyframes beam-rise {
@@ -364,11 +400,11 @@
       opacity: 0;
     }
     10% {
-      opacity: 0.6;
+      opacity: 0.7;
       transform: translateY(-20vh) scaleY(1);
     }
     80% {
-      opacity: 0.6;
+      opacity: 0.7;
       transform: translateY(-90vh) scaleY(1);
     }
     100% { 
@@ -377,26 +413,40 @@
     }
   }
 
-  /* Floating Rings */
+  /* Floating Rings with gradient borders */
   .particle-ring {
     position: absolute;
-    border: 2px solid rgba(255,255,255,0.2);
     border-radius: 50%;
     animation: ring-float 22s ease-in-out infinite, ring-rotate 30s linear infinite;
+  }
+
+  .particle-ring-blue {
+    border: 2px solid rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2), inset 0 0 10px rgba(59, 130, 246, 0.1);
+  }
+
+  .particle-ring-purple {
+    border: 2px solid rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.2), inset 0 0 10px rgba(168, 85, 247, 0.1);
+  }
+
+  .particle-ring-mixed {
+    border: 2px solid rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.2), inset 0 0 10px rgba(99, 102, 241, 0.1);
   }
 
   @keyframes ring-float {
     0%, 100% { 
       transform: translateY(0) translateX(0);
-      opacity: 0.3;
+      opacity: 0.4;
     }
     25% { 
       transform: translateY(-35px) translateX(25px);
-      opacity: 0.5;
+      opacity: 0.6;
     }
     50% { 
       transform: translateY(-55px) translateX(-15px);
-      opacity: 0.4;
+      opacity: 0.5;
     }
     75% { 
       transform: translateY(-20px) translateX(-25px);
