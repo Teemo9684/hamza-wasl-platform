@@ -315,6 +315,44 @@ const Index = () => {
     <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-accent">
       {/* Animated Background Elements with Floating Logo */}
       <div className="absolute inset-0 overflow-hidden">
+        {/* Animated Particles Layer */}
+        <div className="absolute inset-0">
+          {/* Small floating particles */}
+          <div className="particle particle-float-1 w-2 h-2 bg-white/40 top-[15%] left-[10%]" style={{ animationDelay: "0s" }} />
+          <div className="particle particle-float-2 w-1.5 h-1.5 bg-white/30 top-[25%] left-[25%]" style={{ animationDelay: "2s" }} />
+          <div className="particle particle-float-3 w-3 h-3 bg-white/25 top-[35%] left-[40%]" style={{ animationDelay: "4s" }} />
+          <div className="particle particle-float-4 w-2 h-2 bg-white/35 top-[45%] left-[55%]" style={{ animationDelay: "1s" }} />
+          <div className="particle particle-float-1 w-1 h-1 bg-white/50 top-[20%] left-[70%]" style={{ animationDelay: "3s" }} />
+          <div className="particle particle-float-2 w-2.5 h-2.5 bg-white/30 top-[55%] left-[85%]" style={{ animationDelay: "5s" }} />
+          <div className="particle particle-float-3 w-1.5 h-1.5 bg-white/40 top-[65%] left-[15%]" style={{ animationDelay: "2.5s" }} />
+          <div className="particle particle-float-4 w-2 h-2 bg-white/35 top-[75%] left-[30%]" style={{ animationDelay: "4.5s" }} />
+          <div className="particle particle-float-1 w-1 h-1 bg-white/45 top-[85%] left-[50%]" style={{ animationDelay: "1.5s" }} />
+          <div className="particle particle-float-2 w-3 h-3 bg-white/20 top-[10%] left-[60%]" style={{ animationDelay: "3.5s" }} />
+          
+          {/* Medium particles with glow */}
+          <div className="particle particle-float-3 w-4 h-4 bg-gradient-to-br from-white/30 to-purple-300/20 top-[30%] left-[5%]" style={{ animationDelay: "6s" }} />
+          <div className="particle particle-float-4 w-3.5 h-3.5 bg-gradient-to-br from-white/25 to-blue-300/20 top-[50%] left-[75%]" style={{ animationDelay: "7s" }} />
+          <div className="particle particle-float-1 w-4 h-4 bg-gradient-to-br from-white/30 to-pink-300/20 top-[70%] left-[65%]" style={{ animationDelay: "8s" }} />
+          
+          {/* Rising particles */}
+          <div className="particle particle-rise w-1.5 h-1.5 bg-white/40 left-[20%]" style={{ animationDelay: "0s" }} />
+          <div className="particle particle-rise w-1 h-1 bg-white/50 left-[35%]" style={{ animationDelay: "5s" }} />
+          <div className="particle particle-rise w-2 h-2 bg-white/30 left-[50%]" style={{ animationDelay: "10s" }} />
+          <div className="particle particle-rise w-1.5 h-1.5 bg-white/45 left-[65%]" style={{ animationDelay: "15s" }} />
+          <div className="particle particle-rise w-1 h-1 bg-white/35 left-[80%]" style={{ animationDelay: "7s" }} />
+          <div className="particle particle-rise w-2 h-2 bg-white/25 left-[90%]" style={{ animationDelay: "12s" }} />
+          
+          {/* Twinkling stars */}
+          <div className="particle particle-twinkle w-1 h-1 bg-white top-[12%] left-[22%]" style={{ animationDelay: "0s" }} />
+          <div className="particle particle-twinkle w-0.5 h-0.5 bg-white top-[28%] left-[45%]" style={{ animationDelay: "1s" }} />
+          <div className="particle particle-twinkle w-1 h-1 bg-white top-[42%] left-[68%]" style={{ animationDelay: "2s" }} />
+          <div className="particle particle-twinkle w-0.5 h-0.5 bg-white top-[58%] left-[12%]" style={{ animationDelay: "0.5s" }} />
+          <div className="particle particle-twinkle w-1 h-1 bg-white top-[72%] left-[88%]" style={{ animationDelay: "1.5s" }} />
+          <div className="particle particle-twinkle w-0.5 h-0.5 bg-white top-[88%] left-[35%]" style={{ animationDelay: "2.5s" }} />
+          <div className="particle particle-twinkle w-1 h-1 bg-white top-[5%] left-[78%]" style={{ animationDelay: "0.8s" }} />
+          <div className="particle particle-twinkle w-0.5 h-0.5 bg-white top-[95%] left-[58%]" style={{ animationDelay: "1.8s" }} />
+        </div>
+
         {/* Enhanced gradient orbs with animated glow */}
         <div className="absolute top-20 left-10 w-80 h-80 bg-gradient-to-br from-white/10 to-accent/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-[450px] h-[450px] bg-gradient-to-tl from-accent/15 to-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "700ms" }} />
