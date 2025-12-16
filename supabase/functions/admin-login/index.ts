@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') || '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -19,8 +19,8 @@ serve(async (req) => {
     if (!password || typeof password !== 'string') {
       console.error('Admin login attempt with missing or invalid password');
       return new Response(
-        JSON.stringify({ error: 'Password is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid credentials' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -31,16 +31,16 @@ serve(async (req) => {
     if (!adminPassword || !adminEmail) {
       console.error('Admin credentials not configured in environment');
       return new Response(
-        JSON.stringify({ error: 'Admin credentials not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid credentials' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Verify password
+    // Verify password first
     if (password !== adminPassword) {
       console.warn('Admin login failed: incorrect password');
       return new Response(
-        JSON.stringify({ error: 'Invalid password' }),
+        JSON.stringify({ error: 'Invalid credentials' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -56,8 +56,8 @@ serve(async (req) => {
     if (userError) {
       console.error('Error checking admin user:', userError);
       return new Response(
-        JSON.stringify({ error: 'Failed to verify admin account' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid credentials' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -66,8 +66,8 @@ serve(async (req) => {
     if (!existingAdmin) {
       console.error('Admin user not found in auth.users');
       return new Response(
-        JSON.stringify({ error: 'Admin account not found. Please run setup first.' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid credentials' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -82,8 +82,8 @@ serve(async (req) => {
     if (roleError || !roleData) {
       console.error('Admin role not found for user:', existingAdmin.id);
       return new Response(
-        JSON.stringify({ error: 'Admin privileges not configured' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid credentials' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -98,8 +98,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in admin-login function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Invalid credentials' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
