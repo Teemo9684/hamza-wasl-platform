@@ -8,3 +8,9 @@ verify_jwt = true
 
 [functions.enhance-schedule-image]
 verify_jwt = true
+
+[functions.admin-login]
+verify_jwt = false
+
+[functions.delete-user]
+verify_jwt = true
