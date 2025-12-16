@@ -223,90 +223,199 @@
     }
   }
 
-  /* Particle Animations */
+  /* ========== Redesigned Particle System ========== */
+  
+  /* Glowing Orbs - Large ambient particles */
+  .particle-orb {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), rgba(255,255,255,0.02) 60%, transparent);
+    filter: blur(20px);
+    animation: orb-float 20s ease-in-out infinite, orb-pulse 8s ease-in-out infinite;
+  }
+
+  @keyframes orb-float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(30px, -40px) scale(1.1); }
+    50% { transform: translate(-20px, -60px) scale(0.95); }
+    75% { transform: translate(40px, -20px) scale(1.05); }
+  }
+
+  @keyframes orb-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Floating Bubbles - Medium gradient spheres */
+  .particle-bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 100%);
+    box-shadow: 
+      inset 0 -2px 4px rgba(255,255,255,0.1),
+      inset 0 2px 4px rgba(255,255,255,0.3),
+      0 0 20px rgba(255,255,255,0.1);
+    animation: bubble-float 15s ease-in-out infinite;
+  }
+
+  @keyframes bubble-float {
+    0%, 100% { 
+      transform: translateY(0) translateX(0) scale(1);
+      opacity: 0.6;
+    }
+    25% { 
+      transform: translateY(-30px) translateX(15px) scale(1.1);
+      opacity: 0.8;
+    }
+    50% { 
+      transform: translateY(-50px) translateX(-10px) scale(0.9);
+      opacity: 0.5;
+    }
+    75% { 
+      transform: translateY(-25px) translateX(-20px) scale(1.05);
+      opacity: 0.7;
+    }
+  }
+
+  /* Sparkles - Tiny twinkling dots */
+  .particle-sparkle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    animation: sparkle-twinkle 2.5s ease-in-out infinite;
+  }
+
+  .particle-sparkle::before,
+  .particle-sparkle::after {
+    content: '';
+    position: absolute;
+    background: white;
+  }
+
+  .particle-sparkle::before {
+    width: 12px;
+    height: 2px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 1px;
+  }
+
+  .particle-sparkle::after {
+    width: 2px;
+    height: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 1px;
+  }
+
+  @keyframes sparkle-twinkle {
+    0%, 100% { 
+      opacity: 0;
+      transform: scale(0.5) rotate(0deg);
+    }
+    50% { 
+      opacity: 1;
+      transform: scale(1) rotate(45deg);
+    }
+  }
+
+  /* Diamond shapes */
+  .particle-diamond {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.1));
+    transform: rotate(45deg);
+    animation: diamond-float 18s ease-in-out infinite, diamond-shine 4s ease-in-out infinite;
+  }
+
+  @keyframes diamond-float {
+    0%, 100% { 
+      transform: rotate(45deg) translateY(0) translateX(0);
+    }
+    33% { 
+      transform: rotate(45deg) translateY(-40px) translateX(20px);
+    }
+    66% { 
+      transform: rotate(45deg) translateY(-20px) translateX(-30px);
+    }
+  }
+
+  @keyframes diamond-shine {
+    0%, 100% { opacity: 0.3; filter: brightness(1); }
+    50% { opacity: 0.7; filter: brightness(1.5); }
+  }
+
+  /* Rising Light Beams */
+  .particle-beam {
+    position: absolute;
+    width: 2px;
+    height: 80px;
+    background: linear-gradient(to top, transparent, rgba(255,255,255,0.4), transparent);
+    bottom: -100px;
+    animation: beam-rise 12s linear infinite;
+  }
+
+  @keyframes beam-rise {
+    0% { 
+      transform: translateY(0) scaleY(0.5);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.6;
+      transform: translateY(-20vh) scaleY(1);
+    }
+    80% {
+      opacity: 0.6;
+      transform: translateY(-90vh) scaleY(1);
+    }
+    100% { 
+      transform: translateY(-110vh) scaleY(0.5);
+      opacity: 0;
+    }
+  }
+
+  /* Floating Rings */
+  .particle-ring {
+    position: absolute;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50%;
+    animation: ring-float 22s ease-in-out infinite, ring-rotate 30s linear infinite;
+  }
+
+  @keyframes ring-float {
+    0%, 100% { 
+      transform: translateY(0) translateX(0);
+      opacity: 0.3;
+    }
+    25% { 
+      transform: translateY(-35px) translateX(25px);
+      opacity: 0.5;
+    }
+    50% { 
+      transform: translateY(-55px) translateX(-15px);
+      opacity: 0.4;
+    }
+    75% { 
+      transform: translateY(-20px) translateX(-25px);
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes ring-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Legacy particle classes for compatibility */
   .particle {
     position: absolute;
     border-radius: 50%;
     pointer-events: none;
   }
 
-  .particle-float-1 {
-    animation: particle-drift-1 25s ease-in-out infinite, particle-glow 4s ease-in-out infinite;
-  }
-
-  .particle-float-2 {
-    animation: particle-drift-2 30s ease-in-out infinite, particle-glow 5s ease-in-out infinite;
-  }
-
-  .particle-float-3 {
-    animation: particle-drift-3 35s ease-in-out infinite, particle-glow 6s ease-in-out infinite;
-  }
-
-  .particle-float-4 {
-    animation: particle-drift-4 28s ease-in-out infinite, particle-glow 4.5s ease-in-out infinite;
-  }
-
-  @keyframes particle-drift-1 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    25% { transform: translate(30px, -50px) scale(1.2); }
-    50% { transform: translate(-20px, -80px) scale(0.8); }
-    75% { transform: translate(40px, -30px) scale(1.1); }
-  }
-
-  @keyframes particle-drift-2 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    20% { transform: translate(-40px, 30px) scale(1.3); }
-    40% { transform: translate(50px, -40px) scale(0.7); }
-    60% { transform: translate(-30px, -60px) scale(1.2); }
-    80% { transform: translate(20px, 40px) scale(0.9); }
-  }
-
-  @keyframes particle-drift-3 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(60px, 40px) scale(0.6); }
-    66% { transform: translate(-50px, -50px) scale(1.4); }
-  }
-
-  @keyframes particle-drift-4 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    15% { transform: translate(-25px, -45px) scale(1.1); }
-    30% { transform: translate(35px, 25px) scale(0.9); }
-    45% { transform: translate(-45px, 35px) scale(1.2); }
-    60% { transform: translate(55px, -35px) scale(0.8); }
-    75% { transform: translate(-35px, -55px) scale(1.15); }
-    90% { transform: translate(25px, 45px) scale(0.85); }
-  }
-
-  @keyframes particle-glow {
-    0%, 100% { opacity: 0.3; filter: blur(0px); }
-    50% { opacity: 0.7; filter: blur(1px); }
-  }
-
-  /* Rising particles animation */
-  .particle-rise {
-    animation: particle-rise 20s linear infinite;
-  }
-
-  @keyframes particle-rise {
-    0% { 
-      transform: translateY(100vh) scale(0);
-      opacity: 0;
-    }
-    10% {
-      opacity: 0.6;
-      transform: translateY(80vh) scale(1);
-    }
-    90% {
-      opacity: 0.6;
-      transform: translateY(10vh) scale(1);
-    }
-    100% { 
-      transform: translateY(-10vh) scale(0);
-      opacity: 0;
-    }
-  }
-
-  /* Twinkling stars effect */
   .particle-twinkle {
     animation: twinkle 3s ease-in-out infinite;
   }
