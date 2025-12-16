@@ -14,6 +14,7 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
+import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 
 const DashboardTeacher = () => {
@@ -335,7 +336,7 @@ const DashboardTeacher = () => {
         </header>
       </div>
 
-      <main className="flex-1 overflow-y-auto p-4 w-full">
+      <main className="flex-1 overflow-y-auto p-4 pb-20 w-full">
         <AnimatePresence mode="wait">
           <AnimatedSection key="teacher-dashboard">
             <div className="max-w-6xl mx-auto space-y-8 w-full">
@@ -377,6 +378,7 @@ const DashboardTeacher = () => {
       </main>
 
       <FloatingMessageBadge unreadCount={unreadCount} onClick={scrollToMessages} />
+      <BottomNav items={teacherNavItems} />
     </div>
   );
 };
