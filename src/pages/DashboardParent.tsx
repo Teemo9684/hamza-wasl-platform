@@ -5,8 +5,6 @@ import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ParentSidebar } from "@/components/parent/ParentSidebar";
 import { ParentOverview } from "@/components/parent/ParentOverview";
 import { ParentAttendance } from "@/components/parent/ParentAttendance";
 import { ParentMessages } from "@/components/parent/ParentMessages";
@@ -186,45 +184,31 @@ const DashboardParent = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <ParentSidebar
-          children={children}
-          selectedChild={selectedChild}
-          onChildChange={(childId) => {
-            setSelectedChild(childId);
-            fetchChildDetails(childId);
-          }}
-        />
-
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="sticky top-0 z-30 backdrop-blur-lg bg-background/70 border-b shadow-lg">
-            <NewsTicker />
-            <header>
-              <div className="flex h-16 items-center justify-between px-4 md:px-6">
-                <div className="flex items-center gap-2 md:gap-4 min-w-0">
-                  <SidebarTrigger className="shrink-0" />
-                  <div className="min-w-0">
-                    <h1 className="text-base md:text-lg font-bold truncate">مرحباً، {parentName}</h1>
-                    <p className="text-xs text-muted-foreground truncate hidden sm:block">لوحة تحكم ولي الأمر</p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  onClick={handleLogout}
-                  className="font-cairo"
-                >
-                  <LogOut className="ml-2 h-4 w-4" />
-                  تسجيل الخروج
-                </Button>
-              </div>
-            </header>
+    <div className="min-h-screen flex flex-col w-full">
+      <div className="sticky top-0 z-30 backdrop-blur-lg bg-background/70 border-b shadow-lg">
+        <NewsTicker />
+        <header>
+          <div className="flex h-16 items-center justify-between px-4 md:px-6">
+            <div className="min-w-0">
+              <h1 className="text-base md:text-lg font-bold truncate">مرحباً، {parentName}</h1>
+              <p className="text-xs text-muted-foreground truncate hidden sm:block">لوحة تحكم ولي الأمر</p>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="font-cairo"
+            >
+              <LogOut className="ml-2 h-4 w-4" />
+              تسجيل الخروج
+            </Button>
           </div>
+        </header>
+      </div>
 
-          <main className="flex-1 overflow-y-auto p-4 w-full">
-            <AnimatePresence mode="wait">
-              <AnimatedSection key="parent-dashboard">
-                <div className="max-w-6xl mx-auto space-y-8 w-full">
+      <main className="flex-1 overflow-y-auto p-4 w-full">
+        <AnimatePresence mode="wait">
+          <AnimatedSection key="parent-dashboard">
+            <div className="max-w-6xl mx-auto space-y-8 w-full">
               <section id="overview">
                 <ParentOverview
                   children={children}
@@ -261,15 +245,13 @@ const DashboardParent = () => {
                   children={children}
                 />
               </section>
-                </div>
-              </AnimatedSection>
-            </AnimatePresence>
-          </main>
-        </div>
+            </div>
+          </AnimatedSection>
+        </AnimatePresence>
+      </main>
 
-        <FloatingMessageBadge unreadCount={unreadMessagesCount} onClick={scrollToMessages} />
-      </div>
-    </SidebarProvider>
+      <FloatingMessageBadge unreadCount={unreadMessagesCount} onClick={scrollToMessages} />
+    </div>
   );
 };
 
