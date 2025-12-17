@@ -1,5 +1,6 @@
 import { Home, Calendar, BookOpen, MessageSquare, Send, FileText, Clock, Users, GraduationCap, Megaphone, Settings, BarChart3, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface NavItem {
   id: string;
@@ -7,13 +8,18 @@ interface NavItem {
   label: string;
 }
 
+interface NotificationCounts {
+  [key: string]: number;
+}
+
 interface BottomNavProps {
   items: NavItem[];
   activeSection?: string;
   onNavigate?: (sectionId: string) => void;
+  notifications?: NotificationCounts;
 }
 
-export const BottomNav = ({ items, activeSection, onNavigate }: BottomNavProps) => {
+export const BottomNav = ({ items, activeSection, onNavigate, notifications = {} }: BottomNavProps) => {
   const handleClick = (sectionId: string) => {
     if (onNavigate) {
       onNavigate(sectionId);
@@ -31,19 +37,29 @@ export const BottomNav = ({ items, activeSection, onNavigate }: BottomNavProps) 
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
+          const notificationCount = notifications[item.id] || 0;
           
           return (
             <button
               key={item.id}
               onClick={() => handleClick(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
+                "relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
                 isActive 
                   ? "bg-primary/10 text-primary" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
-              <Icon className={cn("h-5 w-5", isActive && "scale-110")} />
+              <div className="relative">
+                <Icon className={cn("h-5 w-5", isActive && "scale-110")} />
+                {notificationCount > 0 && (
+                  <Badge 
+                    className="absolute -top-2 -right-2 h-4 min-w-4 px-1 flex items-center justify-center bg-red-500 text-white text-[10px] animate-pulse"
+                  >
+                    {notificationCount > 99 ? "99+" : notificationCount}
+                  </Badge>
+                )}
+              </div>
               <span className="text-[10px] font-medium font-cairo truncate max-w-[60px]">
                 {item.label}
               </span>
