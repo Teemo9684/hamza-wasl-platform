@@ -3,17 +3,26 @@ import App from "./App.tsx";
 import "./index.css";
 import { registerSW } from 'virtual:pwa-register';
 
-// Register service worker
+// Register service worker with aggressive auto-update
 if ('serviceWorker' in navigator) {
-  registerSW({
+  const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
       // Automatically reload when a new version is available
-      window.location.reload();
+      console.log('تحديث جديد متاح، جاري التحديث...');
+      updateSW(true);
     },
     onOfflineReady() {
       console.log('التطبيق جاهز للعمل بدون إنترنت');
     },
+    onRegisteredSW(swUrl, r) {
+      // Check for updates every 30 seconds
+      if (r) {
+        setInterval(() => {
+          r.update();
+        }, 30 * 1000);
+      }
+    }
   });
 }
 
