@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserCheck, Search, Shield, Trash2, CheckCircle, XCircle, Clock, User } from "lucide-react";
+import { Users, UserCheck, Search, Shield, Trash2, CheckCircle, XCircle, Clock, User, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast as sonnerToast } from "sonner";
@@ -26,6 +26,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface UserProfile {
   id: string;
@@ -43,6 +45,22 @@ interface PendingApproval {
   role: "admin" | "teacher" | "parent" | null;
 }
 
+interface TeacherGradeLevel {
+  id: string;
+  teacher_id: string;
+  grade_level: string;
+  subject: string | null;
+}
+
+const GRADE_LEVELS = [
+  "التحضيري",
+  "سنة أولى",
+  "سنة ثانية",
+  "سنة ثالثة",
+  "سنة رابعة",
+  "سنة خامسة",
+];
+
 export const UserManagement = () => {
   const queryClient = useQueryClient();
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -50,6 +68,9 @@ export const UserManagement = () => {
   const [activeTab, setActiveTab] = useState<"teachers" | "parents" | "pending">("teachers");
   const [loading, setLoading] = useState(true);
   const [loadingApproval, setLoadingApproval] = useState<string | null>(null);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
+  const [teacherGradeLevels, setTeacherGradeLevels] = useState<string[]>([]);
+  const [savingGrades, setSavingGrades] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -208,6 +229,70 @@ export const UserManagement = () => {
     user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.phone?.includes(searchTerm)
   );
+
+  // Fetch teacher's assigned grade levels
+  const fetchTeacherGradeLevels = async (teacherId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("teacher_grade_levels")
+        .select("grade_level")
+        .eq("teacher_id", teacherId);
+
+      if (error) throw error;
+      setTeacherGradeLevels(data?.map(d => d.grade_level) || []);
+    } catch (error) {
+      console.error("Error fetching teacher grade levels:", error);
+      setTeacherGradeLevels([]);
+    }
+  };
+
+  const handleOpenGradeAssignment = async (teacherId: string) => {
+    setSelectedTeacherId(teacherId);
+    await fetchTeacherGradeLevels(teacherId);
+  };
+
+  const handleGradeLevelToggle = (gradeLevel: string) => {
+    setTeacherGradeLevels(prev =>
+      prev.includes(gradeLevel)
+        ? prev.filter(g => g !== gradeLevel)
+        : [...prev, gradeLevel]
+    );
+  };
+
+  const handleSaveGradeLevels = async () => {
+    if (!selectedTeacherId) return;
+    
+    setSavingGrades(true);
+    try {
+      // Delete existing grade levels for this teacher
+      await supabase
+        .from("teacher_grade_levels")
+        .delete()
+        .eq("teacher_id", selectedTeacherId);
+
+      // Insert new grade levels
+      if (teacherGradeLevels.length > 0) {
+        const { error } = await supabase
+          .from("teacher_grade_levels")
+          .insert(
+            teacherGradeLevels.map(grade => ({
+              teacher_id: selectedTeacherId,
+              grade_level: grade,
+            }))
+          );
+
+        if (error) throw error;
+      }
+
+      sonnerToast.success("تم حفظ الأقسام بنجاح");
+      setSelectedTeacherId(null);
+    } catch (error) {
+      console.error("Error saving grade levels:", error);
+      sonnerToast.error("حدث خطأ أثناء حفظ الأقسام");
+    } finally {
+      setSavingGrades(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -378,6 +463,9 @@ export const UserManagement = () => {
                       <TableHead className="font-cairo">رقم الهاتف</TableHead>
                       <TableHead className="font-cairo">تاريخ التسجيل</TableHead>
                       <TableHead className="font-cairo">الحالة</TableHead>
+                      {activeTab === "teachers" && (
+                        <TableHead className="font-cairo">الأقسام</TableHead>
+                      )}
                       <TableHead className="font-cairo">الإجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -399,6 +487,56 @@ export const UserManagement = () => {
                             نشط
                           </Badge>
                         </TableCell>
+                        {activeTab === "teachers" && (
+                          <TableCell>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="font-cairo"
+                                  onClick={() => handleOpenGradeAssignment(user.id)}
+                                >
+                                  <BookOpen className="h-4 w-4 ml-1" />
+                                  إسناد الأقسام
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle className="font-cairo text-right">
+                                    إسناد الأقسام للمعلم
+                                  </DialogTitle>
+                                  <DialogDescription className="font-cairo text-right">
+                                    حدد الأقسام التي سيُسند إليها المعلم {user.full_name}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                  {GRADE_LEVELS.map((grade) => (
+                                    <div key={grade} className="flex items-center gap-3 justify-end">
+                                      <Label htmlFor={`grade-${grade}`} className="font-cairo cursor-pointer">
+                                        {grade}
+                                      </Label>
+                                      <Checkbox
+                                        id={`grade-${grade}`}
+                                        checked={teacherGradeLevels.includes(grade)}
+                                        onCheckedChange={() => handleGradeLevelToggle(grade)}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    onClick={handleSaveGradeLevels}
+                                    disabled={savingGrades}
+                                    className="font-cairo"
+                                  >
+                                    {savingGrades ? "جاري الحفظ..." : "حفظ"}
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </TableCell>
+                        )}
                         <TableCell>
                           <Dialog>
                             <DialogTrigger asChild>

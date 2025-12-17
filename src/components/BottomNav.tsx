@@ -1,4 +1,4 @@
-import { Home, Calendar, BookOpen, MessageSquare, Send, FileText, Clock } from "lucide-react";
+import { Home, Calendar, BookOpen, MessageSquare, Send, FileText, Clock, Users, GraduationCap, Megaphone, Settings, BarChart3, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -10,13 +10,18 @@ interface NavItem {
 interface BottomNavProps {
   items: NavItem[];
   activeSection?: string;
+  onNavigate?: (sectionId: string) => void;
 }
 
-export const BottomNav = ({ items, activeSection }: BottomNavProps) => {
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+export const BottomNav = ({ items, activeSection, onNavigate }: BottomNavProps) => {
+  const handleClick = (sectionId: string) => {
+    if (onNavigate) {
+      onNavigate(sectionId);
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -30,7 +35,7 @@ export const BottomNav = ({ items, activeSection }: BottomNavProps) => {
           return (
             <button
               key={item.id}
-              onClick={() => scrollToSection(item.id)}
+              onClick={() => handleClick(item.id)}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
                 isActive 
@@ -67,4 +72,13 @@ export const parentNavItems: NavItem[] = [
   { id: "schedule", icon: Clock, label: "الجدول" },
   { id: "messages", icon: MessageSquare, label: "الرسائل" },
   { id: "documents", icon: FileText, label: "الوثائق" },
+];
+
+// Pre-defined nav items for admin dashboard
+export const adminNavItems: NavItem[] = [
+  { id: "home", icon: Home, label: "الرئيسية" },
+  { id: "users", icon: Users, label: "المستخدمين" },
+  { id: "students", icon: GraduationCap, label: "التلاميذ" },
+  { id: "news", icon: Megaphone, label: "الأخبار" },
+  { id: "reports", icon: BarChart3, label: "التقارير" },
 ];

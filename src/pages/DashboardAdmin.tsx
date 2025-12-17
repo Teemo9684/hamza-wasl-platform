@@ -19,6 +19,7 @@ import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/utils/pushNotifications";
+import { BottomNav, adminNavItems } from "@/components/BottomNav";
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -180,7 +181,7 @@ const DashboardAdmin = () => {
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 pb-24">
           <div className="mb-8">
             <h2 className="text-3xl font-bold mb-2 font-cairo">مرحباً مديرة المدرسة</h2>
             <p className="text-muted-foreground font-cairo">
@@ -455,6 +456,18 @@ const DashboardAdmin = () => {
             </>
           )}
         </main>
+        
+        <BottomNav 
+          items={adminNavItems} 
+          activeSection={activeSection || "home"}
+          onNavigate={(section) => {
+            if (section === "home") {
+              handleBackToDashboard();
+            } else {
+              handleOpenSection(section);
+            }
+          }}
+        />
       </div>
     </div>
   );
