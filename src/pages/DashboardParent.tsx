@@ -252,7 +252,12 @@ const DashboardParent = () => {
       </main>
 
       <FloatingMessageBadge unreadCount={unreadMessagesCount} onClick={scrollToMessages} />
-      <BottomNav items={parentNavItems} />
+      <BottomNav 
+        items={parentNavItems} 
+        notifications={{
+          messages: unreadMessagesCount,
+        }}
+      />
     </div>
   );
 };

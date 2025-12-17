@@ -378,7 +378,12 @@ const DashboardTeacher = () => {
       </main>
 
       <FloatingMessageBadge unreadCount={unreadCount} onClick={scrollToMessages} />
-      <BottomNav items={teacherNavItems} />
+      <BottomNav 
+        items={teacherNavItems} 
+        notifications={{
+          messages: unreadCount,
+        }}
+      />
     </div>
   );
 };

@@ -265,14 +265,19 @@ export const UserManagement = () => {
     setSavingGrades(true);
     try {
       // Delete existing grade levels for this teacher
-      await supabase
+      const { error: deleteError } = await supabase
         .from("teacher_grade_levels")
         .delete()
         .eq("teacher_id", selectedTeacherId);
 
+      if (deleteError) {
+        console.error("Delete error:", deleteError);
+        throw deleteError;
+      }
+
       // Insert new grade levels
       if (teacherGradeLevels.length > 0) {
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from("teacher_grade_levels")
           .insert(
             teacherGradeLevels.map(grade => ({
@@ -281,14 +286,19 @@ export const UserManagement = () => {
             }))
           );
 
-        if (error) throw error;
+        if (insertError) {
+          console.error("Insert error:", insertError);
+          throw insertError;
+        }
       }
 
       sonnerToast.success("تم حفظ الأقسام بنجاح");
       setSelectedTeacherId(null);
-    } catch (error) {
+      // Refresh users list to show updated grade levels
+      fetchUsers();
+    } catch (error: any) {
       console.error("Error saving grade levels:", error);
-      sonnerToast.error("حدث خطأ أثناء حفظ الأقسام");
+      sonnerToast.error(error?.message || "حدث خطأ أثناء حفظ الأقسام");
     } finally {
       setSavingGrades(false);
     }

@@ -467,6 +467,10 @@ const DashboardAdmin = () => {
               handleOpenSection(section);
             }
           }}
+          notifications={{
+            users: stats.pendingRequests,
+            reports: stats.pendingDocuments,
+          }}
         />
       </div>
     </div>
