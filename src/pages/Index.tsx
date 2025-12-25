@@ -321,7 +321,7 @@ const Index = () => {
 
       {/* Date and Time Display - Below News Ticker */}
       <div className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2">
-        <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
+        <div className="gap-6 text-white/90 font-cairo text-sm mx-0 px-0 flex-row flex items-center justify-center">
           {/* Date */}
           <div className="font-medium">
             {format(currentTime, "EEEE، d MMMM yyyy", {
@@ -368,7 +368,7 @@ const Index = () => {
             <p className="text-lg text-white/80 font-cairo mb-3 max-w-3xl mx-auto leading-relaxed">
               منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية
             </p>
-            <p className="text-white/70 font-ruqaa text-2xl">
+            <p className="text-white/70 font-ruqaa text-3xl">
               المدرسة الابتدائية العربي التبسي
             </p>
           </div>
@@ -444,7 +444,7 @@ const Index = () => {
               animationDelay: "1s"
             }}>
                 <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
-                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110 opacity-100">
                   <Shield className="w-16 h-16 text-white" strokeWidth={1.5} />
                 </div>
               </div>
