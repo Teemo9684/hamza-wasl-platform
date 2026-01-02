@@ -141,28 +141,42 @@ export const StudentManagement = () => {
 
   const handleAssignTeacher = async (gradeLevel: string, teacherId: string) => {
     try {
-      const { error } = await supabase
+      // أولاً: حذف أي ربط سابق لهذا المستوى (لضمان أستاذ واحد فقط لكل مستوى)
+      const { error: deleteError } = await supabase
         .from("teacher_grade_levels")
-        .upsert({
+        .delete()
+        .eq("grade_level", gradeLevel);
+
+      if (deleteError) {
+        console.error("Error deleting old assignment:", deleteError);
+        throw deleteError;
+      }
+
+      // ثانياً: إضافة الربط الجديد
+      const { error: insertError } = await supabase
+        .from("teacher_grade_levels")
+        .insert({
           teacher_id: teacherId,
           grade_level: gradeLevel,
-        }, {
-          onConflict: "teacher_id,grade_level"
         });
 
-      if (error) throw error;
+      if (insertError) {
+        console.error("Error inserting new assignment:", insertError);
+        throw insertError;
+      }
 
       toast({
         title: "نجاح",
         description: "تم ربط الأستاذ بالمستوى بنجاح",
       });
 
-      fetchGradeTeachers();
+      await fetchGradeTeachers();
       setAssigningGrade(null);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error assigning teacher:", error);
       toast({
         title: "خطأ",
-        description: "فشل ربط الأستاذ بالمستوى",
+        description: error.message || "فشل ربط الأستاذ بالمستوى",
         variant: "destructive",
       });
     }
