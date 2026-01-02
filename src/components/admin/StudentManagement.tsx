@@ -100,16 +100,26 @@ export const StudentManagement = () => {
 
   const fetchTeachers = async () => {
     try {
+      // أولاً: جلب معرفات المعلمين
+      const { data: roleData, error: roleError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "teacher");
+
+      if (roleError) throw roleError;
+
+      const teacherIds = roleData?.map(r => r.user_id) || [];
+      
+      if (teacherIds.length === 0) {
+        setTeachers([]);
+        return;
+      }
+
+      // ثانياً: جلب بيانات المعلمين
       const { data, error } = await supabase
         .from("profiles")
         .select("id, full_name")
-        .in("id", 
-          (await supabase
-            .from("user_roles")
-            .select("user_id")
-            .eq("role", "teacher")
-          ).data?.map(r => r.user_id) || []
-        );
+        .in("id", teacherIds);
 
       if (error) throw error;
       setTeachers(data || []);
