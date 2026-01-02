@@ -47,8 +47,8 @@ const DashboardParent = () => {
             table: 'messages',
             filter: `recipient_id=eq.${user.id}`
           },
-          (payload) => {
-            console.log('New message received:', payload);
+          () => {
+            // تم استلام رسالة جديدة
             sonnerToast.success("رسالة جديدة من المعلم");
             fetchParentData(); // Refresh messages
           }

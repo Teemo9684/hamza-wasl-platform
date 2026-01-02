@@ -18,8 +18,8 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
         table: 'messages',
         filter: `recipient_id=eq.${userId}`
       },
-      (payload) => {
-        console.log('New message notification:', payload);
+      () => {
+        // تم استلام رسالة جديدة
         
         // Play notification sound
         playNotificationSound();
@@ -47,7 +47,7 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
         table: 'news_ticker'
       },
       (payload) => {
-        console.log('New announcement notification:', payload);
+        // تم استلام إعلان جديد
         
         const announcement = payload.new as any;
         if (announcement.is_active) {

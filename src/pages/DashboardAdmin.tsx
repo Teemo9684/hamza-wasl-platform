@@ -48,8 +48,8 @@ const DashboardAdmin = () => {
           schema: 'public',
           table: 'document_requests'
         },
-        (payload) => {
-          console.log('New document request:', payload);
+        () => {
+          // تم استلام طلب وثيقة جديد
           playNotificationSound();
           toast.info('طلب وثيقة جديد', {
             description: 'تم استلام طلب وثيقة جديد',
@@ -75,7 +75,7 @@ const DashboardAdmin = () => {
         (payload) => {
           const newProfile = payload.new as any;
           if (!newProfile.is_approved) {
-            console.log('New user registration:', payload);
+            // تسجيل مستخدم جديد
             playNotificationSound();
             toast.info('تسجيل مستخدم جديد', {
               description: `${newProfile.full_name} في انتظار الموافقة`,

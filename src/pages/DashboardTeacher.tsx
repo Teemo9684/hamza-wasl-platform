@@ -39,8 +39,8 @@ const DashboardTeacher = () => {
           table: 'messages',
           filter: `recipient_id=eq.${supabase.auth.getUser().then(({ data }) => data.user?.id)}`
         },
-        (payload) => {
-          console.log('New message received:', payload);
+        () => {
+          // تم استلام رسالة جديدة
           sonnerToast.success("رسالة جديدة من ولي أمر");
           fetchTeacherData(); // Refresh messages
         }
