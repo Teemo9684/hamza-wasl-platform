@@ -186,7 +186,6 @@ export const StudentManagement = () => {
 
         if (deleteStudentsError) {
           console.error("Error deleting old student links:", deleteStudentsError);
-          // نتابع حتى لو فشل الحذف
         }
       }
 
@@ -221,7 +220,6 @@ export const StudentManagement = () => {
 
         if (linkError) {
           console.error("Error linking students to teacher:", linkError);
-          // نتابع حتى لو فشل الربط - المستوى تم ربطه
         }
       }
 
@@ -240,11 +238,70 @@ export const StudentManagement = () => {
 
     } catch (error: any) {
       console.error("Error assigning teacher:", error);
-      // في حالة الخطأ، إعادة تحميل البيانات
       await fetchGradeTeachers();
       toast({
         title: "خطأ",
         description: error.message || "فشل ربط الأستاذ بالمستوى",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveTeacherAssignment = async (gradeLevel: string) => {
+    try {
+      // جلب جميع تلاميذ هذا المستوى الدراسي
+      const { data: studentsInGrade, error: studentsError } = await supabase
+        .from("students")
+        .select("id")
+        .eq("grade_level", gradeLevel);
+
+      if (studentsError) {
+        console.error("Error fetching students:", studentsError);
+        throw studentsError;
+      }
+
+      // حذف ربط المستوى من teacher_grade_levels
+      const { error: deleteGradeError } = await supabase
+        .from("teacher_grade_levels")
+        .delete()
+        .eq("grade_level", gradeLevel);
+
+      if (deleteGradeError) {
+        console.error("Error deleting grade assignment:", deleteGradeError);
+        throw deleteGradeError;
+      }
+
+      // حذف روابط التلاميذ في teacher_students
+      if (studentsInGrade && studentsInGrade.length > 0) {
+        const studentIds = studentsInGrade.map(s => s.id);
+        const { error: deleteStudentsError } = await supabase
+          .from("teacher_students")
+          .delete()
+          .in("student_id", studentIds);
+
+        if (deleteStudentsError) {
+          console.error("Error deleting student links:", deleteStudentsError);
+        }
+      }
+
+      // تحديث الحالة محلياً
+      setGradeTeachers(prev => {
+        const newState = { ...prev };
+        delete newState[gradeLevel];
+        return newState;
+      });
+
+      toast({
+        title: "نجاح",
+        description: `تم إزالة إسناد الأستاذ من المستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
+      });
+
+    } catch (error: any) {
+      console.error("Error removing teacher assignment:", error);
+      await fetchGradeTeachers();
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل إزالة إسناد الأستاذ",
         variant: "destructive",
       });
     }
@@ -579,41 +636,55 @@ export const StudentManagement = () => {
                     )}
                   </div>
 
-                  <Dialog 
-                    open={assigningGrade === level} 
-                    onOpenChange={(open) => {
-                      setAssigningGrade(open ? level : null);
-                    }}
-                  >
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full font-cairo">
-                        <UserPlus className="w-4 h-4 ml-2" />
-                        {assignedTeacher ? "تغيير الأستاذ" : "تعيين أستاذ"}
+                  <div className="flex gap-2">
+                    <Dialog 
+                      open={assigningGrade === level} 
+                      onOpenChange={(open) => {
+                        setAssigningGrade(open ? level : null);
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex-1 font-cairo">
+                          <UserPlus className="w-4 h-4 ml-2" />
+                          {assignedTeacher ? "تغيير" : "تعيين أستاذ"}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle className="font-cairo">تعيين أستاذ للمستوى</DialogTitle>
+                          <DialogDescription className="font-cairo">
+                            اختر الأستاذ المسؤول عن {level}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <Select onValueChange={(value) => handleAssignTeacher(level, value)}>
+                            <SelectTrigger className="font-cairo">
+                              <SelectValue placeholder="اختر الأستاذ" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {teachers.map((teacher) => (
+                                <SelectItem key={teacher.id} value={teacher.id} className="font-cairo">
+                                  {teacher.full_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    
+                    {assignedTeacher && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemoveTeacherAssignment(level)}
+                        className="font-cairo"
+                        title="إزالة الإسناد"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle className="font-cairo">تعيين أستاذ للمستوى</DialogTitle>
-                        <DialogDescription className="font-cairo">
-                          اختر الأستاذ المسؤول عن {level}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <Select onValueChange={(value) => handleAssignTeacher(level, value)}>
-                          <SelectTrigger className="font-cairo">
-                            <SelectValue placeholder="اختر الأستاذ" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {teachers.map((teacher) => (
-                              <SelectItem key={teacher.id} value={teacher.id} className="font-cairo">
-                                {teacher.full_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );
