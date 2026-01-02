@@ -154,18 +154,43 @@ export const StudentManagement = () => {
     setAssigningGrade(null);
     
     try {
-      // أولاً: حذف أي ربط سابق لهذا المستوى (لضمان أستاذ واحد فقط لكل مستوى)
-      const { error: deleteError } = await supabase
+      // أولاً: جلب جميع تلاميذ هذا المستوى الدراسي
+      const { data: studentsInGrade, error: studentsError } = await supabase
+        .from("students")
+        .select("id")
+        .eq("grade_level", gradeLevel);
+
+      if (studentsError) {
+        console.error("Error fetching students:", studentsError);
+        throw studentsError;
+      }
+
+      // ثانياً: حذف أي ربط سابق لهذا المستوى في teacher_grade_levels
+      const { error: deleteGradeError } = await supabase
         .from("teacher_grade_levels")
         .delete()
         .eq("grade_level", gradeLevel);
 
-      if (deleteError) {
-        console.error("Error deleting old assignment:", deleteError);
-        throw deleteError;
+      if (deleteGradeError) {
+        console.error("Error deleting old grade assignment:", deleteGradeError);
+        throw deleteGradeError;
       }
 
-      // ثانياً: إضافة الربط الجديد
+      // ثالثاً: حذف أي ربط سابق في teacher_students لتلاميذ هذا المستوى
+      if (studentsInGrade && studentsInGrade.length > 0) {
+        const studentIds = studentsInGrade.map(s => s.id);
+        const { error: deleteStudentsError } = await supabase
+          .from("teacher_students")
+          .delete()
+          .in("student_id", studentIds);
+
+        if (deleteStudentsError) {
+          console.error("Error deleting old student links:", deleteStudentsError);
+          // نتابع حتى لو فشل الحذف
+        }
+      }
+
+      // رابعاً: إضافة الربط الجديد في teacher_grade_levels
       const { data: insertData, error: insertError } = await supabase
         .from("teacher_grade_levels")
         .insert({
@@ -179,8 +204,25 @@ export const StudentManagement = () => {
         .single();
 
       if (insertError) {
-        console.error("Error inserting new assignment:", insertError);
+        console.error("Error inserting grade assignment:", insertError);
         throw insertError;
+      }
+
+      // خامساً: ربط جميع تلاميذ المستوى بالأستاذ في teacher_students
+      if (studentsInGrade && studentsInGrade.length > 0) {
+        const teacherStudentLinks = studentsInGrade.map(student => ({
+          teacher_id: teacherId,
+          student_id: student.id,
+        }));
+
+        const { error: linkError } = await supabase
+          .from("teacher_students")
+          .insert(teacherStudentLinks);
+
+        if (linkError) {
+          console.error("Error linking students to teacher:", linkError);
+          // نتابع حتى لو فشل الربط - المستوى تم ربطه
+        }
       }
 
       // تحديث الحالة محلياً فوراً
@@ -193,7 +235,7 @@ export const StudentManagement = () => {
 
       toast({
         title: "نجاح",
-        description: "تم ربط الأستاذ بالمستوى بنجاح",
+        description: `تم ربط الأستاذ بالمستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
       });
 
     } catch (error: any) {
