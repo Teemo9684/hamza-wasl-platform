@@ -38,7 +38,7 @@ export const unlockAudio = () => {
     source.connect(ctx.destination);
     source.start(0);
     isAudioUnlocked = true;
-    console.log('Audio unlocked');
+    // Audio unlocked
   }
 };
 
@@ -108,7 +108,7 @@ export const initializePushNotifications = async () => {
     // Set up listeners
     setupPushNotificationListeners();
     
-    console.log('Push notifications initialized successfully');
+    // Push notifications initialized successfully
     return true;
   } catch (error) {
     console.error('Error initializing push notifications:', error);
@@ -118,8 +118,8 @@ export const initializePushNotifications = async () => {
 
 const setupPushNotificationListeners = () => {
   // Called when registration is successful
-  PushNotifications.addListener('registration', async (token) => {
-    console.log('Push registration success, token: ' + token.value);
+  PushNotifications.addListener('registration', async () => {
+    // Push registration success
     
     // Save the token to the user's profile or a separate table
     try {
@@ -147,7 +147,7 @@ const setupPushNotificationListeners = () => {
 
   // Called when a notification is received (app in foreground)
   PushNotifications.addListener('pushNotificationReceived', (notification) => {
-    console.log('Push notification received: ', notification);
+    // Push notification received
     
     // Play notification sound
     playNotificationSound();
@@ -161,7 +161,7 @@ const setupPushNotificationListeners = () => {
 
   // Called when user taps on a notification
   PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-    console.log('Push notification action performed', notification);
+    // Push notification action performed
     
     const data = notification.notification.data;
     

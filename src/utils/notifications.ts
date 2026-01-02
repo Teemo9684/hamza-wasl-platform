@@ -10,8 +10,8 @@ export const initializePushNotifications = async () => {
     await PushNotifications.register();
     
     // Listen for registration success
-    await PushNotifications.addListener('registration', (token) => {
-      console.log('Push registration success, token: ' + token.value);
+    await PushNotifications.addListener('registration', () => {
+      // تم تسجيل الإشعارات بنجاح
       // يمكنك حفظ هذا الـ token في قاعدة البيانات لإرسال إشعارات مخصصة
     });
 
@@ -25,7 +25,7 @@ export const initializePushNotifications = async () => {
     await PushNotifications.addListener(
       'pushNotificationReceived',
       (notification) => {
-        console.log('Push received: ' + JSON.stringify(notification));
+        // تم استلام إشعار جديد
         toast.info(notification.title || 'رسالة جديدة', {
           description: notification.body
         });
@@ -35,8 +35,8 @@ export const initializePushNotifications = async () => {
     // Listen for push notification actions
     await PushNotifications.addListener(
       'pushNotificationActionPerformed',
-      (notification) => {
-        console.log('Push action performed: ' + JSON.stringify(notification));
+      () => {
+        // تم تنفيذ إجراء الإشعار
       }
     );
 
@@ -49,6 +49,5 @@ export const initializePushNotifications = async () => {
 export const sendLocalNotification = async (title: string, body: string) => {
   // Local notifications are not supported in @capacitor/push-notifications
   // You would need @capacitor/local-notifications for this functionality
-  console.log('Local notification:', title, body);
   toast.info(title, { description: body });
 };
