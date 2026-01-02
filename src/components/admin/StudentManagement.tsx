@@ -140,6 +140,9 @@ export const StudentManagement = () => {
   };
 
   const handleAssignTeacher = async (gradeLevel: string, teacherId: string) => {
+    // إغلاق الحوار فوراً لتحسين تجربة المستخدم
+    setAssigningGrade(null);
+    
     try {
       // أولاً: حذف أي ربط سابق لهذا المستوى (لضمان أستاذ واحد فقط لكل مستوى)
       const { error: deleteError } = await supabase
@@ -153,16 +156,29 @@ export const StudentManagement = () => {
       }
 
       // ثانياً: إضافة الربط الجديد
-      const { error: insertError } = await supabase
+      const { data: insertData, error: insertError } = await supabase
         .from("teacher_grade_levels")
         .insert({
           teacher_id: teacherId,
           grade_level: gradeLevel,
-        });
+        })
+        .select(`
+          grade_level,
+          teacher:profiles(id, full_name)
+        `)
+        .single();
 
       if (insertError) {
         console.error("Error inserting new assignment:", insertError);
         throw insertError;
+      }
+
+      // تحديث الحالة محلياً فوراً
+      if (insertData) {
+        setGradeTeachers(prev => ({
+          ...prev,
+          [gradeLevel]: insertData.teacher
+        }));
       }
 
       toast({
@@ -170,10 +186,10 @@ export const StudentManagement = () => {
         description: "تم ربط الأستاذ بالمستوى بنجاح",
       });
 
-      await fetchGradeTeachers();
-      setAssigningGrade(null);
     } catch (error: any) {
       console.error("Error assigning teacher:", error);
+      // في حالة الخطأ، إعادة تحميل البيانات
+      await fetchGradeTeachers();
       toast({
         title: "خطأ",
         description: error.message || "فشل ربط الأستاذ بالمستوى",
