@@ -45,21 +45,48 @@ export const PostersCarousel = () => {
   useEffect(() => {
     fetchPosters();
 
-    // Realtime subscription
+    // Realtime subscription with improved handling
     const channel = supabase
-      .channel('posters-realtime')
+      .channel('posters-realtime-updates')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'school_posters',
         },
         () => {
+          console.log('Poster inserted, refreshing...');
           fetchPosters();
         }
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'school_posters',
+        },
+        () => {
+          console.log('Poster updated, refreshing...');
+          fetchPosters();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'school_posters',
+        },
+        () => {
+          console.log('Poster deleted, refreshing...');
+          fetchPosters();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Posters realtime subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
