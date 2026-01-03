@@ -58,8 +58,25 @@ const Index = () => {
       fetchNewsItems();
     });
 
+    // Subscribe to real-time updates for news ticker
+    const newsChannel = supabase
+      .channel('index-news-ticker-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'news_ticker',
+        },
+        () => {
+          fetchNewsItems();
+        }
+      )
+      .subscribe();
+
     return () => {
       subscription.unsubscribe();
+      supabase.removeChannel(newsChannel);
     };
   }, []);
 
