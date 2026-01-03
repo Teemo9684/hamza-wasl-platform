@@ -36,8 +36,11 @@ export const PostersCarousel = () => {
       .eq('is_active', true)
       .order('display_order', { ascending: true });
 
-    if (!error && data) {
-      setPosters(data);
+    if (error) {
+      console.error('Error fetching posters:', error);
+      setPosters([]);
+    } else {
+      setPosters(data || []);
     }
     setLoading(false);
   }, []);
@@ -45,47 +48,28 @@ export const PostersCarousel = () => {
   useEffect(() => {
     fetchPosters();
 
-    // Realtime subscription with improved handling
+    // Realtime subscription - listen for all changes and update immediately
     const channel = supabase
-      .channel('posters-realtime-updates')
+      .channel('posters-live-sync')
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'school_posters',
         },
-        () => {
-          console.log('Poster inserted, refreshing...');
-          fetchPosters();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'school_posters',
-        },
-        () => {
-          console.log('Poster updated, refreshing...');
-          fetchPosters();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'school_posters',
-        },
-        () => {
-          console.log('Poster deleted, refreshing...');
+        (payload) => {
+          console.log('Poster change detected:', payload.eventType);
+          // Immediately refetch to get latest active posters
           fetchPosters();
         }
       )
       .subscribe((status) => {
-        console.log('Posters realtime subscription status:', status);
+        console.log('Posters subscription:', status);
+        if (status === 'SUBSCRIBED') {
+          // Refetch when subscription is ready to ensure we have latest data
+          fetchPosters();
+        }
       });
 
     return () => {
