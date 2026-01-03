@@ -28,40 +28,78 @@ const DashboardParent = () => {
   const [loading, setLoading] = useState(true);
   const [parentName, setParentName] = useState<string>("");
   const [receivedMessages, setReceivedMessages] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchParentData();
-
-    // Subscribe to new messages in real-time
-    const setupRealtimeSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const channel = supabase
-        .channel('parent-messages')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-            filter: `recipient_id=eq.${user.id}`
-          },
-          () => {
-            // تم استلام رسالة جديدة
-            sonnerToast.success("رسالة جديدة من المعلم");
-            fetchParentData(); // Refresh messages
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    };
-
-    setupRealtimeSubscription();
   }, []);
+
+  // Real-time subscription for messages
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const channel = supabase
+      .channel(`parent-messages-${currentUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `recipient_id=eq.${currentUserId}`
+        },
+        async (payload) => {
+          // تم استلام رسالة جديدة - إضافتها مباشرة للقائمة
+          const newMessage = payload.new as any;
+          
+          // جلب بيانات المرسل والطالب
+          const { data: senderData } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', newMessage.sender_id)
+            .single();
+          
+          let studentData = null;
+          if (newMessage.student_id) {
+            const { data } = await supabase
+              .from('students')
+              .select('full_name')
+              .eq('id', newMessage.student_id)
+              .single();
+            studentData = data;
+          }
+
+          const enrichedMessage = {
+            ...newMessage,
+            sender: senderData,
+            student: studentData
+          };
+
+          setReceivedMessages(prev => [enrichedMessage, ...prev]);
+          sonnerToast.success("رسالة جديدة من المعلم");
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `recipient_id=eq.${currentUserId}`
+        },
+        (payload) => {
+          const updatedMessage = payload.new as any;
+          setReceivedMessages(prev => prev.map(msg => 
+            msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
+          ));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId]);
 
   useEffect(() => {
     if (selectedChild) {
@@ -76,6 +114,8 @@ const DashboardParent = () => {
         navigate("/login/parent");
         return;
       }
+
+      setCurrentUserId(user.id);
 
       const { data: profileData } = await supabase
         .from('profiles')
