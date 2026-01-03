@@ -26,11 +26,14 @@ export const NewsTicker = () => {
           schema: 'public',
           table: 'news_ticker',
         },
-        () => {
+        (payload) => {
+          console.log('NewsTicker: Realtime update received', payload);
           fetchNewsItems();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('NewsTicker: Subscription status', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
