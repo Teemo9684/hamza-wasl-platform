@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Carousel,
@@ -28,7 +28,9 @@ export const PostersCarousel = () => {
   const [posters, setPosters] = useState<Poster[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPoster, setSelectedPoster] = useState<Poster | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [carouselKey, setCarouselKey] = useState(0);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchPosters = useCallback(async () => {
     try {
@@ -43,10 +45,11 @@ export const PostersCarousel = () => {
         setPosters([]);
       } else {
         const newPosters = data || [];
-        console.log('Fetched posters count:', newPosters.length);
+        console.log('Posters fetched:', newPosters.length);
+        
+        // Force complete re-render by updating key
         setPosters(newPosters);
-        // Force carousel re-render when data changes
-        setRefreshKey(prev => prev + 1);
+        setCarouselKey(prev => prev + 1);
       }
     } catch (err) {
       console.error('Fetch error:', err);
@@ -55,12 +58,16 @@ export const PostersCarousel = () => {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchPosters();
+  const setupRealtimeSubscription = useCallback(() => {
+    // Clean up existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
 
-    // Realtime subscription - listen for all changes and update immediately
-    const channel = supabase
-      .channel(`posters-sync-${Date.now()}`)
+    const channelName = `posters-realtime-${Date.now()}`;
+    
+    channelRef.current = supabase
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -69,24 +76,54 @@ export const PostersCarousel = () => {
           table: 'school_posters',
         },
         (payload) => {
-          console.log('Poster change detected:', payload.eventType, payload);
-          // Small delay to ensure DB consistency then refetch
-          setTimeout(() => {
-            fetchPosters();
-          }, 100);
+          console.log('Realtime poster update:', payload.eventType);
+          // Fetch immediately on any change
+          fetchPosters();
         }
       )
       .subscribe((status) => {
-        console.log('Posters subscription:', status);
+        console.log('Realtime status:', status);
+        
         if (status === 'SUBSCRIBED') {
+          // Clear any retry timeout
+          if (retryTimeoutRef.current) {
+            clearTimeout(retryTimeoutRef.current);
+            retryTimeoutRef.current = null;
+          }
+          // Refresh data on successful subscription
           fetchPosters();
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.log('Subscription failed, retrying in 2s...');
+          // Retry subscription after error
+          retryTimeoutRef.current = setTimeout(() => {
+            setupRealtimeSubscription();
+          }, 2000);
         }
       });
+  }, [fetchPosters]);
+
+  useEffect(() => {
+    // Initial fetch
+    fetchPosters();
+    
+    // Setup realtime subscription
+    setupRealtimeSubscription();
+
+    // Backup polling every 10 seconds in case realtime fails
+    const pollInterval = setInterval(() => {
+      fetchPosters();
+    }, 10000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
     };
-  }, [fetchPosters]);
+  }, [fetchPosters, setupRealtimeSubscription]);
 
   if (loading) {
     return (
@@ -96,16 +133,17 @@ export const PostersCarousel = () => {
     );
   }
 
-  // Don't render if no active posters
-  if (!loading && posters.length === 0) {
+  // CRITICAL: Return null when no active posters
+  if (posters.length === 0) {
     return null;
   }
 
   return (
     <>
       <div className="w-full px-4 py-6">
+        {/* Key forces complete re-mount of carousel when data changes */}
         <Carousel
-          key={`posters-carousel-${refreshKey}-${posters.length}`}
+          key={carouselKey}
           opts={{
             align: 'center',
             loop: true,
