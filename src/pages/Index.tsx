@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { PostersCarousel } from "@/components/PostersCarousel";
 
 interface NewsItem {
   id: string;
@@ -428,6 +429,9 @@ const Index = () => {
             </p>
           </div>
         </div>
+
+        {/* Posters Carousel */}
+        <PostersCarousel />
 
         {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
