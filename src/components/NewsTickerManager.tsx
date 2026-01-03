@@ -54,6 +54,26 @@ export const NewsTickerManager = () => {
 
   useEffect(() => {
     fetchNewsItems();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('news-ticker-manager-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'news_ticker',
+        },
+        () => {
+          fetchNewsItems();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchNewsItems = async () => {
