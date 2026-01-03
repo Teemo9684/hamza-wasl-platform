@@ -16,11 +16,11 @@ if ('serviceWorker' in navigator) {
       console.log('التطبيق جاهز للعمل بدون إنترنت');
     },
     onRegisteredSW(swUrl, r) {
-      // Check for updates every 30 seconds
+      // Check for updates every 5 seconds for faster updates
       if (r) {
         setInterval(() => {
           r.update();
-        }, 30 * 1000);
+        }, 5 * 1000);
       }
     }
   });
