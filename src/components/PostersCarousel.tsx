@@ -28,19 +28,29 @@ export const PostersCarousel = () => {
   const [posters, setPosters] = useState<Poster[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPoster, setSelectedPoster] = useState<Poster | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchPosters = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('school_posters')
-      .select('id, title, image_url, display_order')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('school_posters')
+        .select('id, title, image_url, display_order')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching posters:', error);
+      if (error) {
+        console.error('Error fetching posters:', error);
+        setPosters([]);
+      } else {
+        const newPosters = data || [];
+        console.log('Fetched posters count:', newPosters.length);
+        setPosters(newPosters);
+        // Force carousel re-render when data changes
+        setRefreshKey(prev => prev + 1);
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
       setPosters([]);
-    } else {
-      setPosters(data || []);
     }
     setLoading(false);
   }, []);
@@ -50,7 +60,7 @@ export const PostersCarousel = () => {
 
     // Realtime subscription - listen for all changes and update immediately
     const channel = supabase
-      .channel('posters-live-sync')
+      .channel(`posters-sync-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -59,15 +69,16 @@ export const PostersCarousel = () => {
           table: 'school_posters',
         },
         (payload) => {
-          console.log('Poster change detected:', payload.eventType);
-          // Immediately refetch to get latest active posters
-          fetchPosters();
+          console.log('Poster change detected:', payload.eventType, payload);
+          // Small delay to ensure DB consistency then refetch
+          setTimeout(() => {
+            fetchPosters();
+          }, 100);
         }
       )
       .subscribe((status) => {
         console.log('Posters subscription:', status);
         if (status === 'SUBSCRIBED') {
-          // Refetch when subscription is ready to ensure we have latest data
           fetchPosters();
         }
       });
@@ -94,7 +105,7 @@ export const PostersCarousel = () => {
     <>
       <div className="w-full px-4 py-6">
         <Carousel
-          key={`posters-${posters.length}-${posters.map(p => p.id).join('-')}`}
+          key={`posters-carousel-${refreshKey}-${posters.length}`}
           opts={{
             align: 'center',
             loop: true,
