@@ -55,7 +55,7 @@ export const ParentAttendance = ({ attendance, selectedChild }: ParentAttendance
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold">
-                        {new Date(record.date).toLocaleDateString('ar-DZ', {
+                        {new Date(record.date).toLocaleDateString('ar-u-nu-latn', {
                           weekday: 'long',
                           year: 'numeric',
                           month: 'long',

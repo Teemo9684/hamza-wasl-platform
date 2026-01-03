@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtime } from "@/hooks/useRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +71,23 @@ export const StudentManagement = () => {
   const [isExtracting, setIsExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const handleStudentsChange = useCallback(() => {
+    fetchStudents();
+    fetchGradeTeachers();
+  }, []);
+
+  // Real-time subscription for students
+  useRealtime({
+    table: 'students',
+    onChange: handleStudentsChange,
+  });
+
+  // Real-time subscription for teacher assignments
+  useRealtime({
+    table: 'teacher_grade_levels',
+    onChange: handleStudentsChange,
+  });
 
   useEffect(() => {
     fetchStudents();

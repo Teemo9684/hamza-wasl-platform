@@ -74,7 +74,7 @@ export const ParentOverview = ({
                 <div>
                   <p className="text-sm text-muted-foreground">تاريخ الميلاد</p>
                   <p className="font-medium">
-                    {new Date(selectedChildData.date_of_birth).toLocaleDateString('ar-DZ')}
+                    {new Date(selectedChildData.date_of_birth).toLocaleDateString('ar-u-nu-latn')}
                   </p>
                 </div>
               )}

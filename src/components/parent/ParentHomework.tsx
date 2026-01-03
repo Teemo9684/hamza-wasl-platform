@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtime } from "@/hooks/useRealtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Calendar, FileText, Loader2 } from "lucide-react";
@@ -29,6 +30,16 @@ export const ParentHomework = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  const handleHomeworkChange = useCallback(() => {
+    fetchStudentsAndHomework();
+  }, []);
+
+  // Real-time subscription for homework
+  useRealtime({
+    table: 'homework',
+    onChange: handleHomeworkChange,
+  });
 
   useEffect(() => {
     fetchStudentsAndHomework();
@@ -197,7 +208,7 @@ export const ParentHomework = () => {
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4 text-primary" />
                             <span className="font-cairo">
-                              التسليم: {new Date(hw.due_date).toLocaleDateString('ar-DZ')}
+                              التسليم: {new Date(hw.due_date).toLocaleDateString('ar-u-nu-latn')}
                             </span>
                             {!overdue && (
                               <span className="text-muted-foreground font-cairo">

@@ -226,7 +226,7 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
                           {request.student?.full_name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {format(new Date(request.created_at), "PPP", { locale: ar })}
+                          {new Date(request.created_at).toLocaleDateString("ar-u-nu-latn", { year: "numeric", month: "long", day: "numeric" })}
                         </p>
                         {request.admin_notes && (
                           <p className="text-sm text-primary mt-1">

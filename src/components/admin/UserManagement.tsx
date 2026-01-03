@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtime } from "@/hooks/useRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +53,25 @@ export const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [loadingApproval, setLoadingApproval] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const handleUsersChange = useCallback(() => {
+    if (activeTab !== "pending") {
+      fetchUsers();
+    }
+    queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
+  }, [activeTab, queryClient]);
+
+  // Real-time subscription for profiles
+  useRealtime({
+    table: 'profiles',
+    onChange: handleUsersChange,
+  });
+
+  // Real-time subscription for user roles
+  useRealtime({
+    table: 'user_roles',
+    onChange: handleUsersChange,
+  });
 
   useEffect(() => {
     if (activeTab !== "pending") {
@@ -311,7 +331,7 @@ export const UserManagement = () => {
                             )}
                             <p className="flex items-center justify-end gap-2 font-cairo">
                               <span>
-                                {format(new Date(approval.created_at), "PPP", { locale: ar })}
+                                {new Date(approval.created_at).toLocaleDateString("ar-u-nu-latn", { year: "numeric", month: "long", day: "numeric" })}
                               </span>
                               <span>:تاريخ التسجيل</span>
                             </p>
@@ -393,7 +413,7 @@ export const UserManagement = () => {
                           {user.phone || "غير متوفر"}
                         </TableCell>
                         <TableCell className="font-tajawal">
-                          {new Date(user.created_at).toLocaleDateString("ar-EG")}
+                          {new Date(user.created_at).toLocaleDateString("ar-u-nu-latn")}
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="font-cairo">

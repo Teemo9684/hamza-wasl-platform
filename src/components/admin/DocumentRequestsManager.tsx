@@ -201,7 +201,7 @@ export const DocumentRequestsManager = () => {
                             </p>
                             <p className="flex items-center gap-2">
                               <Calendar className="h-4 w-4" />
-                              تاريخ الطلب: {format(new Date(request.created_at), "PPP p", { locale: ar })}
+                              تاريخ الطلب: {new Date(request.created_at).toLocaleDateString("ar-u-nu-latn", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                             </p>
                           </div>
 

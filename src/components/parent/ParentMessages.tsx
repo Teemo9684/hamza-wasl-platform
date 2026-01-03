@@ -229,7 +229,7 @@ export const ParentMessages = ({
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(message.created_at).toLocaleDateString('ar-DZ')}
+                      {new Date(message.created_at).toLocaleDateString('ar-u-nu-latn')}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -264,7 +264,7 @@ export const ParentMessages = ({
                   من: {selectedMessage.sender?.full_name}
                 </span>
                 <span className="text-muted-foreground">
-                  {new Date(selectedMessage.created_at).toLocaleDateString('ar-DZ', {
+                  {new Date(selectedMessage.created_at).toLocaleDateString('ar-u-nu-latn', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',

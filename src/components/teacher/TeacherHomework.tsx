@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtime } from "@/hooks/useRealtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,16 @@ export const TeacherHomework = () => {
   const [files, setFiles] = useState<File[]>([]);
 
   const { toast } = useToast();
+
+  const handleHomeworkChange = useCallback(() => {
+    fetchHomework();
+  }, []);
+
+  // Real-time subscription for homework
+  useRealtime({
+    table: 'homework',
+    onChange: handleHomeworkChange,
+  });
 
   useEffect(() => {
     fetchTeacherGrades();
@@ -396,7 +407,7 @@ export const TeacherHomework = () => {
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4 text-primary" />
                             <span className="font-cairo">
-                              التسليم: {new Date(hw.due_date).toLocaleDateString('ar-DZ')}
+                              التسليم: {new Date(hw.due_date).toLocaleDateString('ar-u-nu-latn')}
                             </span>
                           </div>
                           <span className="font-cairo text-primary">القسم: {hw.grade_level}</span>

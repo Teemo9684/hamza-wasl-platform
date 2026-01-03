@@ -89,7 +89,7 @@ export const TeacherMessages = ({
                       <Badge variant="default">جديد</Badge>
                     )}
                     <Badge variant="outline">
-                      {new Date(message.created_at).toLocaleDateString('ar-DZ')}
+                      {new Date(message.created_at).toLocaleDateString('ar-u-nu-latn')}
                     </Badge>
                   </div>
                 </div>

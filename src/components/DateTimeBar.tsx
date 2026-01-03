@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { formatDate } from "@/utils/formatters";
 
 export const DateTimeBar = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -13,8 +12,8 @@ export const DateTimeBar = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const gregorianDate = format(currentTime, "EEEE، d MMMM yyyy", { locale: ar });
-  const time = format(currentTime, "HH:mm:ss");
+  const gregorianDate = formatDate(currentTime, "EEEE، d MMMM yyyy");
+  const time = formatDate(currentTime, "HH:mm:ss", false);
   
   // Convert to Hijri using a simple approximation
   const getHijriDate = (date: Date) => {
@@ -33,7 +32,7 @@ export const DateTimeBar = () => {
       "رمضان", "شوال", "ذو القعدة", "ذو الحجة"
     ];
     
-    return `${hijriDay} ${months[hijriMonth - 1]} ${hijriYear}`;
+    return `${hijriDay} ${months[(hijriMonth - 1) % 12]} ${hijriYear}`;
   };
 
   const hijriDate = getHijriDate(currentTime);

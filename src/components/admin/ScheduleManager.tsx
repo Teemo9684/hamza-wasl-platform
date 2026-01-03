@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRealtime } from "@/hooks/useRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,16 @@ export const ScheduleManager = () => {
   const [loading, setLoading] = useState(true);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [uploading, setUploading] = useState(false);
+
+  const handleScheduleChange = useCallback(() => {
+    fetchSchedules();
+  }, []);
+
+  // Real-time subscription for schedules
+  useRealtime({
+    table: 'class_schedules',
+    onChange: handleScheduleChange,
+  });
 
   useEffect(() => {
     fetchSchedules();
@@ -297,7 +308,7 @@ export const ScheduleManager = () => {
                 className="w-full h-auto rounded-lg border"
               />
               <p className="text-xs text-muted-foreground mt-2 font-cairo">
-                آخر تحديث: {new Date(schedule.updated_at).toLocaleDateString('ar-DZ')}
+                آخر تحديث: {new Date(schedule.updated_at).toLocaleDateString('ar-u-nu-latn')}
               </p>
             </CardContent>
           </Card>

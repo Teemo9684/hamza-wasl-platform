@@ -361,7 +361,7 @@ const Index = () => {
         <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
           {/* Date */}
           <div className="font-medium">
-            {format(currentTime, "EEEE، d MMMM yyyy", { locale: ar })}
+            {new Date(currentTime).toLocaleDateString("ar-u-nu-latn", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
           </div>
           
           {/* Separator */}

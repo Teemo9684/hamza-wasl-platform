@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtime } from "@/hooks/useRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +44,22 @@ export const AnnouncementsManager = () => {
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  const handleAnnouncementsChange = useCallback(() => {
+    fetchAnnouncements();
+  }, []);
+
+  // Real-time subscription for messages/announcements
+  useRealtime({
+    table: 'messages',
+    onChange: handleAnnouncementsChange,
+  });
+
+  // Real-time subscription for news ticker
+  useRealtime({
+    table: 'news_ticker',
+    onChange: handleAnnouncementsChange,
+  });
 
   useEffect(() => {
     fetchAnnouncements();
@@ -293,7 +310,7 @@ export const AnnouncementsManager = () => {
                         إعلان
                       </Badge>
                       <span className="text-sm text-muted-foreground font-cairo">
-                        {new Date(announcement.created_at).toLocaleDateString("ar-EG")}
+                        {new Date(announcement.created_at).toLocaleDateString("ar-u-nu-latn")}
                       </span>
                     </div>
                   </div>
