@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { initializePushNotifications, isPushNotificationsAvailable, unlockAudio } from "@/utils/pushNotifications";
 import { setupRealtimeNotifications, requestBrowserNotificationPermission } from "@/utils/realtimeNotifications";
+import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "@/components/SplashScreen";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
@@ -50,6 +51,9 @@ const App = () => {
 
     // Request browser notification permission for PWA
     requestBrowserNotificationPermission();
+
+    // Start school schedule notification system
+    const cleanupScheduleNotifications = startSchoolScheduleNotifications();
 
     // Set up real-time notifications for authenticated users
     let cleanupRealtime: (() => void) | undefined;
@@ -100,6 +104,7 @@ const App = () => {
       document.removeEventListener('keydown', handleUserInteraction);
       subscription.unsubscribe();
       cleanupRealtime?.();
+      cleanupScheduleNotifications();
     };
   }, []);
 
