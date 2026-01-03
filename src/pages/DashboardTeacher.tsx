@@ -17,14 +17,20 @@ import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 
+interface StudentsByGrade {
+  [gradeLevel: string]: any[];
+}
+
 const DashboardTeacher = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [students, setStudents] = useState<any[]>([]);
+  const [studentsByGrade, setStudentsByGrade] = useState<StudentsByGrade>({});
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isLanguageTeacher, setIsLanguageTeacher] = useState(false);
 
   useEffect(() => {
     fetchTeacherData();
@@ -113,24 +119,70 @@ const DashboardTeacher = () => {
         .eq('id', user.id)
         .single();
 
+      // جلب المادة من جدول teacher_grade_levels
+      const { data: teacherGradeLevels } = await supabase
+        .from('teacher_grade_levels')
+        .select('grade_level, subject')
+        .eq('teacher_id', user.id);
+
+      const teacherSubject = teacherGradeLevels?.[0]?.subject || user.user_metadata?.subject || "المادة غير محددة";
+      
       setTeacherInfo({
         name: profileData?.full_name || "المعلم",
-        subject: user.user_metadata?.subject || "المادة غير محددة"
+        subject: teacherSubject
       });
 
-      const { data: studentsData, error: studentsError } = await supabase
-        .from('students')
-        .select('*')
-        .in('grade_level', 
-          (await supabase
-            .from('teacher_grade_levels')
-            .select('grade_level')
-            .eq('teacher_id', user.id)
-          ).data?.map(r => r.grade_level) || []
-        );
+      // التحقق إذا كان أستاذ لغة (فرنسية أو إنجليزية)
+      const languageSubjects = ['الفرنسية', 'الإنجليزية', 'اللغة الفرنسية', 'اللغة الإنجليزية', 'francais', 'français', 'french', 'english', 'anglais'];
+      const isLanguage = languageSubjects.some(lang => 
+        teacherSubject.toLowerCase().includes(lang.toLowerCase())
+      );
+      setIsLanguageTeacher(isLanguage);
 
-      if (studentsError) throw studentsError;
-      setStudents(studentsData || []);
+      let studentsData: any[] = [];
+      
+      if (isLanguage) {
+        // أستاذ اللغة: جلب تلاميذ السنوات 3، 4، 5
+        const targetGrades = ['الثالثة', 'الرابعة', 'الخامسة', '3', '4', '5', 'السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة'];
+        
+        const { data, error } = await supabase
+          .from('students')
+          .select('*')
+          .or(targetGrades.map(g => `grade_level.ilike.%${g}%`).join(','))
+          .order('grade_level', { ascending: true })
+          .order('full_name', { ascending: true });
+
+        if (error) throw error;
+        studentsData = data || [];
+
+        // تجميع التلاميذ حسب المستوى الدراسي
+        const grouped: StudentsByGrade = {};
+        studentsData.forEach(student => {
+          const grade = student.grade_level;
+          if (!grouped[grade]) {
+            grouped[grade] = [];
+          }
+          grouped[grade].push(student);
+        });
+        setStudentsByGrade(grouped);
+      } else {
+        // أستاذ عادي: جلب التلاميذ حسب المستويات المسندة
+        const assignedGrades = teacherGradeLevels?.map(r => r.grade_level) || [];
+        
+        if (assignedGrades.length > 0) {
+          const { data, error } = await supabase
+            .from('students')
+            .select('*')
+            .in('grade_level', assignedGrades)
+            .order('grade_level', { ascending: true })
+            .order('full_name', { ascending: true });
+
+          if (error) throw error;
+          studentsData = data || [];
+        }
+      }
+
+      setStudents(studentsData);
 
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
@@ -393,6 +445,8 @@ const DashboardTeacher = () => {
                   studentsCount={students.length}
                   unreadMessagesCount={unreadCount}
                   students={students}
+                  studentsByGrade={studentsByGrade}
+                  isLanguageTeacher={isLanguageTeacher}
                   onSendMessage={handleSendMessageToParent}
                 />
               </section>
