@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home, Send, Calendar, FileText } from "lucide-react";
+import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home, Send, Calendar, FileText, Image } from "lucide-react";
 import { NewsTickerManager } from "@/components/NewsTickerManager";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { StudentManagement } from "@/components/admin/StudentManagement";
@@ -13,6 +13,7 @@ import { MessagesView } from "@/components/admin/MessagesView";
 import { GroupMessaging } from "@/components/admin/GroupMessaging";
 import { ScheduleManager } from "@/components/admin/ScheduleManager";
 import { DocumentRequestsManager } from "@/components/admin/DocumentRequestsManager";
+import { PostersManager } from "@/components/admin/PostersManager";
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
@@ -211,6 +212,7 @@ const DashboardAdmin = () => {
                   {activeSection === "groupMessages" && <GroupMessaging />}
                   {activeSection === "schedule" && <ScheduleManager />}
                   {activeSection === "documentRequests" && <DocumentRequestsManager />}
+                  {activeSection === "posters" && <PostersManager />}
                 </div>
               </AnimatedSection>
             </AnimatePresence>
@@ -447,6 +449,23 @@ const DashboardAdmin = () => {
                     إدارة طلبات الوثائق الإدارية من أولياء الأمور
                   </p>
                   <Button className="w-full bg-gradient-primary text-white font-cairo">
+                    إدارة
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("posters")}>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mb-4">
+                    <Image className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 font-cairo">الملصقات</h3>
+                  <p className="text-sm text-muted-foreground font-cairo mb-4">
+                    إدارة ملصقات وإعلانات المدرسة المصورة
+                  </p>
+                  <Button className="w-full bg-gradient-secondary text-white font-cairo">
                     إدارة
                   </Button>
                 </div>
