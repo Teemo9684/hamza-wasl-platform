@@ -24,25 +24,70 @@ const DashboardTeacher = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTeacherData();
+  }, []);
 
-    // Subscribe to new messages in real-time
+  // Real-time subscription for messages
+  useEffect(() => {
+    if (!currentUserId) return;
+
     const channel = supabase
-      .channel('teacher-messages')
+      .channel(`teacher-messages-${currentUserId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `recipient_id=eq.${supabase.auth.getUser().then(({ data }) => data.user?.id)}`
+          filter: `recipient_id=eq.${currentUserId}`
         },
-        () => {
-          // تم استلام رسالة جديدة
+        async (payload) => {
+          // تم استلام رسالة جديدة - إضافتها مباشرة للقائمة
+          const newMessage = payload.new as any;
+          
+          // جلب بيانات المرسل والطالب
+          const { data: senderData } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', newMessage.sender_id)
+            .single();
+          
+          let studentData = null;
+          if (newMessage.student_id) {
+            const { data } = await supabase
+              .from('students')
+              .select('full_name')
+              .eq('id', newMessage.student_id)
+              .single();
+            studentData = data;
+          }
+
+          const enrichedMessage = {
+            ...newMessage,
+            sender: senderData,
+            student: studentData
+          };
+
+          setMessages(prev => [enrichedMessage, ...prev]);
           sonnerToast.success("رسالة جديدة من ولي أمر");
-          fetchTeacherData(); // Refresh messages
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `recipient_id=eq.${currentUserId}`
+        },
+        (payload) => {
+          const updatedMessage = payload.new as any;
+          setMessages(prev => prev.map(msg => 
+            msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
+          ));
         }
       )
       .subscribe();
@@ -50,7 +95,7 @@ const DashboardTeacher = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [currentUserId]);
 
   const fetchTeacherData = async () => {
     try {
@@ -59,6 +104,8 @@ const DashboardTeacher = () => {
         navigate("/login/teacher");
         return;
       }
+
+      setCurrentUserId(user.id);
 
       const { data: profileData } = await supabase
         .from('profiles')
