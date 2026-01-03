@@ -74,7 +74,8 @@ export const PostersCarousel = () => {
     );
   }
 
-  if (posters.length === 0) {
+  // Don't render if no active posters
+  if (!loading && posters.length === 0) {
     return null;
   }
 
@@ -82,6 +83,7 @@ export const PostersCarousel = () => {
     <>
       <div className="w-full px-4 py-6">
         <Carousel
+          key={`posters-${posters.length}-${posters.map(p => p.id).join('-')}`}
           opts={{
             align: 'center',
             loop: true,
