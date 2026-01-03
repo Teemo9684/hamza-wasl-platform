@@ -68,11 +68,14 @@ const Index = () => {
           schema: 'public',
           table: 'news_ticker',
         },
-        () => {
+        (payload) => {
+          console.log('Index: News ticker realtime update received', payload);
           fetchNewsItems();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Index: News ticker subscription status', status);
+      });
 
     return () => {
       subscription.unsubscribe();
