@@ -156,7 +156,7 @@ export const StudentSearch = ({ students, onSendMessage }: StudentSearchProps) =
                     <span className="text-sm font-medium">تاريخ الميلاد</span>
                   </div>
                   <div className="text-lg font-bold">
-                    {new Date(selectedStudent.date_of_birth).toLocaleDateString('ar-DZ')}
+                    {new Date(selectedStudent.date_of_birth).toLocaleDateString('ar-u-nu-latn')}
                   </div>
                 </div>
               )}

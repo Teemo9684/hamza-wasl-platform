@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtime } from "@/hooks/useRealtime";
 import { MessageSquare, User, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,6 +27,16 @@ interface TeacherMessages {
 export const MessagesView = () => {
   const [messagesByTeacher, setMessagesByTeacher] = useState<TeacherMessages[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleMessagesChange = useCallback(() => {
+    fetchAllMessages();
+  }, []);
+
+  // Real-time subscription for messages
+  useRealtime({
+    table: 'messages',
+    onChange: handleMessagesChange,
+  });
 
   useEffect(() => {
     fetchAllMessages();
@@ -119,8 +130,8 @@ export const MessagesView = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("ar-SA", {
+  const formatDateDisplay = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("ar-u-nu-latn", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -203,7 +214,7 @@ export const MessagesView = () => {
                             <p className="text-sm mb-3 font-cairo">{message.content}</p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground font-cairo">
                               <Clock className="w-3 h-3" />
-                              {formatDate(message.created_at)}
+                              {formatDateDisplay(message.created_at)}
                             </div>
                           </CardContent>
                         </Card>

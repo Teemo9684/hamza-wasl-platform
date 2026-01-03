@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useRealtime } from "@/hooks/useRealtime";
 import { Calendar, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +14,18 @@ interface ParentScheduleProps {
 export const ParentSchedule = ({ selectedChild, children }: ParentScheduleProps) => {
   const [schedule, setSchedule] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleScheduleChange = useCallback(() => {
+    if (selectedChild) {
+      fetchSchedule();
+    }
+  }, [selectedChild]);
+
+  // Real-time subscription for schedules
+  useRealtime({
+    table: 'class_schedules',
+    onChange: handleScheduleChange,
+  });
 
   useEffect(() => {
     if (selectedChild) {
@@ -102,7 +115,7 @@ export const ParentSchedule = ({ selectedChild, children }: ParentScheduleProps)
             className="w-full h-auto rounded-lg border shadow-lg"
           />
           <p className="text-sm text-muted-foreground text-center font-cairo">
-            آخر تحديث: {new Date(schedule.updated_at).toLocaleDateString('ar-DZ', {
+            آخر تحديث: {new Date(schedule.updated_at).toLocaleDateString('ar-u-nu-latn', {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
