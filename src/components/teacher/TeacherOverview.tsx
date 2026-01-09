@@ -1,8 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, MessageSquare, GraduationCap, BookOpen } from "lucide-react";
+import { Users, MessageSquare, GraduationCap, BookOpen, ChevronDown } from "lucide-react";
 import { StudentSearch } from "./StudentSearch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useState } from "react";
 
 interface StudentsByGrade {
   [gradeLevel: string]: any[];
@@ -27,6 +32,8 @@ export const TeacherOverview = ({
   isLanguageTeacher = false,
   onSendMessage,
 }: TeacherOverviewProps) => {
+  const [openGrades, setOpenGrades] = useState<string[]>([]);
+
   const gradeLabels: { [key: string]: string } = {
     'الثالثة': 'السنة الثالثة',
     'الرابعة': 'السنة الرابعة',
@@ -43,12 +50,27 @@ export const TeacherOverview = ({
     return grade;
   };
 
+  const getShortGradeLabel = (grade: string) => {
+    if (grade.includes('الثالثة') || grade.includes('3')) return 'الثالثة';
+    if (grade.includes('الرابعة') || grade.includes('4')) return 'الرابعة';
+    if (grade.includes('الخامسة') || grade.includes('5')) return 'الخامسة';
+    return grade;
+  };
+
   const sortedGrades = Object.keys(studentsByGrade).sort((a, b) => {
     const order = ['الثالثة', 'الرابعة', 'الخامسة', '3', '4', '5'];
     const aIndex = order.findIndex(o => a.includes(o));
     const bIndex = order.findIndex(o => b.includes(o));
     return aIndex - bIndex;
   });
+
+  const toggleGrade = (grade: string) => {
+    setOpenGrades(prev => 
+      prev.includes(grade) 
+        ? prev.filter(g => g !== grade)
+        : [...prev, grade]
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -98,47 +120,51 @@ export const TeacherOverview = ({
               قوائم التلاميذ حسب المستوى
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue={sortedGrades[0]} dir="rtl">
-              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${sortedGrades.length}, 1fr)` }}>
-                {sortedGrades.map((grade) => (
-                  <TabsTrigger key={grade} value={grade} className="flex items-center gap-2">
-                    {getGradeLabel(grade)}
-                    <Badge variant="secondary" className="mr-1">
-                      {studentsByGrade[grade]?.length || 0}
-                    </Badge>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              
-              {sortedGrades.map((grade) => (
-                <TabsContent key={grade} value={grade} className="mt-4">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-lg mb-3">
-                      {getGradeLabel(grade)} - {studentsByGrade[grade]?.length || 0} تلميذ
-                    </h4>
-                    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                      {studentsByGrade[grade]?.map((student, index) => (
-                        <Card key={student.id} className="p-3 hover:shadow-md transition-shadow">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{student.full_name}</p>
-                              <p className="text-xs text-muted-foreground truncate">
-                                {student.national_school_id}
-                                {student.class_section && ` • ${student.class_section}`}
-                              </p>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
+          <CardContent className="space-y-3">
+            {sortedGrades.map((grade) => (
+              <Collapsible
+                key={grade}
+                open={openGrades.includes(grade)}
+                onOpenChange={() => toggleGrade(grade)}
+              >
+                <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                  <div className="flex items-center gap-3">
+                    <ChevronDown 
+                      className={`h-5 w-5 text-primary transition-transform duration-200 ${
+                        openGrades.includes(grade) ? 'rotate-180' : ''
+                      }`} 
+                    />
+                    <span className="font-semibold text-base">
+                      {getShortGradeLabel(grade)}
+                    </span>
                   </div>
-                </TabsContent>
-              ))}
-            </Tabs>
+                  <Badge variant="secondary" className="text-sm px-3">
+                    {studentsByGrade[grade]?.length || 0} تلميذ
+                  </Badge>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="pt-3">
+                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                    {studentsByGrade[grade]?.map((student, index) => (
+                      <Card key={student.id} className="p-3 hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{student.full_name}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {student.national_school_id}
+                              {student.class_section && ` • ${student.class_section}`}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
           </CardContent>
         </Card>
       )}
