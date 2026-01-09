@@ -133,17 +133,23 @@ const DashboardTeacher = () => {
       });
 
       // التحقق إذا كان أستاذ لغة (فرنسية أو إنجليزية)
-      const languageSubjects = ['الفرنسية', 'الإنجليزية', 'اللغة الفرنسية', 'اللغة الإنجليزية', 'francais', 'français', 'french', 'english', 'anglais'];
+      const languageSubjects = ['فرنسية', 'إنجليزية', 'انجليزية', 'الفرنسية', 'الإنجليزية', 'اللغة الفرنسية', 'اللغة الإنجليزية', 'francais', 'français', 'french', 'english', 'anglais'];
       const isLanguage = languageSubjects.some(lang => 
         teacherSubject.toLowerCase().includes(lang.toLowerCase())
       );
       setIsLanguageTeacher(isLanguage);
 
+      console.log('Teacher subject:', teacherSubject, 'Is language teacher:', isLanguage);
+
       let studentsData: any[] = [];
       
       if (isLanguage) {
-        // أستاذ اللغة: جلب تلاميذ السنوات 3، 4، 5
-        const targetGrades = ['الثالثة', 'الرابعة', 'الخامسة', '3', '4', '5', 'السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة'];
+        // أستاذ اللغة: جلب تلاميذ السنوات 3، 4، 5 - استخدام المستويات المسندة مباشرة
+        const assignedGrades = teacherGradeLevels?.map(r => r.grade_level) || [];
+        console.log('Language teacher assigned grades:', assignedGrades);
+        
+        // جلب الطلاب من المستويات المسندة للأستاذ
+        const targetGrades = assignedGrades.length > 0 ? assignedGrades : ['السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة'];
         
         const { data, error } = await supabase
           .from('students')
@@ -154,6 +160,30 @@ const DashboardTeacher = () => {
 
         if (error) throw error;
         studentsData = data || [];
+        
+        console.log('Language teacher students found:', studentsData.length);
+
+        // إضافة الطلاب تلقائياً لجدول teacher_students إذا لم يكونوا موجودين
+        if (studentsData.length > 0) {
+          const teacherSubjectValue = teacherGradeLevels?.[0]?.subject || 'فرنسية';
+          const studentLinks = studentsData.map(student => ({
+            teacher_id: user.id,
+            student_id: student.id,
+            subject: teacherSubjectValue
+          }));
+          
+          // استخدام upsert لتجنب التكرار
+          const { error: linkError } = await supabase
+            .from('teacher_students')
+            .upsert(studentLinks, { 
+              onConflict: 'teacher_id,student_id',
+              ignoreDuplicates: true 
+            });
+          
+          if (linkError) {
+            console.log('Error linking students (may already exist):', linkError.message);
+          }
+        }
 
         // تجميع التلاميذ حسب المستوى الدراسي
         const grouped: StudentsByGrade = {};
