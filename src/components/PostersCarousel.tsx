@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import Autoplay from 'embla-carousel-autoplay';
+import Fade from 'embla-carousel-fade';
 import { X } from 'lucide-react';
 
 interface Poster {
@@ -148,31 +149,38 @@ export const PostersCarousel = () => {
             align: 'center',
             loop: true,
             direction: 'rtl',
+            dragFree: false,
+            containScroll: false,
           }}
           plugins={[
+            Fade(),
             Autoplay({
-              delay: 4000,
+              delay: 5000,
               stopOnInteraction: false,
               stopOnMouseEnter: true,
             }),
           ]}
           className="w-full"
         >
-          <CarouselContent className="-ml-2 md:-ml-4">
+          <CarouselContent className="ml-0">
             {posters.map((poster) => (
-              <CarouselItem key={poster.id} className="pl-2 md:pl-4 basis-full md:basis-4/5 lg:basis-3/4">
+              <CarouselItem 
+                key={poster.id} 
+                className="pl-0 basis-full transition-opacity duration-700"
+              >
                 <Card 
-                  className="overflow-hidden border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02]"
+                  className="overflow-hidden border-0 shadow-xl cursor-pointer transition-all duration-500 hover:shadow-2xl hover:scale-[1.01]"
                   onClick={() => setSelectedPoster(poster)}
                 >
                   <div className="relative aspect-[16/9] md:aspect-[21/9]">
                     <img
                       src={poster.image_url}
                       alt={poster.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-700"
                     />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                      <h3 className="text-white text-lg md:text-xl font-bold text-right">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-4 md:p-6">
+                      <h3 className="text-white text-lg md:text-2xl font-bold text-right drop-shadow-lg">
                         {poster.title}
                       </h3>
                     </div>
@@ -183,8 +191,16 @@ export const PostersCarousel = () => {
           </CarouselContent>
           {posters.length > 1 && (
             <>
-              <CarouselPrevious className="left-2 md:left-4" />
-              <CarouselNext className="right-2 md:right-4" />
+              <CarouselPrevious className="left-4 md:left-6 bg-white/90 hover:bg-white shadow-lg border-0 h-10 w-10 md:h-12 md:w-12" />
+              <CarouselNext className="right-4 md:right-6 bg-white/90 hover:bg-white shadow-lg border-0 h-10 w-10 md:h-12 md:w-12" />
+              <div className="flex justify-center gap-2 mt-4">
+                {posters.map((_, index) => (
+                  <div
+                    key={index}
+                    className="h-1.5 w-8 rounded-full bg-muted-foreground/30 transition-all duration-300"
+                  />
+                ))}
+              </div>
             </>
           )}
         </Carousel>
