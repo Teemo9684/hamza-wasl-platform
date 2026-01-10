@@ -146,11 +146,10 @@ export const PostersCarousel = () => {
         <Carousel
           key={carouselKey}
           opts={{
-            align: 'center',
+            align: 'start',
             loop: true,
-            direction: 'rtl',
-            dragFree: false,
-            containScroll: false,
+            skipSnaps: false,
+            slidesToScroll: 1,
           }}
           plugins={[
             Autoplay({
