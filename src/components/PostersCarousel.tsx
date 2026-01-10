@@ -153,11 +153,11 @@ export const PostersCarousel = () => {
             containScroll: false,
           }}
           plugins={[
-            Fade(),
             Autoplay({
-              delay: 5000,
+              delay: 4000,
               stopOnInteraction: false,
-              stopOnMouseEnter: true,
+              stopOnMouseEnter: false,
+              playOnInit: true,
             }),
           ]}
           className="w-full"
