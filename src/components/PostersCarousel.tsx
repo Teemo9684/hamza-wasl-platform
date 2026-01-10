@@ -175,25 +175,25 @@ export const PostersCarousel = () => {
             {currentPoster && (
               <div
                 className={cn(
-                  "absolute inset-0 transition-all duration-500 ease-in-out",
+                  "absolute inset-0 transition-all duration-500 ease-in-out cursor-pointer",
                   isTransitioning ? "opacity-0 scale-105" : "opacity-100 scale-100"
                 )}
+                onClick={() => setSelectedPoster(currentPoster)}
               >
                 <img
                   src={currentPoster.image_url}
                   alt={currentPoster.title}
-                  className="w-full h-full object-cover cursor-pointer"
-                  onClick={() => setSelectedPoster(currentPoster)}
+                  className="w-full h-full object-cover"
                   onError={(e) => {
                     console.error('Image failed to load:', currentPoster.image_url);
                     e.currentTarget.src = '/placeholder.svg';
                   }}
                 />
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
                 
                 {/* Title */}
-                <div className="absolute inset-x-0 bottom-0 p-4 md:p-6">
+                <div className="absolute inset-x-0 bottom-0 p-4 md:p-6 pointer-events-none">
                   <h3 className="text-white text-lg md:text-2xl lg:text-3xl font-bold text-right drop-shadow-lg">
                     {currentPoster.title}
                   </h3>
