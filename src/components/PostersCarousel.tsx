@@ -1,12 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -14,9 +7,8 @@ import {
   DialogContent,
   DialogTitle,
 } from '@/components/ui/dialog';
-import Autoplay from 'embla-carousel-autoplay';
-import Fade from 'embla-carousel-fade';
-import { X } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Poster {
   id: string;
@@ -29,9 +21,10 @@ export const PostersCarousel = () => {
   const [posters, setPosters] = useState<Poster[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPoster, setSelectedPoster] = useState<Poster | null>(null);
-  const [carouselKey, setCarouselKey] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchPosters = useCallback(async () => {
     try {
@@ -47,10 +40,7 @@ export const PostersCarousel = () => {
       } else {
         const newPosters = data || [];
         console.log('Posters fetched:', newPosters.length);
-        
-        // Force complete re-render by updating key
         setPosters(newPosters);
-        setCarouselKey(prev => prev + 1);
       }
     } catch (err) {
       console.error('Fetch error:', err);
@@ -59,11 +49,77 @@ export const PostersCarousel = () => {
     setLoading(false);
   }, []);
 
-  const setupRealtimeSubscription = useCallback(() => {
-    // Clean up existing channel
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
+  const goToNext = useCallback(() => {
+    if (posters.length <= 1) return;
+    
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % posters.length);
+      setIsTransitioning(false);
+    }, 300);
+  }, [posters.length]);
+
+  const goToPrev = useCallback(() => {
+    if (posters.length <= 1) return;
+    
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev - 1 + posters.length) % posters.length);
+      setIsTransitioning(false);
+    }, 300);
+  }, [posters.length]);
+
+  const goToSlide = useCallback((index: number) => {
+    if (index === currentIndex) return;
+    
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentIndex(index);
+      setIsTransitioning(false);
+    }, 300);
+  }, [currentIndex]);
+
+  // Auto-advance slides
+  useEffect(() => {
+    if (posters.length <= 1) return;
+
+    intervalRef.current = setInterval(goToNext, 4000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [posters.length, goToNext]);
+
+  // Reset interval when manually changing slides
+  const resetInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
+    if (posters.length > 1) {
+      intervalRef.current = setInterval(goToNext, 4000);
+    }
+  }, [posters.length, goToNext]);
+
+  const handlePrev = useCallback(() => {
+    goToPrev();
+    resetInterval();
+  }, [goToPrev, resetInterval]);
+
+  const handleNext = useCallback(() => {
+    goToNext();
+    resetInterval();
+  }, [goToNext, resetInterval]);
+
+  const handleDotClick = useCallback((index: number) => {
+    goToSlide(index);
+    resetInterval();
+  }, [goToSlide, resetInterval]);
+
+  // Setup realtime subscription
+  useEffect(() => {
+    fetchPosters();
 
     const channelName = `posters-realtime-${Date.now()}`;
     
@@ -76,153 +132,156 @@ export const PostersCarousel = () => {
           schema: 'public',
           table: 'school_posters',
         },
-        (payload) => {
-          console.log('Realtime poster update:', payload.eventType);
-          // Fetch immediately on any change
+        () => {
           fetchPosters();
         }
       )
-      .subscribe((status) => {
-        console.log('Realtime status:', status);
-        
-        if (status === 'SUBSCRIBED') {
-          // Clear any retry timeout
-          if (retryTimeoutRef.current) {
-            clearTimeout(retryTimeoutRef.current);
-            retryTimeoutRef.current = null;
-          }
-          // Refresh data on successful subscription
-          fetchPosters();
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.log('Subscription failed, retrying in 2s...');
-          // Retry subscription after error
-          retryTimeoutRef.current = setTimeout(() => {
-            setupRealtimeSubscription();
-          }, 2000);
-        }
-      });
-  }, [fetchPosters]);
-
-  useEffect(() => {
-    // Initial fetch
-    fetchPosters();
-    
-    // Setup realtime subscription
-    setupRealtimeSubscription();
-
-    // Backup polling every 10 seconds in case realtime fails
-    const pollInterval = setInterval(() => {
-      fetchPosters();
-    }, 10000);
+      .subscribe();
 
     return () => {
-      clearInterval(pollInterval);
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-      }
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, [fetchPosters, setupRealtimeSubscription]);
+  }, [fetchPosters]);
+
+  // Reset current index if it exceeds posters length
+  useEffect(() => {
+    if (currentIndex >= posters.length && posters.length > 0) {
+      setCurrentIndex(0);
+    }
+  }, [posters.length, currentIndex]);
 
   if (loading) {
     return (
       <div className="w-full px-4 py-6">
-        <Skeleton className="w-full h-48 rounded-xl" />
+        <Skeleton className="w-full h-48 md:h-64 rounded-2xl" />
       </div>
     );
   }
 
-  // CRITICAL: Return null when no active posters
   if (posters.length === 0) {
     return null;
   }
 
+  const currentPoster = posters[currentIndex];
+
   return (
     <>
       <div className="w-full px-4 py-6">
-        {/* Key forces complete re-mount of carousel when data changes */}
-        <Carousel
-          key={carouselKey}
-          opts={{
-            align: 'start',
-            loop: true,
-            skipSnaps: false,
-            slidesToScroll: 1,
-          }}
-          plugins={[
-            Autoplay({
-              delay: 4000,
-              stopOnInteraction: false,
-              stopOnMouseEnter: false,
-              playOnInit: true,
-            }),
-          ]}
-          className="w-full"
-        >
-          <CarouselContent className="ml-0">
-            {posters.map((poster) => (
-              <CarouselItem 
-                key={poster.id} 
-                className="pl-0 basis-full transition-opacity duration-700"
+        <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+          {/* Main Image Container */}
+          <div className="relative aspect-[16/9] md:aspect-[21/9] bg-muted">
+            {currentPoster && (
+              <div
+                className={cn(
+                  "absolute inset-0 transition-all duration-500 ease-in-out",
+                  isTransitioning ? "opacity-0 scale-105" : "opacity-100 scale-100"
+                )}
               >
-                <Card 
-                  className="overflow-hidden border-0 shadow-xl cursor-pointer transition-all duration-500 hover:shadow-2xl hover:scale-[1.01]"
-                  onClick={() => setSelectedPoster(poster)}
-                >
-                  <div className="relative aspect-[16/9] md:aspect-[21/9]">
-                    <img
-                      src={poster.image_url}
-                      alt={poster.title}
-                      className="w-full h-full object-cover transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-4 md:p-6">
-                      <h3 className="text-white text-lg md:text-2xl font-bold text-right drop-shadow-lg">
-                        {poster.title}
-                      </h3>
-                    </div>
-                  </div>
-                </Card>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
+                <img
+                  src={currentPoster.image_url}
+                  alt={currentPoster.title}
+                  className="w-full h-full object-cover cursor-pointer"
+                  onClick={() => setSelectedPoster(currentPoster)}
+                  onError={(e) => {
+                    console.error('Image failed to load:', currentPoster.image_url);
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                
+                {/* Title */}
+                <div className="absolute inset-x-0 bottom-0 p-4 md:p-6">
+                  <h3 className="text-white text-lg md:text-2xl lg:text-3xl font-bold text-right drop-shadow-lg">
+                    {currentPoster.title}
+                  </h3>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Arrows */}
           {posters.length > 1 && (
             <>
-              <CarouselPrevious className="left-4 md:left-6 bg-white/90 hover:bg-white shadow-lg border-0 h-10 w-10 md:h-12 md:w-12" />
-              <CarouselNext className="right-4 md:right-6 bg-white/90 hover:bg-white shadow-lg border-0 h-10 w-10 md:h-12 md:w-12" />
-              <div className="flex justify-center gap-2 mt-4">
-                {posters.map((_, index) => (
-                  <div
-                    key={index}
-                    className="h-1.5 w-8 rounded-full bg-muted-foreground/30 transition-all duration-300"
-                  />
-                ))}
-              </div>
+              <button
+                onClick={handleNext}
+                className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-10 
+                  h-10 w-10 md:h-12 md:w-12 rounded-full 
+                  bg-white/90 hover:bg-white 
+                  shadow-lg backdrop-blur-sm
+                  flex items-center justify-center
+                  transition-all duration-200 hover:scale-110
+                  focus:outline-none focus:ring-2 focus:ring-primary"
+                aria-label="الملصقة التالية"
+              >
+                <ChevronRight className="h-5 w-5 md:h-6 md:w-6 text-gray-800" />
+              </button>
+              <button
+                onClick={handlePrev}
+                className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-10 
+                  h-10 w-10 md:h-12 md:w-12 rounded-full 
+                  bg-white/90 hover:bg-white 
+                  shadow-lg backdrop-blur-sm
+                  flex items-center justify-center
+                  transition-all duration-200 hover:scale-110
+                  focus:outline-none focus:ring-2 focus:ring-primary"
+                aria-label="الملصقة السابقة"
+              >
+                <ChevronLeft className="h-5 w-5 md:h-6 md:w-6 text-gray-800" />
+              </button>
             </>
           )}
-        </Carousel>
+
+          {/* Dots Indicator */}
+          {posters.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+              {posters.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleDotClick(index)}
+                  className={cn(
+                    "h-2 rounded-full transition-all duration-300 focus:outline-none",
+                    index === currentIndex 
+                      ? "w-8 bg-white shadow-lg" 
+                      : "w-2 bg-white/50 hover:bg-white/80"
+                  )}
+                  aria-label={`انتقل إلى الملصقة ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Slide Counter */}
+          {posters.length > 1 && (
+            <div className="absolute top-3 right-3 z-10 
+              bg-black/50 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
+              {currentIndex + 1} / {posters.length}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Fullscreen Dialog */}
       <Dialog open={!!selectedPoster} onOpenChange={() => setSelectedPoster(null)}>
-        <DialogContent className="max-w-4xl w-[95vw] p-0 overflow-hidden bg-black/95 border-0">
+        <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden bg-black/95 border-0">
           <DialogTitle className="sr-only">{selectedPoster?.title}</DialogTitle>
           <button
             onClick={() => setSelectedPoster(null)}
-            className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors backdrop-blur-sm"
           >
-            <X className="h-5 w-5" />
+            <X className="h-6 w-6" />
           </button>
           {selectedPoster && (
             <div className="relative">
               <img
                 src={selectedPoster.image_url}
                 alt={selectedPoster.title}
-                className="w-full h-auto max-h-[85vh] object-contain"
+                className="w-full h-auto max-h-[90vh] object-contain"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                <h2 className="text-white text-xl md:text-2xl font-bold text-right">
+                <h2 className="text-white text-xl md:text-3xl font-bold text-right">
                   {selectedPoster.title}
                 </h2>
               </div>
