@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles, ArrowRight, Home } from "lucide-react";
+import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles, ArrowRight, Home, AlertTriangle } from "lucide-react";
 import { studentSchema } from "@/lib/validations";
 import {
   Table,
@@ -69,6 +69,8 @@ export const StudentManagement = () => {
   const [assigningGrade, setAssigningGrade] = useState<string | null>(null);
   const [extractedStudents, setExtractedStudents] = useState<any[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isDeletingGrade, setIsDeletingGrade] = useState(false);
+  const [deleteConfirmGrade, setDeleteConfirmGrade] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -403,6 +405,80 @@ export const StudentManagement = () => {
     }
   };
 
+  // حذف جميع تلاميذ مستوى دراسي معين
+  const handleDeleteAllGradeStudents = async (gradeLevel: string) => {
+    setIsDeletingGrade(true);
+    try {
+      // جلب جميع تلاميذ هذا المستوى
+      const studentsInGrade = students.filter(s => s.grade_level === gradeLevel);
+      
+      if (studentsInGrade.length === 0) {
+        toast({
+          title: "تنبيه",
+          description: "لا يوجد تلاميذ في هذا المستوى",
+        });
+        return;
+      }
+
+      const studentIds = studentsInGrade.map(s => s.id);
+
+      // أولاً: حذف روابط التلاميذ في teacher_students
+      const { error: linkError } = await supabase
+        .from("teacher_students")
+        .delete()
+        .in("student_id", studentIds);
+
+      if (linkError) {
+        console.error("Error deleting teacher-student links:", linkError);
+      }
+
+      // ثانياً: حذف روابط الأولياء في parent_students
+      const { error: parentLinkError } = await supabase
+        .from("parent_students")
+        .delete()
+        .in("student_id", studentIds);
+
+      if (parentLinkError) {
+        console.error("Error deleting parent-student links:", parentLinkError);
+      }
+
+      // ثالثاً: حذف الحضور المرتبط
+      const { error: attendanceError } = await supabase
+        .from("attendance")
+        .delete()
+        .in("student_id", studentIds);
+
+      if (attendanceError) {
+        console.error("Error deleting attendance records:", attendanceError);
+      }
+
+      // رابعاً: حذف جميع التلاميذ
+      const { error } = await supabase
+        .from("students")
+        .delete()
+        .eq("grade_level", gradeLevel);
+
+      if (error) throw error;
+
+      toast({
+        title: "نجاح",
+        description: `تم حذف ${studentsInGrade.length} تلميذ من ${gradeLevel}`,
+      });
+
+      setDeleteConfirmGrade(null);
+      fetchStudents();
+    } catch (error: any) {
+      console.error("Error deleting grade students:", error);
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل حذف التلاميذ",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingGrade(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       full_name: "",
@@ -452,11 +528,14 @@ export const StudentManagement = () => {
           }
 
           if (data?.students && data.students.length > 0) {
-            // Add grade_level to extracted students
+            // Add grade_level to extracted students with proper date handling
             const studentsWithGrade = data.students.map((s: any) => ({
               ...s,
               grade_level: selectedGrade,
-              date_of_birth: null
+              // Keep the date_of_birth from AI if provided, otherwise null
+              date_of_birth: s.date_of_birth || null,
+              // Use detected class or keep from AI
+              class_section: s.class_section || data.detected_class || null
             }));
             
             setExtractedStudents(studentsWithGrade);
@@ -515,7 +594,7 @@ export const StudentManagement = () => {
         national_school_id: s.national_school_id || `AUTO-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         grade_level: selectedGrade,
         class_section: s.class_section || null,
-        date_of_birth: null
+        date_of_birth: s.date_of_birth || null
       }));
 
       const { error } = await supabase
@@ -566,13 +645,13 @@ export const StudentManagement = () => {
 
       {/* Add Student Button & AI Extract Button - Below Grade Title */}
       {selectedGrade && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             onClick={() => {
               setFormData({ ...formData, grade_level: selectedGrade });
               setIsAddingStudent(true);
             }}
-            className="font-cairo w-fit"
+            className="font-cairo"
           >
             <Plus className="ml-2 h-4 w-4" />
             إضافة تلميذ جديد
@@ -591,12 +670,62 @@ export const StudentManagement = () => {
               onClick={() => fileInputRef.current?.click()}
               disabled={isExtracting}
               variant="outline"
-              className="font-cairo w-fit"
+              className="font-cairo"
             >
               <Sparkles className="ml-2 h-4 w-4" />
-              {isExtracting ? "جاري الاستخراج..." : "استخراج من صورة بالذكاء الاصطناعي"}
+              {isExtracting ? "جاري الاستخراج..." : "استخراج من صورة"}
             </Button>
           </div>
+
+          {/* Delete All Grade Students Button */}
+          {getGradeStudentsCount(selectedGrade) > 0 && (
+            <Dialog open={deleteConfirmGrade === selectedGrade} onOpenChange={(open) => setDeleteConfirmGrade(open ? selectedGrade : null)}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="font-cairo"
+                >
+                  <Trash2 className="ml-2 h-4 w-4" />
+                  حذف جميع التلاميذ ({getGradeStudentsCount(selectedGrade)})
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="font-cairo flex items-center gap-2 text-destructive">
+                    <AlertTriangle className="w-5 h-5" />
+                    تحذير: حذف جميع تلاميذ القسم
+                  </DialogTitle>
+                  <DialogDescription className="font-cairo text-right space-y-2">
+                    <p>أنت على وشك حذف <strong>{getGradeStudentsCount(selectedGrade)}</strong> تلميذ من <strong>{selectedGrade}</strong>.</p>
+                    <p className="text-destructive font-medium">هذا الإجراء لا يمكن التراجع عنه!</p>
+                    <p>سيتم أيضاً حذف:</p>
+                    <ul className="list-disc list-inside mr-4 text-muted-foreground">
+                      <li>جميع سجلات الحضور</li>
+                      <li>روابط الأولياء</li>
+                      <li>روابط الأساتذة</li>
+                    </ul>
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteConfirmGrade(null)}
+                    className="font-cairo"
+                  >
+                    إلغاء
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteAllGradeStudents(selectedGrade)}
+                    disabled={isDeletingGrade}
+                    className="font-cairo"
+                  >
+                    {isDeletingGrade ? "جاري الحذف..." : "تأكيد الحذف"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       )}
 
@@ -712,52 +841,95 @@ export const StudentManagement = () => {
 
       {/* Extracted Students Preview */}
       {selectedGrade && extractedStudents.length > 0 && (
-        <Card className="glass-card border-primary">
-          <CardHeader>
-            <CardTitle className="font-cairo flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              التلاميذ المستخرجون من الصورة ({extractedStudents.length})
+        <Card className="glass-card border-primary border-2">
+          <CardHeader className="bg-primary/5">
+            <CardTitle className="font-cairo flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                التلاميذ المستخرجون من الصورة
+              </div>
+              <span className="text-lg bg-primary text-primary-foreground px-3 py-1 rounded-full">
+                {extractedStudents.length} تلميذ
+              </span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="space-y-4">
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-[400px] overflow-y-auto border rounded-lg">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 bg-background">
                     <TableRow>
-                      <TableHead className="font-cairo">الاسم الكامل</TableHead>
-                      <TableHead className="font-cairo">الرقم التعريفي</TableHead>
-                      <TableHead className="font-cairo">القسم</TableHead>
+                      <TableHead className="font-cairo text-right">#</TableHead>
+                      <TableHead className="font-cairo text-right">الاسم الكامل</TableHead>
+                      <TableHead className="font-cairo text-right">رقم التعريف الوطني</TableHead>
+                      <TableHead className="font-cairo text-right">تاريخ الميلاد</TableHead>
+                      <TableHead className="font-cairo text-right">القسم</TableHead>
+                      <TableHead className="font-cairo text-right">إجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {extractedStudents.map((student, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-cairo">{student.full_name}</TableCell>
-                        <TableCell className="font-cairo">{student.national_school_id || "غير محدد"}</TableCell>
-                        <TableCell className="font-cairo">{student.class_section || "غير محدد"}</TableCell>
+                        <TableCell className="font-cairo font-medium text-muted-foreground">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="font-cairo font-medium">
+                          {student.full_name}
+                        </TableCell>
+                        <TableCell className="font-cairo font-mono text-sm">
+                          {student.national_school_id || (
+                            <span className="text-muted-foreground text-xs">سيتم إنشاء تلقائي</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-cairo">
+                          {student.date_of_birth || (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-cairo">
+                          {student.class_section || (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setExtractedStudents(prev => prev.filter((_, i) => i !== index));
+                            }}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
               
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setExtractedStudents([])}
-                  className="font-cairo"
-                >
-                  <X className="ml-2 h-4 w-4" />
-                  إلغاء
-                </Button>
-                <Button
-                  onClick={handleConfirmExtractedStudents}
-                  className="font-cairo"
-                >
-                  <Save className="ml-2 h-4 w-4" />
-                  تأكيد وإضافة جميع التلاميذ
-                </Button>
+              <div className="flex gap-2 justify-between items-center border-t pt-4">
+                <p className="text-sm text-muted-foreground font-cairo">
+                  راجع البيانات قبل التأكيد. يمكنك إزالة أي تلميذ بالضغط على ✕
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setExtractedStudents([])}
+                    className="font-cairo"
+                  >
+                    <X className="ml-2 h-4 w-4" />
+                    إلغاء الكل
+                  </Button>
+                  <Button
+                    onClick={handleConfirmExtractedStudents}
+                    className="font-cairo"
+                  >
+                    <Save className="ml-2 h-4 w-4" />
+                    تأكيد وإضافة ({extractedStudents.length}) تلميذ
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
