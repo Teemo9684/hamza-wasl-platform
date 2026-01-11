@@ -501,89 +501,141 @@ export const StudentManagement = () => {
     return students.filter(s => s.grade_level === grade).length;
   };
 
+  // دالة ضغط الصورة لتقليل حجمها
+  const compressImage = (file: File, maxWidth: number = 1200, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // تغيير حجم الصورة إذا كانت كبيرة جداً
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('فشل في إنشاء سياق Canvas'));
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // تحويل إلى base64 مع الضغط
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressedBase64);
+        };
+        
+        img.onerror = () => {
+          reject(new Error('فشل في تحميل الصورة'));
+        };
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('فشل في قراءة الملف'));
+      };
+    });
+  };
+
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !selectedGrade) return;
 
+    // التحقق من نوع الملف
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار ملف صورة صالح",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // التحقق من حجم الملف (الحد الأقصى 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "خطأ",
+        description: "حجم الصورة كبير جداً. يرجى اختيار صورة أصغر من 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsExtracting(true);
     
     try {
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
+      toast({
+        title: "جاري المعالجة",
+        description: "يتم ضغط الصورة وإرسالها للتحليل...",
+      });
+
+      // ضغط الصورة قبل الإرسال
+      const compressedImage = await compressImage(file, 1400, 0.85);
       
-      reader.onload = async () => {
-        const base64Image = reader.result as string;
-        
-        try {
-          const { data, error } = await supabase.functions.invoke('extract-students-from-image', {
-            body: { 
-              imageBase64: base64Image,
-              gradeLevel: selectedGrade 
-            }
-          });
-
-          if (error) {
-            throw error;
-          }
-
-          if (data?.students && data.students.length > 0) {
-            // Add grade_level to extracted students with proper date handling
-            const studentsWithGrade = data.students.map((s: any) => ({
-              ...s,
-              grade_level: selectedGrade,
-              // Keep the date_of_birth from AI if provided, otherwise null
-              date_of_birth: s.date_of_birth || null,
-              // Use detected class or keep from AI
-              class_section: s.class_section || data.detected_class || null
-            }));
-            
-            setExtractedStudents(studentsWithGrade);
-            
-            toast({
-              title: "نجح الاستخراج",
-              description: `تم استخراج ${data.students.length} تلميذ من الصورة`,
-            });
-          } else {
-            toast({
-              title: "لم يتم العثور على بيانات",
-              description: "لم يتم استخراج أي بيانات تلاميذ من الصورة",
-              variant: "destructive",
-            });
-          }
-        } catch (error: any) {
-          console.error('Error extracting students:', error);
-          toast({
-            title: "خطأ",
-            description: error.message || "فشل استخراج البيانات من الصورة",
-            variant: "destructive",
-          });
-        } finally {
-          setIsExtracting(false);
+      console.log('Sending compressed image to edge function...');
+      console.log('Image size (approximate):', Math.round(compressedImage.length / 1024), 'KB');
+      
+      const { data, error } = await supabase.functions.invoke('extract-students-from-image', {
+        body: { 
+          imageBase64: compressedImage,
+          gradeLevel: selectedGrade 
         }
-      };
+      });
 
-      reader.onerror = () => {
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'فشل في الاتصال بالخادم');
+      }
+
+      if (data?.students && data.students.length > 0) {
+        // Add grade_level to extracted students with proper date handling
+        const studentsWithGrade = data.students.map((s: any) => ({
+          ...s,
+          grade_level: selectedGrade,
+          // Keep the date_of_birth from AI if provided, otherwise null
+          date_of_birth: s.date_of_birth || null,
+          // Use detected class or keep from AI
+          class_section: s.class_section || data.detected_class || null
+        }));
+        
+        setExtractedStudents(studentsWithGrade);
+        
         toast({
-          title: "خطأ",
-          description: "فشل قراءة الصورة",
+          title: "نجح الاستخراج",
+          description: `تم استخراج ${data.students.length} تلميذ من الصورة`,
+        });
+      } else {
+        toast({
+          title: "لم يتم العثور على بيانات",
+          description: "لم يتم استخراج أي بيانات تلاميذ من الصورة. تأكد من وضوح الصورة",
           variant: "destructive",
         });
-        setIsExtracting(false);
-      };
-    } catch (error) {
-      console.error('Error handling image:', error);
+      }
+    } catch (error: any) {
+      console.error('Error extracting students:', error);
       toast({
-        title: "خطأ",
-        description: "فشل رفع الصورة",
+        title: "خطأ في استخراج البيانات",
+        description: error.message || "فشل استخراج البيانات من الصورة. حاول مرة أخرى",
         variant: "destructive",
       });
+    } finally {
       setIsExtracting(false);
-    }
-
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
