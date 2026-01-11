@@ -86,25 +86,34 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `أنت مساعد متخصص في استخراج بيانات التلاميذ من الصور. مهمتك هي فحص الصورة المرفوعة واستخراج قائمة التلاميذ منها.
+            content: `أنت مساعد متخصص في استخراج بيانات التلاميذ من صور قوائم المدارس الجزائرية. مهمتك هي فحص الصورة المرفوعة واستخراج قائمة التلاميذ منها بدقة.
             
 يجب أن تستخرج المعلومات التالية لكل تلميذ:
-- الاسم الكامل (full_name)
-- الرقم التعريفي الوطني (national_school_id) إن وُجد
-- القسم/الفوج (class_section) إن وُجد
+- الاسم الكامل (full_name): يتكون من اللقب ثم الاسم. مثال: "مرداسي حلا جيهان" حيث "مرداسي" هو اللقب و"حلا جيهان" هو الاسم
+- رقم التعريف الوطني (national_school_id): رقم طويل مكون من 13 رقماً مثل "1101540010191100"
+- تاريخ الميلاد (date_of_birth): بصيغة YYYY-MM-DD. مثال: إذا كان التاريخ "2015-04-10" يعني 10 أبريل 2015
+- القسم/الفوج (class_section): اسم القسم إن وجد في عنوان الوثيقة
+
+ملاحظات مهمة:
+1. الاسم الكامل = اللقب + الاسم (بهذا الترتيب)
+2. رقم التعريف الوطني يكون في عمود "رقم التعريف" وهو رقم طويل مكون من 13 رقم
+3. تاريخ الميلاد بصيغة يوم-شهر-سنة، قم بتحويله إلى YYYY-MM-DD
+4. استخرج اسم القسم من عنوان الوثيقة (مثل "خامسة ابتدائي 01")
 
 قم بإرجاع النتيجة بصيغة JSON فقط، بدون أي نص إضافي، في الشكل التالي:
 {
   "students": [
     {
-      "full_name": "اسم التلميذ",
-      "national_school_id": "الرقم التعريفي",
-      "class_section": "القسم"
+      "full_name": "اللقب الاسم",
+      "national_school_id": "رقم التعريف المكون من 13 رقم",
+      "date_of_birth": "YYYY-MM-DD",
+      "class_section": "اسم القسم"
     }
-  ]
+  ],
+  "detected_class": "اسم القسم المستخرج من العنوان"
 }
 
-إذا لم تجد رقم تعريفي أو قسم، اتركه فارغاً أو استخدم null.`
+إذا لم تجد معلومة معينة، استخدم null.`
           },
           {
             role: 'user',
@@ -190,9 +199,13 @@ serve(async (req) => {
     }
 
     console.log(`Successfully extracted ${studentsData.students.length} students`);
+    console.log('Detected class:', studentsData.detected_class);
     
     return new Response(
-      JSON.stringify({ students: studentsData.students }), 
+      JSON.stringify({ 
+        students: studentsData.students,
+        detected_class: studentsData.detected_class || null
+      }), 
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
