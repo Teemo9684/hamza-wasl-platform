@@ -172,22 +172,53 @@ ${pdfText}`
       );
     }
 
-    console.log('AI Response:', content);
+    console.log('AI Response length:', content.length);
 
-    // Parse the JSON response
+    // Parse the JSON response - handle markdown code blocks and clean JSON
     let studentsData;
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      // Remove markdown code blocks if present
+      let cleanContent = content;
+      
+      // Remove ```json and ``` markers
+      cleanContent = cleanContent.replace(/```json\s*/gi, '');
+      cleanContent = cleanContent.replace(/```\s*/g, '');
+      cleanContent = cleanContent.trim();
+      
+      // Try to extract the JSON object
+      const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        studentsData = JSON.parse(jsonMatch[0]);
+        // Try to find complete JSON by looking for the closing brace of "students" array
+        let jsonStr = jsonMatch[0];
+        
+        // If JSON is incomplete (missing closing), try to fix it
+        const openBraces = (jsonStr.match(/\{/g) || []).length;
+        const closeBraces = (jsonStr.match(/\}/g) || []).length;
+        const openBrackets = (jsonStr.match(/\[/g) || []).length;
+        const closeBrackets = (jsonStr.match(/\]/g) || []).length;
+        
+        // Add missing closing brackets/braces
+        if (openBrackets > closeBrackets) {
+          jsonStr += ']'.repeat(openBrackets - closeBrackets);
+        }
+        if (openBraces > closeBraces) {
+          jsonStr += '}'.repeat(openBraces - closeBraces);
+        }
+        
+        // Remove trailing commas before closing brackets/braces
+        jsonStr = jsonStr.replace(/,\s*\]/g, ']');
+        jsonStr = jsonStr.replace(/,\s*\}/g, '}');
+        
+        console.log('Cleaned JSON length:', jsonStr.length);
+        studentsData = JSON.parse(jsonStr);
       } else {
-        studentsData = JSON.parse(content);
+        studentsData = JSON.parse(cleanContent);
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
+      console.error('Content preview:', content.substring(0, 500));
       return new Response(
-        JSON.stringify({ error: 'فشل في تحليل البيانات المستخرجة' }), 
+        JSON.stringify({ error: 'فشل في تحليل البيانات المستخرجة. حاول مع ملف أصغر.' }), 
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
