@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles, ArrowRight, Home, AlertTriangle } from "lucide-react";
+import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles, ArrowRight, Home, AlertTriangle, FileText } from "lucide-react";
 import { studentSchema } from "@/lib/validations";
+import * as pdfjsLib from 'pdfjs-dist';
 import {
   Table,
   TableBody,
@@ -31,6 +32,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 interface Student {
   id: string;
@@ -71,7 +75,7 @@ export const StudentManagement = () => {
   const [isExtracting, setIsExtracting] = useState(false);
   const [isDeletingGrade, setIsDeletingGrade] = useState(false);
   const [deleteConfirmGrade, setDeleteConfirmGrade] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleStudentsChange = useCallback(() => {
@@ -501,73 +505,44 @@ export const StudentManagement = () => {
     return students.filter(s => s.grade_level === grade).length;
   };
 
-  // دالة ضغط الصورة لتقليل حجمها
-  const compressImage = (file: File, maxWidth: number = 1200, quality: number = 0.8): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      
-      reader.onload = (e) => {
-        const img = new Image();
-        img.src = e.target?.result as string;
-        
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          
-          // تغيير حجم الصورة إذا كانت كبيرة جداً
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width;
-            width = maxWidth;
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            reject(new Error('فشل في إنشاء سياق Canvas'));
-            return;
-          }
-          
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          // تحويل إلى base64 مع الضغط
-          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-          resolve(compressedBase64);
-        };
-        
-        img.onerror = () => {
-          reject(new Error('فشل في تحميل الصورة'));
-        };
-      };
-      
-      reader.onerror = () => {
-        reject(new Error('فشل في قراءة الملف'));
-      };
-    });
+  // دالة استخراج النص من ملف PDF
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    let fullText = '';
+    
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n';
+    }
+    
+    return fullText;
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePDFUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !selectedGrade) return;
 
     // التحقق من نوع الملف
-    if (!file.type.startsWith('image/')) {
+    if (file.type !== 'application/pdf') {
       toast({
         title: "خطأ",
-        description: "يرجى اختيار ملف صورة صالح",
+        description: "يرجى اختيار ملف PDF صالح",
         variant: "destructive",
       });
       return;
     }
 
-    // التحقق من حجم الملف (الحد الأقصى 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // التحقق من حجم الملف (الحد الأقصى 20MB)
+    if (file.size > 20 * 1024 * 1024) {
       toast({
         title: "خطأ",
-        description: "حجم الصورة كبير جداً. يرجى اختيار صورة أصغر من 10MB",
+        description: "حجم الملف كبير جداً. يرجى اختيار ملف أصغر من 20MB",
         variant: "destructive",
       });
       return;
@@ -578,18 +553,29 @@ export const StudentManagement = () => {
     try {
       toast({
         title: "جاري المعالجة",
-        description: "يتم ضغط الصورة وإرسالها للتحليل...",
+        description: "يتم قراءة ملف PDF واستخراج البيانات...",
       });
 
-      // ضغط الصورة قبل الإرسال
-      const compressedImage = await compressImage(file, 1400, 0.85);
+      // استخراج النص من ملف PDF
+      const pdfText = await extractTextFromPDF(file);
       
-      console.log('Sending compressed image to edge function...');
-      console.log('Image size (approximate):', Math.round(compressedImage.length / 1024), 'KB');
+      console.log('Extracted PDF text length:', pdfText.length);
+      console.log('PDF text preview:', pdfText.substring(0, 500));
       
-      const { data, error } = await supabase.functions.invoke('extract-students-from-image', {
+      if (!pdfText || pdfText.trim().length < 50) {
+        toast({
+          title: "خطأ",
+          description: "لم يتم العثور على نص كافٍ في ملف PDF. تأكد من أن الملف يحتوي على نص قابل للقراءة",
+          variant: "destructive",
+        });
+        setIsExtracting(false);
+        return;
+      }
+
+      // إرسال النص إلى Edge Function للتحليل
+      const { data, error } = await supabase.functions.invoke('extract-students-from-pdf', {
         body: { 
-          imageBase64: compressedImage,
+          pdfText: pdfText,
           gradeLevel: selectedGrade 
         }
       });
@@ -600,13 +586,11 @@ export const StudentManagement = () => {
       }
 
       if (data?.students && data.students.length > 0) {
-        // Add grade_level to extracted students with proper date handling
+        // Add grade_level to extracted students
         const studentsWithGrade = data.students.map((s: any) => ({
           ...s,
           grade_level: selectedGrade,
-          // Keep the date_of_birth from AI if provided, otherwise null
           date_of_birth: s.date_of_birth || null,
-          // Use detected class or keep from AI
           class_section: s.class_section || data.detected_class || null
         }));
         
@@ -614,27 +598,27 @@ export const StudentManagement = () => {
         
         toast({
           title: "نجح الاستخراج",
-          description: `تم استخراج ${data.students.length} تلميذ من الصورة`,
+          description: `تم استخراج ${data.students.length} تلميذ من ملف PDF`,
         });
       } else {
         toast({
           title: "لم يتم العثور على بيانات",
-          description: "لم يتم استخراج أي بيانات تلاميذ من الصورة. تأكد من وضوح الصورة",
+          description: "لم يتم استخراج أي بيانات تلاميذ من الملف. تأكد من صحة تنسيق الملف",
           variant: "destructive",
         });
       }
     } catch (error: any) {
-      console.error('Error extracting students:', error);
+      console.error('Error extracting students from PDF:', error);
       toast({
         title: "خطأ في استخراج البيانات",
-        description: error.message || "فشل استخراج البيانات من الصورة. حاول مرة أخرى",
+        description: error.message || "فشل استخراج البيانات من ملف PDF. حاول مرة أخرى",
         variant: "destructive",
       });
     } finally {
       setIsExtracting(false);
       // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      if (pdfInputRef.current) {
+        pdfInputRef.current.value = '';
       }
     }
   };
@@ -711,21 +695,21 @@ export const StudentManagement = () => {
           
           <div>
             <input
-              ref={fileInputRef}
+              ref={pdfInputRef}
               type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
+              accept=".pdf,application/pdf"
+              onChange={handlePDFUpload}
               className="hidden"
-              id="image-upload"
+              id="pdf-upload"
             />
             <Button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => pdfInputRef.current?.click()}
               disabled={isExtracting}
               variant="outline"
               className="font-cairo"
             >
-              <Sparkles className="ml-2 h-4 w-4" />
-              {isExtracting ? "جاري الاستخراج..." : "استخراج من صورة"}
+              <FileText className="ml-2 h-4 w-4" />
+              {isExtracting ? "جاري الاستخراج..." : "استخراج من PDF"}
             </Button>
           </div>
 
