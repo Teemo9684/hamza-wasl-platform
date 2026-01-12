@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles, ArrowRight, Home, AlertTriangle, FileText } from "lucide-react";
 import { studentSchema } from "@/lib/validations";
 import * as pdfjsLib from 'pdfjs-dist';
+import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 import {
   Table,
   TableBody,
@@ -33,8 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configure PDF.js worker - use unpkg CDN which is more reliable
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 interface Student {
   id: string;
@@ -516,7 +517,8 @@ export const StudentManagement = () => {
       const page = await pdf.getPage(pageNum);
       const textContent = await page.getTextContent();
       const pageText = textContent.items
-        .map((item: any) => item.str)
+        .filter((item): item is TextItem => 'str' in item)
+        .map((item) => item.str)
         .join(' ');
       fullText += pageText + '\n';
     }
