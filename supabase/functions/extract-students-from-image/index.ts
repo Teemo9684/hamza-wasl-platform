@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,35 +14,37 @@ serve(async (req) => {
   }
 
   try {
-    // Verify JWT token
+    // Verify Authorization header
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
         JSON.stringify({ error: 'Authorization required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Initialize Supabase client to verify user
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: {
-        headers: { Authorization: authHeader }
-      }
-    });
+    const token = authHeader.replace('Bearer ', '');
 
-    // Verify user is authenticated and has admin or teacher role
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Initialize Supabase admin client with service role for verification
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify user using token
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    
     if (userError || !user) {
+      console.error('User verification failed:', userError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check user role
-    const { data: roleData, error: roleError } = await supabase
+    console.log('User authenticated:', user.id);
+
+    // Check user role using service role client
+    const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
@@ -50,11 +52,14 @@ serve(async (req) => {
       .maybeSingle();
 
     if (roleError || !roleData) {
+      console.error('Role check failed:', roleError);
       return new Response(
         JSON.stringify({ error: 'Access denied. Admin or teacher role required.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('User role verified:', roleData.role);
 
     const { imageBase64, gradeLevel } = await req.json();
     
@@ -83,45 +88,44 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-pro',
         messages: [
           {
             role: 'system',
-            content: `أنت مساعد متخصص في استخراج بيانات التلاميذ من صور قوائم المدارس الجزائرية. مهمتك هي فحص الصورة المرفوعة واستخراج قائمة التلاميذ منها بدقة.
-            
+            content: `أنت خبير في قراءة واستخراج بيانات التلاميذ من قوائم المدارس الجزائرية. مهمتك هي فحص الصورة المرفوعة واستخراج قائمة التلاميذ منها بدقة عالية.
+
+**مهم جداً**: اقرأ الأسماء العربية بشكل صحيح وكامل. الأسماء تُكتب من اليمين إلى اليسار.
+
 يجب أن تستخرج المعلومات التالية لكل تلميذ:
-- الاسم الكامل (full_name): يتكون من اللقب ثم الاسم. مثال: "مرداسي حلا جيهان" حيث "مرداسي" هو اللقب و"حلا جيهان" هو الاسم
-- رقم التعريف الوطني (national_school_id): رقم طويل مكون من 13 رقماً مثل "1101540010191100"
-- تاريخ الميلاد (date_of_birth): بصيغة YYYY-MM-DD. مثال: إذا كان التاريخ "2015-04-10" يعني 10 أبريل 2015
-- القسم/الفوج (class_section): اسم القسم إن وجد في عنوان الوثيقة
+1. **الاسم الكامل (full_name)**: اللقب ثم الاسم. مثال: "بوعزة محمد أمين"
+2. **رقم التعريف الوطني (national_school_id)**: رقم مكون من 13-16 رقماً
+3. **تاريخ الميلاد (date_of_birth)**: بصيغة YYYY-MM-DD
+4. **القسم/الفوج (class_section)**: رقم أو اسم القسم من عنوان الوثيقة
 
-ملاحظات مهمة:
-1. الاسم الكامل = اللقب + الاسم (بهذا الترتيب)
-2. رقم التعريف الوطني يكون في عمود "رقم التعريف" وهو رقم طويل مكون من 13 رقم
-3. تاريخ الميلاد بصيغة يوم-شهر-سنة، قم بتحويله إلى YYYY-MM-DD
-4. استخرج اسم القسم من عنوان الوثيقة (مثل "خامسة ابتدائي 01")
+**تعليمات مهمة**:
+- اقرأ كل اسم بدقة حرفاً حرفاً
+- تاريخ الميلاد: إذا كان بصيغة "10-04-2015" أو "10/04/2015" يعني 10 أبريل 2015، حوّله إلى "2015-04-10"
+- استخرج رقم/اسم القسم من عنوان الصفحة (مثل: "السنة الخامسة 01" أو "الفوج أ")
 
-قم بإرجاع النتيجة بصيغة JSON فقط، بدون أي نص إضافي، في الشكل التالي:
+**صيغة الإخراج**: JSON فقط بدون أي نص إضافي:
 {
   "students": [
     {
       "full_name": "اللقب الاسم",
-      "national_school_id": "رقم التعريف المكون من 13 رقم",
-      "date_of_birth": "YYYY-MM-DD",
-      "class_section": "اسم القسم"
+      "national_school_id": "الرقم أو null",
+      "date_of_birth": "YYYY-MM-DD أو null",
+      "class_section": "رقم القسم أو null"
     }
   ],
-  "detected_class": "اسم القسم المستخرج من العنوان"
-}
-
-إذا لم تجد معلومة معينة، استخدم null.`
+  "detected_class": "اسم المستوى والقسم المستخرج"
+}`
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `استخرج بيانات التلاميذ من هذه الصورة. المستوى الدراسي المطلوب هو: ${gradeLevel || 'غير محدد'}`
+                text: `استخرج جميع بيانات التلاميذ من هذه الصورة بدقة. المستوى الدراسي: ${gradeLevel || 'غير محدد'}`
               },
               {
                 type: 'image_url',
@@ -132,7 +136,8 @@ serve(async (req) => {
             ]
           }
         ],
-        temperature: 0.2,
+        temperature: 0.1,
+        max_tokens: 8000,
       }),
     });
 
@@ -171,20 +176,46 @@ serve(async (req) => {
       );
     }
 
-    console.log('AI Response:', content);
+    console.log('AI Response length:', content.length);
 
-    // Parse the JSON response
+    // Parse the JSON response - handle markdown code blocks
     let studentsData;
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      // Remove markdown code blocks if present
+      let cleanContent = content;
+      cleanContent = cleanContent.replace(/```json\s*/gi, '');
+      cleanContent = cleanContent.replace(/```\s*/g, '');
+      cleanContent = cleanContent.trim();
+      
+      // Try to extract the JSON object
+      const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        studentsData = JSON.parse(jsonMatch[0]);
+        let jsonStr = jsonMatch[0];
+        
+        // Fix incomplete JSON
+        const openBraces = (jsonStr.match(/\{/g) || []).length;
+        const closeBraces = (jsonStr.match(/\}/g) || []).length;
+        const openBrackets = (jsonStr.match(/\[/g) || []).length;
+        const closeBrackets = (jsonStr.match(/\]/g) || []).length;
+        
+        if (openBrackets > closeBrackets) {
+          jsonStr += ']'.repeat(openBrackets - closeBrackets);
+        }
+        if (openBraces > closeBraces) {
+          jsonStr += '}'.repeat(openBraces - closeBraces);
+        }
+        
+        // Remove trailing commas
+        jsonStr = jsonStr.replace(/,\s*\]/g, ']');
+        jsonStr = jsonStr.replace(/,\s*\}/g, '}');
+        
+        studentsData = JSON.parse(jsonStr);
       } else {
-        studentsData = JSON.parse(content);
+        studentsData = JSON.parse(cleanContent);
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
+      console.error('Content preview:', content.substring(0, 500));
       return new Response(
         JSON.stringify({ error: 'فشل في تحليل البيانات المستخرجة' }), 
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

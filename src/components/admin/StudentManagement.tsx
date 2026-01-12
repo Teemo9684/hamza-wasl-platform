@@ -506,24 +506,25 @@ export const StudentManagement = () => {
     return students.filter(s => s.grade_level === grade).length;
   };
 
-  // دالة استخراج النص من ملف PDF
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  // دالة تحويل صفحة PDF إلى صورة base64
+  const pdfPageToImage = async (pdf: any, pageNum: number, scale: number = 1.5): Promise<string> => {
+    const page = await pdf.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
     
-    let fullText = '';
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Failed to create canvas context');
     
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .filter((item): item is TextItem => 'str' in item)
-        .map((item) => item.str)
-        .join(' ');
-      fullText += pageText + '\n';
-    }
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
     
-    return fullText;
+    await page.render({
+      canvasContext: context,
+      viewport: viewport,
+    }).promise;
+    
+    // تحويل إلى JPEG للحصول على حجم أصغر
+    return canvas.toDataURL('image/jpeg', 0.85);
   };
 
   const handlePDFUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -555,57 +556,70 @@ export const StudentManagement = () => {
     try {
       toast({
         title: "جاري المعالجة",
-        description: "يتم قراءة ملف PDF واستخراج البيانات...",
+        description: "يتم تحويل ملف PDF إلى صور وتحليلها...",
       });
 
-      // استخراج النص من ملف PDF
-      const pdfText = await extractTextFromPDF(file);
+      // فتح ملف PDF
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       
-      console.log('Extracted PDF text length:', pdfText.length);
-      console.log('PDF text preview:', pdfText.substring(0, 500));
+      console.log('PDF loaded, pages:', pdf.numPages);
       
-      if (!pdfText || pdfText.trim().length < 50) {
+      // تحويل كل صفحة إلى صورة واستخراج البيانات
+      const allExtractedStudents: any[] = [];
+      
+      for (let pageNum = 1; pageNum <= Math.min(pdf.numPages, 10); pageNum++) {
         toast({
-          title: "خطأ",
-          description: "لم يتم العثور على نص كافٍ في ملف PDF. تأكد من أن الملف يحتوي على نص قابل للقراءة",
-          variant: "destructive",
+          title: "جاري المعالجة",
+          description: `معالجة الصفحة ${pageNum} من ${Math.min(pdf.numPages, 10)}...`,
         });
-        setIsExtracting(false);
-        return;
-      }
-
-      // إرسال النص إلى Edge Function للتحليل
-      const { data, error } = await supabase.functions.invoke('extract-students-from-pdf', {
-        body: { 
-          pdfText: pdfText,
-          gradeLevel: selectedGrade 
-        }
-      });
-
-      if (error) {
-        console.error('Edge function error:', error);
-        throw new Error(error.message || 'فشل في الاتصال بالخادم');
-      }
-
-      if (data?.students && data.students.length > 0) {
-        // Add grade_level to extracted students
-        const studentsWithGrade = data.students.map((s: any) => ({
-          ...s,
-          grade_level: selectedGrade,
-          date_of_birth: s.date_of_birth || null,
-          class_section: s.class_section || data.detected_class || null
-        }));
         
-        setExtractedStudents(studentsWithGrade);
+        try {
+          const imageBase64 = await pdfPageToImage(pdf, pageNum);
+          console.log(`Page ${pageNum} converted to image`);
+          
+          // إرسال الصورة إلى Edge Function للتحليل
+          const { data, error } = await supabase.functions.invoke('extract-students-from-image', {
+            body: { 
+              imageBase64: imageBase64,
+              gradeLevel: selectedGrade 
+            }
+          });
+
+          if (error) {
+            console.error(`Error processing page ${pageNum}:`, error);
+            continue;
+          }
+
+          if (data?.students && data.students.length > 0) {
+            // إضافة المستوى الدراسي وبيانات القسم
+            const studentsWithInfo = data.students.map((s: any) => ({
+              ...s,
+              grade_level: selectedGrade,
+              date_of_birth: s.date_of_birth || null,
+              class_section: s.class_section || data.detected_class || null,
+              page_number: pageNum
+            }));
+            
+            allExtractedStudents.push(...studentsWithInfo);
+            console.log(`Page ${pageNum}: extracted ${data.students.length} students`);
+          }
+        } catch (pageError) {
+          console.error(`Error processing page ${pageNum}:`, pageError);
+        }
+      }
+
+      if (allExtractedStudents.length > 0) {
+        setExtractedStudents(allExtractedStudents);
         
         toast({
           title: "نجح الاستخراج",
-          description: `تم استخراج ${data.students.length} تلميذ من ملف PDF`,
+          description: `تم استخراج ${allExtractedStudents.length} تلميذ من ${Math.min(pdf.numPages, 10)} صفحات`,
         });
       } else {
         toast({
           title: "لم يتم العثور على بيانات",
-          description: "لم يتم استخراج أي بيانات تلاميذ من الملف. تأكد من صحة تنسيق الملف",
+          description: "لم يتم استخراج أي بيانات تلاميذ من الملف. تأكد من وضوح الملف",
           variant: "destructive",
         });
       }
