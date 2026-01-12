@@ -1,22 +1,22 @@
 project_id = "caeltaubipulyrdyqsjn"
 
 [functions.setup-admin]
-verify_jwt = true
+verify_jwt = false
 
 [functions.extract-students-from-image]
-verify_jwt = true
+verify_jwt = false
 
 [functions.extract-students-from-pdf]
-verify_jwt = true
+verify_jwt = false
 
 [functions.enhance-schedule-image]
-verify_jwt = true
+verify_jwt = false
 
 [functions.admin-login]
 verify_jwt = false
 
 [functions.delete-user]
-verify_jwt = true
+verify_jwt = false
 
 [functions.reset-admin-password]
 verify_jwt = false

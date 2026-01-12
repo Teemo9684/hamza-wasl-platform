@@ -14,16 +14,16 @@ serve(async (req) => {
   }
 
   try {
-    // Verify JWT token
+    // Verify Authorization header
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
         JSON.stringify({ error: 'Authorization required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Initialize Supabase client to verify user
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -32,14 +32,18 @@ serve(async (req) => {
       }
     });
 
-    // Verify user is authenticated and has admin or teacher role
+    // Verify user is authenticated
     const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
     if (userError || !user) {
+      console.error('User verification failed:', userError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('User authenticated:', user.id);
 
     // Check user role
     const { data: roleData, error: roleError } = await supabase
@@ -50,11 +54,14 @@ serve(async (req) => {
       .maybeSingle();
 
     if (roleError || !roleData) {
+      console.error('Role check failed:', roleError);
       return new Response(
         JSON.stringify({ error: 'Access denied. Admin or teacher role required.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('User role verified:', roleData.role);
 
     const { pdfText, gradeLevel } = await req.json();
     
