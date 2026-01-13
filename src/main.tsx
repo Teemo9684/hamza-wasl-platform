@@ -1,18 +1,16 @@
 import { createRoot } from "react-dom/client";
 import { Capacitor } from "@capacitor/core";
-import { SplashScreen } from "@capacitor/splash-screen";
+import { SplashScreen as CapacitorSplashScreen } from "@capacitor/splash-screen";
 import App from "./App.tsx";
 import "./index.css";
 import { registerSW } from 'virtual:pwa-register';
 
 // Hide native splash screen when app is ready
-const hideNativeSplash = async () => {
+const hideNativeSplash = () => {
   if (Capacitor.isNativePlatform()) {
-    try {
-      await SplashScreen.hide();
-    } catch (e) {
+    CapacitorSplashScreen.hide().catch((e) => {
       console.log('Splash screen hide error:', e);
-    }
+    });
   }
 };
 
@@ -39,14 +37,8 @@ if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
   });
 }
 
-// Initialize app
-const initApp = async () => {
-  createRoot(document.getElementById("root")!).render(<App />);
-  
-  // Hide splash after a short delay to ensure content is rendered
-  setTimeout(() => {
-    hideNativeSplash();
-  }, 100);
-};
+// Render app
+createRoot(document.getElementById("root")!).render(<App />);
 
-initApp();
+// Hide native splash after a short delay
+setTimeout(hideNativeSplash, 100);
