@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.5901e6106a23469f803baed9690ed218',
+  appId: 'com.hamzawasl.app',
   appName: 'العربي التبسي-همزة وصل',
   webDir: 'dist',
   server: {
