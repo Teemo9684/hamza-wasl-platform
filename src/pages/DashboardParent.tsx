@@ -256,8 +256,10 @@ const DashboardParent = () => {
                 <ParentOverview
                   children={children}
                   selectedChild={selectedChild}
+                  onSelectChild={setSelectedChild}
                   attendance={attendance}
                   calculateAttendanceRate={calculateAttendanceRate}
+                  onChildAdded={fetchParentData}
                 />
               </section>
 
