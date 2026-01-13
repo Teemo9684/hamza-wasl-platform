@@ -64,6 +64,34 @@ jobs:
           # Sync capacitor
           npx cap sync android
 
+      - name: Setup Custom App Icons
+        run: |
+          # Define mipmap directories and sizes
+          declare -A sizes=(
+            ["mipmap-mdpi"]=48
+            ["mipmap-hdpi"]=72
+            ["mipmap-xhdpi"]=96
+            ["mipmap-xxhdpi"]=144
+            ["mipmap-xxxhdpi"]=192
+          )
+          
+          RES_DIR="android/app/src/main/res"
+          SOURCE_ICON="public/icon-512.png"
+          
+          # Check if source icon exists
+          if [ -f "$SOURCE_ICON" ]; then
+            for folder in "${!sizes[@]}"; do
+              size=${sizes[$folder]}
+              mkdir -p "$RES_DIR/$folder"
+              convert "$SOURCE_ICON" -resize ${size}x${size} "$RES_DIR/$folder/ic_launcher.png"
+              convert "$SOURCE_ICON" -resize ${size}x${size} "$RES_DIR/$folder/ic_launcher_round.png"
+              convert "$SOURCE_ICON" -resize ${size}x${size} "$RES_DIR/$folder/ic_launcher_foreground.png"
+              echo "✅ Created ${size}x${size} icons in $folder"
+            done
+          else
+            echo "⚠️ Source icon not found at $SOURCE_ICON"
+          fi
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
