@@ -11,8 +11,9 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     initialFocus: false,
     webContentsDebuggingEnabled: false,
-    // Use standard WebView behavior - scaling handled in JS/CSS
-    adjustResize: true
+    adjustResize: true,
+    // CRITICAL: Disable edge-to-edge to prevent system bars from being transparent/overlapping
+    edgeToEdge: false
   },
   server: {
     androidScheme: 'https',
@@ -29,8 +30,8 @@ const config: CapacitorConfig = {
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
       showSpinner: false,
-      splashFullScreen: true,
-      splashImmersive: true
+      splashFullScreen: false,
+      splashImmersive: false
     },
     StatusBar: {
       style: "DARK",
