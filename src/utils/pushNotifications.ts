@@ -1,6 +1,26 @@
 import { PushNotifications } from '@capacitor/push-notifications';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+// Get platform info
+const getPlatform = (): string => {
+  if (Capacitor.isNativePlatform()) {
+    return Capacitor.getPlatform(); // 'ios' or 'android'
+  }
+  return 'web';
+};
+
+// Get device name
+const getDeviceName = (): string => {
+  const userAgent = navigator.userAgent;
+  if (/android/i.test(userAgent)) {
+    return 'Android Device';
+  } else if (/iPad|iPhone|iPod/.test(userAgent)) {
+    return 'iOS Device';
+  }
+  return 'Unknown Device';
+};
 
 // Audio context singleton for notification sounds
 let audioContext: AudioContext | null = null;
@@ -216,21 +236,42 @@ export const initializePushNotifications = async () => {
 
 const setupPushNotificationListeners = () => {
   // Called when registration is successful
-  PushNotifications.addListener('registration', async () => {
-    // Push registration success
+  PushNotifications.addListener('registration', async (token) => {
+    console.log('Push registration success, token:', token.value);
     
-    // Save the token to the user's profile or a separate table
+    // Save the token to the push_tokens table
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Store the token in user metadata or a separate table
-        await supabase
-          .from('profiles')
-          .update({ 
-            // You'll need to add a 'push_token' column to profiles table
-            // For now, we'll store it in a way that won't break existing structure
-          })
-          .eq('id', user.id);
+      if (user && token.value) {
+        // Check if token already exists
+        const { data: existingToken } = await supabase
+          .from('push_tokens')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('token', token.value)
+          .single();
+
+        if (!existingToken) {
+          // Insert new token
+          await supabase
+            .from('push_tokens')
+            .upsert({
+              user_id: user.id,
+              token: token.value,
+              platform: getPlatform(),
+              device_name: getDeviceName(),
+              last_used_at: new Date().toISOString()
+            }, {
+              onConflict: 'token'
+            });
+          console.log('Push token saved successfully');
+        } else {
+          // Update last used time
+          await supabase
+            .from('push_tokens')
+            .update({ last_used_at: new Date().toISOString() })
+            .eq('id', existingToken.id);
+        }
       }
     } catch (error) {
       console.error('Error saving push token:', error);

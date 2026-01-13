@@ -64,6 +64,18 @@ jobs:
           # Sync capacitor
           npx cap sync android
 
+      - name: Setup Firebase for Push Notifications
+        run: |
+          ANDROID_APP_DIR="android/app"
+          
+          # Create google-services.json if FCM config is provided
+          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+            echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > "$ANDROID_APP_DIR/google-services.json"
+            echo "✅ google-services.json configured"
+          else
+            echo "⚠️ GOOGLE_SERVICES_JSON secret not set - Push notifications will not work"
+          fi
+
       - name: Install ImageMagick
         run: sudo apt-get update && sudo apt-get install -y imagemagick
 
