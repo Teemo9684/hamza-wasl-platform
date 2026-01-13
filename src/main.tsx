@@ -5,6 +5,22 @@ import App from "./App.tsx";
 import "./index.css";
 import { registerSW } from 'virtual:pwa-register';
 
+// Add platform-specific class to html element for CSS targeting
+if (Capacitor.isNativePlatform()) {
+  const platform = Capacitor.getPlatform();
+  document.documentElement.classList.add(`capacitor-${platform}`);
+  
+  // Force viewport scale for Android WebView
+  if (platform === 'android') {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 
+        'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, target-densitydpi=device-dpi'
+      );
+    }
+  }
+}
+
 // Configure status bar for native platforms (dynamic import to avoid web issues)
 const configureStatusBar = async () => {
   if (Capacitor.isNativePlatform()) {
