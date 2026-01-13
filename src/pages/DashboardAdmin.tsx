@@ -121,34 +121,12 @@ const DashboardAdmin = () => {
       )
       .subscribe();
 
-    const messagesChannel = supabase
-      .channel('admin-new-messages')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        },
-        () => {
-          // رسالة جديدة
-          playNotificationSound('message');
-          toast.info('رسالة جديدة', {
-            description: 'تم استلام رسالة جديدة',
-            duration: 5000,
-          });
-          setStats(prev => ({
-            ...prev,
-            unreadMessages: prev.unreadMessages + 1
-          }));
-        }
-      )
-      .subscribe();
+    // الإدارة تراقب الرسائل فقط وليست طرفاً فيها
+    // لذا لا نُظهر إشعارات للرسائل الجديدة (هي بين المعلمين والأولياء)
 
     return () => {
       supabase.removeChannel(documentRequestsChannel);
       supabase.removeChannel(profilesChannel);
-      supabase.removeChannel(messagesChannel);
     };
   }, []);
 
@@ -189,10 +167,8 @@ const DashboardAdmin = () => {
         .select("*", { count: "exact", head: true })
         .eq("status", "pending");
 
-      const { count: unreadMessagesCount } = await supabase
-        .from("messages")
-        .select("*", { count: "exact", head: true })
-        .eq("is_read", false);
+      // الإدارة تراقب الرسائل فقط ولا تستلمها، لذا لا نحتاج لحساب الرسائل غير المقروءة
+      // تظهر كل الرسائل في قسم إدارة الرسائل بدون إشعارات وهمية
 
       setStats({
         parents: parentsCount || 0,
@@ -200,7 +176,7 @@ const DashboardAdmin = () => {
         students: studentsCount || 0,
         pendingRequests: pendingCount || 0,
         pendingDocuments: pendingDocsCount || 0,
-        unreadMessages: unreadMessagesCount || 0,
+        unreadMessages: 0, // الإدارة تراقب الرسائل فقط
       });
     } catch (error) {
       if (import.meta.env.DEV) {
