@@ -56,6 +56,20 @@ const gradeLevels = [
   "السنة الخامسة ابتدائي",
 ];
 
+// المستويات التي تتطلب 3 أساتذة (عربية، فرنسية، إنجليزية)
+const multiTeacherGrades = [
+  "السنة الثالثة ابتدائي",
+  "السنة الرابعة ابتدائي",
+  "السنة الخامسة ابتدائي",
+];
+
+// المواد للمستويات العليا
+const subjects = [
+  { id: "عربية", label: "العربية", icon: "🇩🇿" },
+  { id: "فرنسية", label: "الفرنسية", icon: "🇫🇷" },
+  { id: "إنجليزية", label: "الإنجليزية", icon: "🇬🇧" },
+];
+
 export const StudentManagement = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -71,7 +85,9 @@ export const StudentManagement = () => {
   const [loading, setLoading] = useState(true);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [gradeTeachers, setGradeTeachers] = useState<Record<string, any>>({});
+  const [gradeSubjectTeachers, setGradeSubjectTeachers] = useState<Record<string, Record<string, any>>>({});
   const [assigningGrade, setAssigningGrade] = useState<string | null>(null);
+  const [assigningSubject, setAssigningSubject] = useState<string | null>(null);
   const [extractedStudents, setExtractedStudents] = useState<any[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
   const [isDeletingGrade, setIsDeletingGrade] = useState(false);
@@ -159,24 +175,41 @@ export const StudentManagement = () => {
         .from("teacher_grade_levels")
         .select(`
           grade_level,
+          subject,
           teacher:profiles(id, full_name)
         `);
 
       if (error) throw error;
       
       const teacherMap: Record<string, any> = {};
+      const subjectTeacherMap: Record<string, Record<string, any>> = {};
+      
       data?.forEach((item: any) => {
-        teacherMap[item.grade_level] = item.teacher;
+        // للمستويات العليا مع المواد
+        if (item.subject && multiTeacherGrades.includes(item.grade_level)) {
+          if (!subjectTeacherMap[item.grade_level]) {
+            subjectTeacherMap[item.grade_level] = {};
+          }
+          subjectTeacherMap[item.grade_level][item.subject] = item.teacher;
+        } else if (!item.subject) {
+          // للمستويات الأخرى بدون مادة محددة
+          teacherMap[item.grade_level] = item.teacher;
+        }
       });
+      
       setGradeTeachers(teacherMap);
+      setGradeSubjectTeachers(subjectTeacherMap);
     } catch (error) {
       console.error("Error fetching grade teachers:", error);
     }
   };
 
-  const handleAssignTeacher = async (gradeLevel: string, teacherId: string) => {
+  const handleAssignTeacher = async (gradeLevel: string, teacherId: string, subject?: string) => {
     // إغلاق الحوار فوراً لتحسين تجربة المستخدم
     setAssigningGrade(null);
+    setAssigningSubject(null);
+    
+    const isMultiTeacherGrade = multiTeacherGrades.includes(gradeLevel);
     
     try {
       // أولاً: جلب جميع تلاميذ هذا المستوى الدراسي
@@ -190,76 +223,160 @@ export const StudentManagement = () => {
         throw studentsError;
       }
 
-      // ثانياً: حذف أي ربط سابق لهذا المستوى في teacher_grade_levels
-      const { error: deleteGradeError } = await supabase
-        .from("teacher_grade_levels")
-        .delete()
-        .eq("grade_level", gradeLevel);
-
-      if (deleteGradeError) {
-        console.error("Error deleting old grade assignment:", deleteGradeError);
-        throw deleteGradeError;
-      }
-
-      // ثالثاً: حذف أي ربط سابق في teacher_students لتلاميذ هذا المستوى
-      if (studentsInGrade && studentsInGrade.length > 0) {
-        const studentIds = studentsInGrade.map(s => s.id);
-        const { error: deleteStudentsError } = await supabase
-          .from("teacher_students")
+      if (isMultiTeacherGrade && subject) {
+        // للمستويات العليا: حذف فقط ربط هذه المادة
+        const { error: deleteGradeError } = await supabase
+          .from("teacher_grade_levels")
           .delete()
-          .in("student_id", studentIds);
+          .eq("grade_level", gradeLevel)
+          .eq("subject", subject);
 
-        if (deleteStudentsError) {
-          console.error("Error deleting old student links:", deleteStudentsError);
+        if (deleteGradeError) {
+          console.error("Error deleting old grade assignment:", deleteGradeError);
+          throw deleteGradeError;
         }
-      }
 
-      // رابعاً: إضافة الربط الجديد في teacher_grade_levels
-      const { data: insertData, error: insertError } = await supabase
-        .from("teacher_grade_levels")
-        .insert({
-          teacher_id: teacherId,
-          grade_level: gradeLevel,
-        })
-        .select(`
-          grade_level,
-          teacher:profiles(id, full_name)
-        `)
-        .single();
+        // حذف روابط التلاميذ القديمة لهذا الأستاذ فقط
+        if (studentsInGrade && studentsInGrade.length > 0) {
+          const studentIds = studentsInGrade.map(s => s.id);
+          
+          // جلب الأستاذ السابق لهذه المادة
+          const oldTeacher = gradeSubjectTeachers[gradeLevel]?.[subject];
+          if (oldTeacher) {
+            const { error: deleteStudentsError } = await supabase
+              .from("teacher_students")
+              .delete()
+              .eq("teacher_id", oldTeacher.id)
+              .in("student_id", studentIds);
 
-      if (insertError) {
-        console.error("Error inserting grade assignment:", insertError);
-        throw insertError;
-      }
-
-      // خامساً: ربط جميع تلاميذ المستوى بالأستاذ في teacher_students
-      if (studentsInGrade && studentsInGrade.length > 0) {
-        const teacherStudentLinks = studentsInGrade.map(student => ({
-          teacher_id: teacherId,
-          student_id: student.id,
-        }));
-
-        const { error: linkError } = await supabase
-          .from("teacher_students")
-          .insert(teacherStudentLinks);
-
-        if (linkError) {
-          console.error("Error linking students to teacher:", linkError);
+            if (deleteStudentsError) {
+              console.error("Error deleting old student links:", deleteStudentsError);
+            }
+          }
         }
-      }
 
-      // تحديث الحالة محلياً فوراً
-      if (insertData) {
-        setGradeTeachers(prev => ({
-          ...prev,
-          [gradeLevel]: insertData.teacher
-        }));
-      }
+        // إضافة الربط الجديد في teacher_grade_levels مع المادة
+        const { data: insertData, error: insertError } = await supabase
+          .from("teacher_grade_levels")
+          .insert({
+            teacher_id: teacherId,
+            grade_level: gradeLevel,
+            subject: subject,
+          })
+          .select(`
+            grade_level,
+            subject,
+            teacher:profiles(id, full_name)
+          `)
+          .single();
 
-      toast({
-        title: "نجاح",
-        description: `تم ربط الأستاذ بالمستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
-      });
+        if (insertError) {
+          console.error("Error inserting grade assignment:", insertError);
+          throw insertError;
+        }
+
+        // ربط جميع تلاميذ المستوى بالأستاذ الجديد
+        if (studentsInGrade && studentsInGrade.length > 0) {
+          const teacherStudentLinks = studentsInGrade.map(student => ({
+            teacher_id: teacherId,
+            student_id: student.id,
+            subject: subject,
+          }));
+
+          const { error: linkError } = await supabase
+            .from("teacher_students")
+            .insert(teacherStudentLinks);
+
+          if (linkError) {
+            console.error("Error linking students to teacher:", linkError);
+          }
+        }
+
+        // تحديث الحالة محلياً
+        if (insertData) {
+          setGradeSubjectTeachers(prev => ({
+            ...prev,
+            [gradeLevel]: {
+              ...prev[gradeLevel],
+              [subject]: insertData.teacher
+            }
+          }));
+        }
+
+        const subjectLabel = subjects.find(s => s.id === subject)?.label || subject;
+        toast({
+          title: "نجاح",
+          description: `تم ربط أستاذ ${subjectLabel} بالمستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
+        });
+
+      } else {
+        // للمستويات الأخرى: السلوك القديم
+        const { error: deleteGradeError } = await supabase
+          .from("teacher_grade_levels")
+          .delete()
+          .eq("grade_level", gradeLevel);
+
+        if (deleteGradeError) {
+          console.error("Error deleting old grade assignment:", deleteGradeError);
+          throw deleteGradeError;
+        }
+
+        if (studentsInGrade && studentsInGrade.length > 0) {
+          const studentIds = studentsInGrade.map(s => s.id);
+          const { error: deleteStudentsError } = await supabase
+            .from("teacher_students")
+            .delete()
+            .in("student_id", studentIds);
+
+          if (deleteStudentsError) {
+            console.error("Error deleting old student links:", deleteStudentsError);
+          }
+        }
+
+        const { data: insertData, error: insertError } = await supabase
+          .from("teacher_grade_levels")
+          .insert({
+            teacher_id: teacherId,
+            grade_level: gradeLevel,
+          })
+          .select(`
+            grade_level,
+            teacher:profiles(id, full_name)
+          `)
+          .single();
+
+        if (insertError) {
+          console.error("Error inserting grade assignment:", insertError);
+          throw insertError;
+        }
+
+        if (studentsInGrade && studentsInGrade.length > 0) {
+          const teacherStudentLinks = studentsInGrade.map(student => ({
+            teacher_id: teacherId,
+            student_id: student.id,
+          }));
+
+          const { error: linkError } = await supabase
+            .from("teacher_students")
+            .insert(teacherStudentLinks);
+
+          if (linkError) {
+            console.error("Error linking students to teacher:", linkError);
+          }
+        }
+
+        if (insertData) {
+          setGradeTeachers(prev => ({
+            ...prev,
+            [gradeLevel]: insertData.teacher
+          }));
+        }
+
+        toast({
+          title: "نجاح",
+          description: `تم ربط الأستاذ بالمستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
+        });
+      }
 
     } catch (error: any) {
       console.error("Error assigning teacher:", error);
@@ -272,7 +389,9 @@ export const StudentManagement = () => {
     }
   };
 
-  const handleRemoveTeacherAssignment = async (gradeLevel: string) => {
+  const handleRemoveTeacherAssignment = async (gradeLevel: string, subject?: string) => {
+    const isMultiTeacherGrade = multiTeacherGrades.includes(gradeLevel);
+    
     try {
       // جلب جميع تلاميذ هذا المستوى الدراسي
       const { data: studentsInGrade, error: studentsError } = await supabase
@@ -285,41 +404,85 @@ export const StudentManagement = () => {
         throw studentsError;
       }
 
-      // حذف ربط المستوى من teacher_grade_levels
-      const { error: deleteGradeError } = await supabase
-        .from("teacher_grade_levels")
-        .delete()
-        .eq("grade_level", gradeLevel);
-
-      if (deleteGradeError) {
-        console.error("Error deleting grade assignment:", deleteGradeError);
-        throw deleteGradeError;
-      }
-
-      // حذف روابط التلاميذ في teacher_students
-      if (studentsInGrade && studentsInGrade.length > 0) {
-        const studentIds = studentsInGrade.map(s => s.id);
-        const { error: deleteStudentsError } = await supabase
-          .from("teacher_students")
+      if (isMultiTeacherGrade && subject) {
+        // للمستويات العليا: حذف فقط ربط هذه المادة
+        const oldTeacher = gradeSubjectTeachers[gradeLevel]?.[subject];
+        
+        const { error: deleteGradeError } = await supabase
+          .from("teacher_grade_levels")
           .delete()
-          .in("student_id", studentIds);
+          .eq("grade_level", gradeLevel)
+          .eq("subject", subject);
 
-        if (deleteStudentsError) {
-          console.error("Error deleting student links:", deleteStudentsError);
+        if (deleteGradeError) {
+          console.error("Error deleting grade assignment:", deleteGradeError);
+          throw deleteGradeError;
         }
+
+        // حذف روابط التلاميذ لهذا الأستاذ فقط
+        if (studentsInGrade && studentsInGrade.length > 0 && oldTeacher) {
+          const studentIds = studentsInGrade.map(s => s.id);
+          const { error: deleteStudentsError } = await supabase
+            .from("teacher_students")
+            .delete()
+            .eq("teacher_id", oldTeacher.id)
+            .in("student_id", studentIds);
+
+          if (deleteStudentsError) {
+            console.error("Error deleting student links:", deleteStudentsError);
+          }
+        }
+
+        // تحديث الحالة محلياً
+        setGradeSubjectTeachers(prev => {
+          const newState = { ...prev };
+          if (newState[gradeLevel]) {
+            delete newState[gradeLevel][subject];
+          }
+          return newState;
+        });
+
+        const subjectLabel = subjects.find(s => s.id === subject)?.label || subject;
+        toast({
+          title: "نجاح",
+          description: `تم إزالة إسناد أستاذ ${subjectLabel} من المستوى`,
+        });
+
+      } else {
+        // للمستويات الأخرى: السلوك القديم
+        const { error: deleteGradeError } = await supabase
+          .from("teacher_grade_levels")
+          .delete()
+          .eq("grade_level", gradeLevel);
+
+        if (deleteGradeError) {
+          console.error("Error deleting grade assignment:", deleteGradeError);
+          throw deleteGradeError;
+        }
+
+        if (studentsInGrade && studentsInGrade.length > 0) {
+          const studentIds = studentsInGrade.map(s => s.id);
+          const { error: deleteStudentsError } = await supabase
+            .from("teacher_students")
+            .delete()
+            .in("student_id", studentIds);
+
+          if (deleteStudentsError) {
+            console.error("Error deleting student links:", deleteStudentsError);
+          }
+        }
+
+        setGradeTeachers(prev => {
+          const newState = { ...prev };
+          delete newState[gradeLevel];
+          return newState;
+        });
+
+        toast({
+          title: "نجاح",
+          description: `تم إزالة إسناد الأستاذ من المستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
+        });
       }
-
-      // تحديث الحالة محلياً
-      setGradeTeachers(prev => {
-        const newState = { ...prev };
-        delete newState[gradeLevel];
-        return newState;
-      });
-
-      toast({
-        title: "نجاح",
-        description: `تم إزالة إسناد الأستاذ من المستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
-      });
 
     } catch (error: any) {
       console.error("Error removing teacher assignment:", error);
@@ -786,7 +949,9 @@ export const StudentManagement = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {gradeLevels.map((level) => {
             const studentsCount = getGradeStudentsCount(level);
+            const isMultiTeacher = multiTeacherGrades.includes(level);
             const assignedTeacher = gradeTeachers[level];
+            const subjectTeachers = gradeSubjectTeachers[level] || {};
 
             return (
               <Card 
@@ -820,70 +985,184 @@ export const StudentManagement = () => {
                     </span>
                   </div>
                   
-                  <div className="flex items-center justify-between border-t pt-4">
-                    <span className="text-sm text-muted-foreground font-cairo">
-                      الأستاذ المسؤول
-                    </span>
-                    {assignedTeacher ? (
-                      <span className="font-medium font-cairo text-sm">
-                        {assignedTeacher.full_name}
+                  {/* عرض الأساتذة حسب المستوى */}
+                  {isMultiTeacher ? (
+                    // للمستويات العليا: 3 أساتذة (عربية، فرنسية، إنجليزية)
+                    <div className="border-t pt-4 space-y-3">
+                      <span className="text-sm text-muted-foreground font-cairo block mb-2">
+                        الأساتذة المسؤولون
                       </span>
-                    ) : (
-                      <span className="text-sm text-muted-foreground font-cairo">
-                        لم يتم التعيين
-                      </span>
-                    )}
-                  </div>
+                      {subjects.map((subject) => {
+                        const subjectTeacher = subjectTeachers[subject.id];
+                        return (
+                          <div key={subject.id} className="flex items-center justify-between gap-2 bg-muted/30 rounded-lg p-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{subject.icon}</span>
+                              <span className="text-sm font-cairo">{subject.label}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {subjectTeacher ? (
+                                <>
+                                  <span className="font-medium font-cairo text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                                    {subjectTeacher.full_name}
+                                  </span>
+                                  <Dialog 
+                                    open={assigningGrade === level && assigningSubject === subject.id} 
+                                    onOpenChange={(open) => {
+                                      setAssigningGrade(open ? level : null);
+                                      setAssigningSubject(open ? subject.id : null);
+                                    }}
+                                  >
+                                    <DialogTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-7 px-2">
+                                        <Edit className="w-3 h-3" />
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle className="font-cairo">تعيين أستاذ {subject.label}</DialogTitle>
+                                        <DialogDescription className="font-cairo">
+                                          اختر أستاذ {subject.label} لـ {level}
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <Select onValueChange={(value) => handleAssignTeacher(level, value, subject.id)}>
+                                          <SelectTrigger className="font-cairo">
+                                            <SelectValue placeholder="اختر الأستاذ" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {teachers.map((teacher) => (
+                                              <SelectItem key={teacher.id} value={teacher.id} className="font-cairo">
+                                                {teacher.full_name}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2 text-destructive hover:text-destructive"
+                                    onClick={() => handleRemoveTeacherAssignment(level, subject.id)}
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </>
+                              ) : (
+                                <Dialog 
+                                  open={assigningGrade === level && assigningSubject === subject.id} 
+                                  onOpenChange={(open) => {
+                                    setAssigningGrade(open ? level : null);
+                                    setAssigningSubject(open ? subject.id : null);
+                                  }}
+                                >
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-7 text-xs font-cairo">
+                                      <UserPlus className="w-3 h-3 ml-1" />
+                                      تعيين
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle className="font-cairo">تعيين أستاذ {subject.label}</DialogTitle>
+                                      <DialogDescription className="font-cairo">
+                                        اختر أستاذ {subject.label} لـ {level}
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                      <Select onValueChange={(value) => handleAssignTeacher(level, value, subject.id)}>
+                                        <SelectTrigger className="font-cairo">
+                                          <SelectValue placeholder="اختر الأستاذ" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {teachers.map((teacher) => (
+                                            <SelectItem key={teacher.id} value={teacher.id} className="font-cairo">
+                                              {teacher.full_name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    // للمستويات الأخرى: أستاذ واحد
+                    <>
+                      <div className="flex items-center justify-between border-t pt-4">
+                        <span className="text-sm text-muted-foreground font-cairo">
+                          الأستاذ المسؤول
+                        </span>
+                        {assignedTeacher ? (
+                          <span className="font-medium font-cairo text-sm">
+                            {assignedTeacher.full_name}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground font-cairo">
+                            لم يتم التعيين
+                          </span>
+                        )}
+                      </div>
 
-                  <div className="flex gap-2">
-                    <Dialog 
-                      open={assigningGrade === level} 
-                      onOpenChange={(open) => {
-                        setAssigningGrade(open ? level : null);
-                      }}
-                    >
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex-1 font-cairo">
-                          <UserPlus className="w-4 h-4 ml-2" />
-                          {assignedTeacher ? "تغيير" : "تعيين أستاذ"}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle className="font-cairo">تعيين أستاذ للمستوى</DialogTitle>
-                          <DialogDescription className="font-cairo">
-                            اختر الأستاذ المسؤول عن {level}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <Select onValueChange={(value) => handleAssignTeacher(level, value)}>
-                            <SelectTrigger className="font-cairo">
-                              <SelectValue placeholder="اختر الأستاذ" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {teachers.map((teacher) => (
-                                <SelectItem key={teacher.id} value={teacher.id} className="font-cairo">
-                                  {teacher.full_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                    
-                    {assignedTeacher && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveTeacherAssignment(level)}
-                        className="font-cairo"
-                        title="إزالة الإسناد"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
+                      <div className="flex gap-2">
+                        <Dialog 
+                          open={assigningGrade === level && !assigningSubject} 
+                          onOpenChange={(open) => {
+                            setAssigningGrade(open ? level : null);
+                            setAssigningSubject(null);
+                          }}
+                        >
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="flex-1 font-cairo">
+                              <UserPlus className="w-4 h-4 ml-2" />
+                              {assignedTeacher ? "تغيير" : "تعيين أستاذ"}
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle className="font-cairo">تعيين أستاذ للمستوى</DialogTitle>
+                              <DialogDescription className="font-cairo">
+                                اختر الأستاذ المسؤول عن {level}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <Select onValueChange={(value) => handleAssignTeacher(level, value)}>
+                                <SelectTrigger className="font-cairo">
+                                  <SelectValue placeholder="اختر الأستاذ" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {teachers.map((teacher) => (
+                                    <SelectItem key={teacher.id} value={teacher.id} className="font-cairo">
+                                      {teacher.full_name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        
+                        {assignedTeacher && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleRemoveTeacherAssignment(level)}
+                            className="font-cairo"
+                            title="إزالة الإسناد"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             );
