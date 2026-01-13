@@ -41,14 +41,14 @@ export const TeacherSidebar = ({ unreadCount }: TeacherSidebarProps) => {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.section}>
                   <SidebarMenuButton asChild>
-                    <a
-                      href={`#${item.section}`}
-                      className="flex items-center gap-3 hover:bg-muted/50 rounded-lg px-3 py-2 transition-colors relative"
-                      onClick={(e) => {
-                        e.preventDefault();
+                    <button
+                      onClick={() => {
+                        window.history.pushState(null, '', `#${item.section}`);
+                        window.dispatchEvent(new HashChangeEvent('hashchange'));
                         const element = document.getElementById(item.section);
                         element?.scrollIntoView({ behavior: 'smooth' });
                       }}
+                      className="flex items-center gap-3 hover:bg-muted/50 rounded-lg px-3 py-2 transition-colors relative w-full text-right"
                     >
                       <item.icon className="h-5 w-5 text-primary" />
                       <span>{item.title}</span>
@@ -57,7 +57,7 @@ export const TeacherSidebar = ({ unreadCount }: TeacherSidebarProps) => {
                           {unreadCount}
                         </span>
                       )}
-                    </a>
+                    </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
