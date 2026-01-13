@@ -154,6 +154,6 @@ export const adminNavItems: NavItem[] = [
   { id: "home", icon: Home, label: "الرئيسية" },
   { id: "users", icon: Users, label: "المستخدمين" },
   { id: "students", icon: GraduationCap, label: "التلاميذ" },
-  { id: "news", icon: Megaphone, label: "الأخبار" },
+  { id: "messages", icon: MessageSquare, label: "الرسائل" },
   { id: "reports", icon: BarChart3, label: "التقارير" },
 ];
