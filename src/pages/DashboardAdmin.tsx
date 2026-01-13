@@ -193,6 +193,13 @@ const DashboardAdmin = () => {
     // إضافة الـ hash للـ URL لتمكين زر الرجوع
     window.history.pushState(null, '', `#${section}`);
     setActiveSection(section);
+    
+    // تصفير الإشعارات عند زيارة القسم المعني
+    if (section === "users") {
+      setStats(prev => ({ ...prev, pendingRequests: 0 }));
+    } else if (section === "documentRequests") {
+      setStats(prev => ({ ...prev, pendingDocuments: 0 }));
+    }
   };
 
   return (
