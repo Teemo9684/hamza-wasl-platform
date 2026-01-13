@@ -202,37 +202,6 @@ export const PostersCarousel = () => {
             )}
           </div>
 
-          {/* Navigation Arrows */}
-          {posters.length > 1 && (
-            <>
-              <button
-                onClick={handleNext}
-                className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-10 
-                  h-10 w-10 md:h-12 md:w-12 rounded-full 
-                  bg-white/90 hover:bg-white 
-                  shadow-lg backdrop-blur-sm
-                  flex items-center justify-center
-                  transition-all duration-200 hover:scale-110
-                  focus:outline-none focus:ring-2 focus:ring-primary"
-                aria-label="الملصقة التالية"
-              >
-                <ChevronRight className="h-5 w-5 md:h-6 md:w-6 text-gray-800" />
-              </button>
-              <button
-                onClick={handlePrev}
-                className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-10 
-                  h-10 w-10 md:h-12 md:w-12 rounded-full 
-                  bg-white/90 hover:bg-white 
-                  shadow-lg backdrop-blur-sm
-                  flex items-center justify-center
-                  transition-all duration-200 hover:scale-110
-                  focus:outline-none focus:ring-2 focus:ring-primary"
-                aria-label="الملصقة السابقة"
-              >
-                <ChevronLeft className="h-5 w-5 md:h-6 md:w-6 text-gray-800" />
-              </button>
-            </>
-          )}
 
           {/* Minimal Line Indicators */}
           {posters.length > 1 && (
