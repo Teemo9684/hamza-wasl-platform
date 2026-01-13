@@ -4,6 +4,16 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      notify_email:
+        description: 'البريد الإلكتروني للإشعار'
+        required: false
+        type: string
+
+env:
+  NOTIFY_EMAIL: ${{ inputs.notify_email || vars.APK_NOTIFY_EMAIL }}
+  SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://caeltaubipulyrdyqsjn.supabase.co' }}
+  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
 jobs:
   build:
@@ -46,7 +56,26 @@ jobs:
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
+        id: upload-apk
         with:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Send Email Notification
+        if: env.NOTIFY_EMAIL != ''
+        run: |
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          COMMIT_MSG="${{ github.event.head_commit.message || 'تشغيل يدوي' }}"
+          
+          curl -X POST "${{ env.SUPABASE_URL }}/functions/v1/notify-apk-ready" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_ANON_KEY }}" \
+            -d "{
+              \"email\": \"${{ env.NOTIFY_EMAIL }}\",
+              \"downloadUrl\": \"${ARTIFACT_URL}\",
+              \"buildNumber\": \"${{ github.run_number }}\",
+              \"commitMessage\": \"${COMMIT_MSG}\"
+            }"
+          
+          echo "✅ Email notification sent to ${{ env.NOTIFY_EMAIL }}"
