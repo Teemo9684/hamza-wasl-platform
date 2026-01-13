@@ -8,6 +8,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -15,7 +17,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Configure Status Bar and Navigation Bar
+        // Configure Status Bar and Navigation Bar FIRST
         configureSystemBars();
         
         // Get the WebView and configure it for proper scaling
@@ -43,8 +45,16 @@ public class MainActivity extends BridgeActivity {
     private void configureSystemBars() {
         Window window = getWindow();
         
-        // Make status bar and navigation bar stable (not hidden)
+        // CRITICAL: Disable edge-to-edge mode - ensures system bars don't overlap content
+        WindowCompat.setDecorFitsSystemWindows(window, true);
+        
+        // Clear any fullscreen flags
         window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        
+        // Add flag to draw system bar backgrounds
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         
         // Set status bar color to app primary color (blue #1e40af)
         window.setStatusBarColor(Color.parseColor("#1e40af"));
@@ -52,18 +62,31 @@ public class MainActivity extends BridgeActivity {
         // Set navigation bar color to black
         window.setNavigationBarColor(Color.BLACK);
         
-        // Configure icon colors
+        // Use modern WindowInsetsControllerCompat for Android 14+ compatibility
         View decorView = window.getDecorView();
-        int flags = decorView.getSystemUiVisibility();
+        WindowInsetsControllerCompat insetsController = new WindowInsetsControllerCompat(window, decorView);
         
-        // Status bar: Light icons (white) on dark background - clear the LIGHT_STATUS_BAR flag
-        flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        // Status bar: Light (white) icons on dark background
+        insetsController.setAppearanceLightStatusBars(false);
         
-        // Navigation bar: Light icons (white) on black background - clear the LIGHT_NAVIGATION_BAR flag
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        // Navigation bar: Light (white) icons on black background
+        insetsController.setAppearanceLightNavigationBars(false);
+        
+        // LEGACY FALLBACK: Also set old flags for older devices
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            int flags = decorView.getSystemUiVisibility();
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+            }
+            decorView.setSystemUiVisibility(flags);
         }
-        
-        decorView.setSystemUiVisibility(flags);
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Re-apply system bar configuration on resume to ensure it persists
+        configureSystemBars();
     }
 }

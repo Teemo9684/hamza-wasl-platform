@@ -72,88 +72,125 @@ jobs:
           cp android-config/MainActivity.java "$TARGET_DIR/MainActivity.java"
           
           # Verify the file was copied correctly
-          if grep -q "configureSystemBars" "$TARGET_DIR/MainActivity.java"; then
-            echo "✅ MainActivity.java copied with system bars configuration"
+          if grep -q "WindowInsetsControllerCompat" "$TARGET_DIR/MainActivity.java"; then
+            echo "✅ MainActivity.java copied with modern WindowInsetsControllerCompat"
           else
-            echo "❌ Error: configureSystemBars method not found"
+            echo "❌ Error: Modern WindowInsetsControllerCompat not found"
+            cat "$TARGET_DIR/MainActivity.java"
             exit 1
           fi
           
-          # Update styles.xml to set status bar and navigation bar colors
+          # Update styles.xml with proper theme that doesn't use edge-to-edge
           STYLES_FILE="android/app/src/main/res/values/styles.xml"
-          if [ -f "$STYLES_FILE" ]; then
-            cat > "$STYLES_FILE" << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-                  <item name="android:colorPrimary">#1e40af</item>
-                  <item name="android:colorPrimaryDark">#1e3a8a</item>
-                  <item name="android:colorAccent">#3b82f6</item>
-                  <item name="android:statusBarColor">#1e40af</item>
-                  <item name="android:navigationBarColor">#000000</item>
-                  <item name="android:windowLightStatusBar">false</item>
-                  <item name="android:windowLightNavigationBar">false</item>
-                  <item name="android:windowFullscreen">false</item>
-                  <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-              </style>
-              <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
-                  <item name="android:colorPrimary">#1e40af</item>
-                  <item name="android:colorPrimaryDark">#1e3a8a</item>
-                  <item name="android:colorAccent">#3b82f6</item>
-                  <item name="android:statusBarColor">#1e40af</item>
-                  <item name="android:navigationBarColor">#000000</item>
-                  <item name="android:windowLightStatusBar">false</item>
-                  <item name="android:windowLightNavigationBar">false</item>
-                  <item name="android:windowFullscreen">false</item>
-                  <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-              </style>
-              <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-                  <item name="android:statusBarColor">#1e40af</item>
-                  <item name="android:navigationBarColor">#000000</item>
-                  <item name="android:windowLightStatusBar">false</item>
-                  <item name="android:windowLightNavigationBar">false</item>
-              </style>
-          </resources>
-          EOF
-            echo "✅ styles.xml completely rewritten with system bar colors"
-          fi
+          cat > "$STYLES_FILE" << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:colorPrimary">#1e40af</item>
+        <item name="android:colorPrimaryDark">#1e3a8a</item>
+        <item name="android:colorAccent">#3b82f6</item>
+        <item name="android:statusBarColor">#1e40af</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+    </style>
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:colorPrimary">#1e40af</item>
+        <item name="android:colorPrimaryDark">#1e3a8a</item>
+        <item name="android:colorAccent">#3b82f6</item>
+        <item name="android:statusBarColor">#1e40af</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+    </style>
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:statusBarColor">#1e40af</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
+EOF
+          echo "✅ styles.xml updated with fitsSystemWindows=true"
           
-          # Also update values-v27 for Android 8.1+ (navigation bar light mode)
+          # Create values-v27 for Android 8.1+ (navigation bar support)
           mkdir -p "android/app/src/main/res/values-v27"
           cat > "android/app/src/main/res/values-v27/styles.xml" << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-                  <item name="android:colorPrimary">#1e40af</item>
-                  <item name="android:colorPrimaryDark">#1e3a8a</item>
-                  <item name="android:colorAccent">#3b82f6</item>
-                  <item name="android:statusBarColor">#1e40af</item>
-                  <item name="android:navigationBarColor">#000000</item>
-                  <item name="android:windowLightStatusBar">false</item>
-                  <item name="android:windowLightNavigationBar">false</item>
-                  <item name="android:windowFullscreen">false</item>
-                  <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-              </style>
-              <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
-                  <item name="android:colorPrimary">#1e40af</item>
-                  <item name="android:colorPrimaryDark">#1e3a8a</item>
-                  <item name="android:colorAccent">#3b82f6</item>
-                  <item name="android:statusBarColor">#1e40af</item>
-                  <item name="android:navigationBarColor">#000000</item>
-                  <item name="android:windowLightStatusBar">false</item>
-                  <item name="android:windowLightNavigationBar">false</item>
-                  <item name="android:windowFullscreen">false</item>
-                  <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-              </style>
-              <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-                  <item name="android:statusBarColor">#1e40af</item>
-                  <item name="android:navigationBarColor">#000000</item>
-                  <item name="android:windowLightStatusBar">false</item>
-                  <item name="android:windowLightNavigationBar">false</item>
-              </style>
-          </resources>
-          EOF
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:colorPrimary">#1e40af</item>
+        <item name="android:colorPrimaryDark">#1e3a8a</item>
+        <item name="android:colorAccent">#3b82f6</item>
+        <item name="android:statusBarColor">#1e40af</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+    </style>
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:colorPrimary">#1e40af</item>
+        <item name="android:colorPrimaryDark">#1e3a8a</item>
+        <item name="android:colorAccent">#3b82f6</item>
+        <item name="android:statusBarColor">#1e40af</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+    </style>
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:statusBarColor">#1e40af</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>
+EOF
           echo "✅ values-v27/styles.xml created for Android 8.1+"
+          
+          # Create values-v35 for Android 14+ (edge-to-edge enforcement)
+          mkdir -p "android/app/src/main/res/values-v35"
+          cat > "android/app/src/main/res/values-v35/styles.xml" << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:colorPrimary">#1e40af</item>
+        <item name="android:colorPrimaryDark">#1e3a8a</item>
+        <item name="android:colorAccent">#3b82f6</item>
+        <item name="android:statusBarColor">#1e40af</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:colorPrimary">#1e40af</item>
+        <item name="android:colorPrimaryDark">#1e3a8a</item>
+        <item name="android:colorAccent">#3b82f6</item>
+        <item name="android:statusBarColor">#1e40af</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:statusBarColor">#1e40af</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>
+EOF
+          echo "✅ values-v35/styles.xml created for Android 14+"
 
       - name: Setup Firebase for Push Notifications
         run: |
