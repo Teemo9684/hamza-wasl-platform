@@ -163,7 +163,7 @@ const DashboardAdmin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden scroll-smooth">
+    <div className="min-h-screen bg-background overflow-x-clip scroll-smooth">
       <div className="absolute inset-0 animated-bg opacity-10 pointer-events-none" />
       
       <div className="relative z-10">
