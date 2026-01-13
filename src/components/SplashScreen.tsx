@@ -1,11 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { APP_VERSION } from "@/config/version";
+
 interface SplashScreenProps {
   onFinish: () => void;
 }
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   const [fadeOut, setFadeOut] = useState(false);
+  const hasFinished = useRef(false);
+
+  const handleFinish = useCallback(() => {
+    if (!hasFinished.current) {
+      hasFinished.current = true;
+      onFinish();
+    }
+  }, [onFinish]);
 
   useEffect(() => {
     // Fade out after 2.5s
@@ -15,14 +24,14 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
     // Finish after 3s
     const finishTimer = setTimeout(() => {
-      onFinish();
+      handleFinish();
     }, 3000);
 
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(finishTimer);
     };
-  }, [onFinish]);
+  }, [handleFinish]);
 
   return (
     <div
