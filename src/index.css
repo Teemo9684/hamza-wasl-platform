@@ -101,11 +101,20 @@
 @layer base {
   * {
     @apply border-border;
+    /* Prevent content from overflowing */
+    box-sizing: border-box;
+  }
+
+  html {
+    direction: rtl;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground font-cairo;
     direction: rtl;
+    overflow-x: hidden;
+    max-width: 100vw;
     /* Support for safe areas on mobile devices */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -113,8 +122,23 @@
     padding-right: env(safe-area-inset-right);
   }
 
-  html {
-    direction: rtl;
+  /* Global overflow fix */
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+  }
+
+  /* Fix long words breaking layout */
+  p, span, h1, h2, h3, h4, h5, h6, li, td, th, label {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Fix tables on mobile */
+  table {
+    width: 100%;
+    table-layout: auto;
   }
 }
 

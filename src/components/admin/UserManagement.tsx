@@ -394,6 +394,7 @@ export const UserManagement = () => {
                   لا توجد بيانات
                 </div>
               ) : (
+                <div className="overflow-x-auto -mx-4 px-4">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -458,6 +459,7 @@ export const UserManagement = () => {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>
