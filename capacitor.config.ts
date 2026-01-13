@@ -9,12 +9,14 @@ const config: CapacitorConfig = {
   },
   android: {
     allowMixedContent: true,
-    // Disable WebView zoom to match PWA behavior
-    initialFocus: false
+    initialFocus: false,
+    webContentsDebuggingEnabled: false,
+    // Match PWA display density
+    adjustResize: true
   },
   server: {
-    // Ensure proper viewport handling
-    androidScheme: 'https'
+    androidScheme: 'https',
+    iosScheme: 'https'
   },
   plugins: {
     PushNotifications: {
