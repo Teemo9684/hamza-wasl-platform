@@ -39,6 +39,7 @@ const DashboardAdmin = () => {
     students: 0,
     pendingRequests: 0,
     pendingDocuments: 0,
+    unreadMessages: 0,
   });
   const scrollPositionRef = useRef<number>(0);
 
@@ -67,7 +68,7 @@ const DashboardAdmin = () => {
     fetchStatistics();
   }, []);
 
-  // Real-time notifications for new document requests and user registrations
+  // Real-time notifications for new document requests, user registrations and messages
   useEffect(() => {
     const documentRequestsChannel = supabase
       .channel('admin-document-requests')
@@ -120,9 +121,34 @@ const DashboardAdmin = () => {
       )
       .subscribe();
 
+    const messagesChannel = supabase
+      .channel('admin-new-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          // رسالة جديدة
+          playNotificationSound();
+          toast.info('رسالة جديدة', {
+            description: 'تم استلام رسالة جديدة',
+            duration: 5000,
+          });
+          setStats(prev => ({
+            ...prev,
+            unreadMessages: prev.unreadMessages + 1
+          }));
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(documentRequestsChannel);
       supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(messagesChannel);
     };
   }, []);
 
@@ -163,12 +189,18 @@ const DashboardAdmin = () => {
         .select("*", { count: "exact", head: true })
         .eq("status", "pending");
 
+      const { count: unreadMessagesCount } = await supabase
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("is_read", false);
+
       setStats({
         parents: parentsCount || 0,
         teachers: teachersCount || 0,
         students: studentsCount || 0,
         pendingRequests: pendingCount || 0,
         pendingDocuments: pendingDocsCount || 0,
+        unreadMessages: unreadMessagesCount || 0,
       });
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -199,6 +231,8 @@ const DashboardAdmin = () => {
       setStats(prev => ({ ...prev, pendingRequests: 0 }));
     } else if (section === "documentRequests") {
       setStats(prev => ({ ...prev, pendingDocuments: 0 }));
+    } else if (section === "messages") {
+      setStats(prev => ({ ...prev, unreadMessages: 0 }));
     }
   };
 
@@ -535,6 +569,7 @@ const DashboardAdmin = () => {
           notifications={{
             users: stats.pendingRequests,
             reports: stats.pendingDocuments,
+            messages: stats.unreadMessages,
           }}
         />
       </div>
