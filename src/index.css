@@ -114,6 +114,16 @@
     text-size-adjust: 100%;
   }
 
+  /* Capacitor Android WebView fix - force correct scaling */
+  html.capacitor-android {
+    font-size: 14px; /* Slightly smaller base for WebView density */
+  }
+
+  html.capacitor-android body {
+    transform-origin: top center;
+    /* Compensate for WebView density difference */
+  }
+
   body {
     @apply bg-background text-foreground font-cairo;
     direction: rtl;
