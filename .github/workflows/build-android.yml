@@ -92,6 +92,59 @@ jobs:
             echo "⚠️ Source icon not found at $SOURCE_ICON"
           fi
 
+      - name: Setup Splash Screen
+        run: |
+          RES_DIR="android/app/src/main/res"
+          SOURCE_SPLASH="src/assets/splash-logo.png"
+          
+          # Define drawable directories and dimensions (width x height)
+          declare -A splash_sizes=(
+            ["drawable-mdpi"]="320x480"
+            ["drawable-hdpi"]="480x800"
+            ["drawable-xhdpi"]="720x1280"
+            ["drawable-xxhdpi"]="960x1600"
+            ["drawable-xxxhdpi"]="1280x1920"
+          )
+          
+          if [ -f "$SOURCE_SPLASH" ]; then
+            for folder in "${!splash_sizes[@]}"; do
+              dims=${splash_sizes[$folder]}
+              mkdir -p "$RES_DIR/$folder"
+              # Create splash with background color and centered logo
+              convert -size $dims xc:"#1a1a2e" \
+                \( "$SOURCE_SPLASH" -resize 40% \) \
+                -gravity center -composite \
+                "$RES_DIR/$folder/splash.png"
+              echo "✅ Created splash screen in $folder ($dims)"
+            done
+            
+            # Also create for drawable folder (fallback)
+            mkdir -p "$RES_DIR/drawable"
+            convert -size 1280x1920 xc:"#1a1a2e" \
+              \( "$SOURCE_SPLASH" -resize 40% \) \
+              -gravity center -composite \
+              "$RES_DIR/drawable/splash.png"
+            echo "✅ Created fallback splash screen"
+          else
+            echo "⚠️ Source splash not found at $SOURCE_SPLASH, using icon instead"
+            SOURCE_ICON="public/icon-512.png"
+            if [ -f "$SOURCE_ICON" ]; then
+              for folder in "${!splash_sizes[@]}"; do
+                dims=${splash_sizes[$folder]}
+                mkdir -p "$RES_DIR/$folder"
+                convert -size $dims xc:"#1a1a2e" \
+                  \( "$SOURCE_ICON" -resize 30% \) \
+                  -gravity center -composite \
+                  "$RES_DIR/$folder/splash.png"
+              done
+              mkdir -p "$RES_DIR/drawable"
+              convert -size 1280x1920 xc:"#1a1a2e" \
+                \( "$SOURCE_ICON" -resize 30% \) \
+                -gravity center -composite \
+                "$RES_DIR/drawable/splash.png"
+            fi
+          fi
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
