@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,15 @@ import { BottomNav, adminNavItems } from "@/components/BottomNav";
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const location = useLocation();
+  
+  // استخراج القسم من الـ URL hash
+  const getSectionFromHash = () => {
+    const hash = location.hash.replace('#', '');
+    return hash || null;
+  };
+  
+  const [activeSection, setActiveSection] = useState<string | null>(getSectionFromHash());
   const [stats, setStats] = useState({
     parents: 0,
     teachers: 0,
@@ -33,6 +41,27 @@ const DashboardAdmin = () => {
     pendingDocuments: 0,
   });
   const scrollPositionRef = useRef<number>(0);
+
+  // تحديث القسم عند تغير الـ hash
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      setActiveSection(hash || null);
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // مزامنة القسم مع الـ hash
+  useEffect(() => {
+    const currentHash = location.hash.replace('#', '');
+    if (activeSection && activeSection !== currentHash) {
+      // لا تفعل شيء - الـ hash سيتم تحديثه في handleOpenSection
+    } else if (!activeSection && currentHash) {
+      setActiveSection(currentHash);
+    }
+  }, [location.hash]);
 
   useEffect(() => {
     fetchStatistics();
@@ -153,12 +182,16 @@ const DashboardAdmin = () => {
   };
 
   const handleBackToDashboard = () => {
+    // إزالة الـ hash والرجوع للصفحة الرئيسية
+    window.history.pushState(null, '', window.location.pathname);
     setActiveSection(null);
   };
 
   const handleOpenSection = (section: string) => {
     // Save current scroll position before opening section
     scrollPositionRef.current = window.scrollY;
+    // إضافة الـ hash للـ URL لتمكين زر الرجوع
+    window.history.pushState(null, '', `#${section}`);
     setActiveSection(section);
   };
 
