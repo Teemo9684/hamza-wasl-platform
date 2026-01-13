@@ -57,16 +57,32 @@ const RegisterParent = () => {
       if (error) throw error;
 
       if (data.user) {
+        // First check if the student exists
+        const { data: studentData, error: studentError } = await supabase
+          .from('students')
+          .select('id, full_name')
+          .eq('national_school_id', formData.nationalSchoolId.trim())
+          .maybeSingle();
+
+        if (studentError || !studentData) {
+          toast({
+            title: "التلميذ غير موجود",
+            description: `لم يتم العثور على تلميذ بالرقم الوطني "${formData.nationalSchoolId}". يرجى التأكد من أن التلميذ مسجل في النظام من قبل الإدارة.`,
+            variant: "destructive",
+          });
+          return;
+        }
+
         // Link parent to student using national school ID
         const { error: linkError } = await supabase.rpc('link_parent_to_student', {
           _parent_id: data.user.id,
-          _national_school_id: formData.nationalSchoolId,
+          _national_school_id: formData.nationalSchoolId.trim(),
         });
 
         if (linkError) {
           toast({
-            title: "خطأ",
-            description: "رقم التعريف المدرسي غير صحيح أو التلميذ غير موجود",
+            title: "خطأ في الربط",
+            description: `فشل ربط الحساب بالتلميذ "${studentData.full_name}". يرجى المحاولة مرة أخرى أو التواصل مع الإدارة.`,
             variant: "destructive",
           });
           return;
