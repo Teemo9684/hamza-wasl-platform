@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { formatDateWithWeekday } from "@/utils/formatters";
 
 interface ParentAttendanceProps {
   attendance: any[];
@@ -55,12 +56,7 @@ export const ParentAttendance = ({ attendance, selectedChild }: ParentAttendance
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold">
-                        {new Date(record.date).toLocaleDateString('ar-u-nu-latn', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
+                        {formatDateWithWeekday(record.date)}
                       </span>
                       {getStatusBadge(record.status)}
                     </div>

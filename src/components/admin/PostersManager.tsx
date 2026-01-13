@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Plus, Trash2, ArrowUp, ArrowDown, Image, X, Loader2 } from 'lucide-react';
+import { formatDateOnly } from '@/utils/formatters';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -342,7 +343,7 @@ export const PostersManager = () => {
                   <div className="flex-1">
                     <h3 className="font-semibold">{poster.title}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(poster.created_at).toLocaleDateString('ar-SA')}
+                      {formatDateOnly(poster.created_at)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

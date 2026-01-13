@@ -11,6 +11,7 @@ import { MessageSquare, Send, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { messageSchema } from "@/lib/validations";
+import { formatDateOnly, formatDateTime } from "@/utils/formatters";
 
 interface ParentMessagesProps {
   teachers: any[];

@@ -9,8 +9,7 @@ import { Users, UserCheck, Search, Trash2, CheckCircle, XCircle, Clock, User } f
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast as sonnerToast } from "sonner";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { formatDateOnly, formatDateTime } from "@/utils/formatters";
 import {
   Table,
   TableBody,
@@ -332,7 +331,7 @@ export const UserManagement = () => {
                             )}
                             <p className="flex items-center justify-end gap-2 font-cairo">
                               <span>
-                                {new Date(approval.created_at).toLocaleDateString("ar-u-nu-latn", { year: "numeric", month: "long", day: "numeric" })}
+                                {formatDateOnly(approval.created_at)}
                               </span>
                               <span>:تاريخ التسجيل</span>
                             </p>
@@ -415,7 +414,7 @@ export const UserManagement = () => {
                           {user.phone || "غير متوفر"}
                         </TableCell>
                         <TableCell className="font-tajawal">
-                          {new Date(user.created_at).toLocaleDateString("ar-u-nu-latn")}
+                          {formatDateOnly(user.created_at)}
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="font-cairo">

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDateTime } from "@/utils/formatters";
 
 interface NotificationSettings {
   enabled: boolean;
@@ -234,14 +235,8 @@ export const SettingsManager = () => {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatDateLocal = (dateString: string) => {
+    return formatDateTime(dateString);
   };
 
   const fetchSettings = async () => {
@@ -481,7 +476,7 @@ export const SettingsManager = () => {
               <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
                   <Calendar className="w-4 h-4" />
-                  <span>تاريخ البناء: {formatDate(latestApkInfo.created_at)}</span>
+                  <span>تاريخ البناء: {formatDateLocal(latestApkInfo.created_at)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
                   <HardDrive className="w-4 h-4" />

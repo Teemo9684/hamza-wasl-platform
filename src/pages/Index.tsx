@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ar } from "date-fns/locale";
 import { PostersCarousel } from "@/components/PostersCarousel";
+import { formatDateWithWeekday } from "@/utils/formatters";
 
 interface NewsItem {
   id: string;
@@ -382,7 +382,7 @@ const Index = () => {
         <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
           {/* Date */}
           <div className="font-medium">
-            {new Date(currentTime).toLocaleDateString("ar-u-nu-latn", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+            {formatDateWithWeekday(currentTime)}
           </div>
           
           {/* Separator */}

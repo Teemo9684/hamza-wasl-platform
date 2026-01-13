@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useRealtime } from "@/hooks/useRealtime";
 import { Calendar, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatDateOnly } from "@/utils/formatters";
 
 interface ParentScheduleProps {
   selectedChild: string;
