@@ -9,9 +9,15 @@ on:
         description: 'البريد الإلكتروني للإشعار'
         required: false
         type: string
+      app_version:
+        description: 'رقم إصدار التطبيق'
+        required: false
+        type: string
+        default: '1.0.0'
 
 env:
   NOTIFY_EMAIL: ${{ inputs.notify_email || vars.APK_NOTIFY_EMAIL }}
+  APP_VERSION: ${{ inputs.app_version || '1.0.0' }}
   SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://caeltaubipulyrdyqsjn.supabase.co' }}
   SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
@@ -40,6 +46,10 @@ jobs:
 
       - name: Build web app
         run: npm run build
+
+      - name: Update version in capacitor.config.ts
+        run: |
+          sed -i "s/version: '.*'/version: '${{ env.APP_VERSION }}'/" capacitor.config.ts || true
 
       - name: Add Android platform
         run: npx cap add android || true
