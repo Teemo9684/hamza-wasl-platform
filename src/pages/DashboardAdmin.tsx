@@ -81,7 +81,7 @@ const DashboardAdmin = () => {
         },
         () => {
           // تم استلام طلب وثيقة جديد
-          playNotificationSound();
+          playNotificationSound('document');
           toast.info('طلب وثيقة جديد', {
             description: 'تم استلام طلب وثيقة جديد',
             duration: 5000,
@@ -107,7 +107,7 @@ const DashboardAdmin = () => {
           const newProfile = payload.new as any;
           if (!newProfile.is_approved) {
             // تسجيل مستخدم جديد
-            playNotificationSound();
+            playNotificationSound('user');
             toast.info('تسجيل مستخدم جديد', {
               description: `${newProfile.full_name} في انتظار الموافقة`,
               duration: 5000,
@@ -132,7 +132,7 @@ const DashboardAdmin = () => {
         },
         () => {
           // رسالة جديدة
-          playNotificationSound();
+          playNotificationSound('message');
           toast.info('رسالة جديدة', {
             description: 'تم استلام رسالة جديدة',
             duration: 5000,
