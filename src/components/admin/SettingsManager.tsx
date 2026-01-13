@@ -31,6 +31,8 @@ export const SettingsManager = () => {
     size_in_bytes: number;
     run_number: number;
   } | null>(null);
+  const [apkNotAvailable, setApkNotAvailable] = useState(false);
+  const [buildJustTriggered, setBuildJustTriggered] = useState(false);
 
   const { toast } = useToast();
 
@@ -60,6 +62,8 @@ export const SettingsManager = () => {
         title: "نجاح",
         description: data.message || "تم تشغيل بناء التطبيق بنجاح",
       });
+      setBuildJustTriggered(true);
+      setApkNotAvailable(true);
     } catch (error) {
       console.error("Error triggering APK build:", error);
       toast({
@@ -83,16 +87,29 @@ export const SettingsManager = () => {
         method: 'POST',
       });
 
-      if (!error && data?.artifact) {
+      if (error) {
+        // Check if it's a 404 (no build available)
+        setApkNotAvailable(true);
+        setLatestApkInfo(null);
+        return;
+      }
+
+      if (data?.artifact) {
         setLatestApkInfo({
           name: data.artifact.name,
           created_at: data.artifact.created_at,
           size_in_bytes: data.artifact.size_in_bytes,
           run_number: data.run.run_number,
         });
+        setApkNotAvailable(false);
+        setBuildJustTriggered(false);
+      } else if (data?.error) {
+        setApkNotAvailable(true);
+        setLatestApkInfo(null);
       }
     } catch (error) {
       console.error("Error fetching APK info:", error);
+      setApkNotAvailable(true);
     }
   };
 
@@ -104,7 +121,15 @@ export const SettingsManager = () => {
         method: 'POST',
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a build not found error
+        toast({
+          title: "تنبيه",
+          description: "لا يوجد بناء متاح حالياً. قم ببناء التطبيق أولاً أو انتظر اكتمال البناء الجاري.",
+        });
+        setApkNotAvailable(true);
+        return;
+      }
 
       if (data?.downloadUrl) {
         // Open download URL in new tab
@@ -117,16 +142,16 @@ export const SettingsManager = () => {
         toast({
           title: "تنبيه",
           description: data.message || data.error,
-          variant: "destructive"
         });
+        setApkNotAvailable(true);
       }
     } catch (error) {
       console.error("Error downloading APK:", error);
       toast({
-        title: "خطأ",
-        description: "فشل في تحميل ملف APK",
-        variant: "destructive"
+        title: "تنبيه",
+        description: "لا يوجد بناء متاح حالياً",
       });
+      setApkNotAvailable(true);
     } finally {
       setDownloadingApk(false);
     }
@@ -353,6 +378,34 @@ export const SettingsManager = () => {
               تحميل آخر ملف APK
             </Label>
             
+            {buildJustTriggered && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 font-cairo">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>جاري بناء التطبيق... يستغرق هذا عادة 5-10 دقائق</span>
+                </div>
+                <p className="text-xs text-muted-foreground font-cairo">
+                  سيتم إشعارك عند اكتمال البناء. يمكنك تحديث الصفحة للتحقق من حالة البناء.
+                </p>
+                <Button 
+                  onClick={fetchLatestApkInfo} 
+                  variant="ghost"
+                  size="sm"
+                  className="font-cairo"
+                >
+                  تحديث الحالة
+                </Button>
+              </div>
+            )}
+
+            {apkNotAvailable && !buildJustTriggered && (
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-sm text-muted-foreground font-cairo">
+                  لا يوجد ملف APK متاح حالياً. قم ببناء التطبيق أولاً باستخدام الزر أعلاه.
+                </p>
+              </div>
+            )}
+            
             {latestApkInfo && (
               <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
@@ -372,7 +425,7 @@ export const SettingsManager = () => {
 
             <Button 
               onClick={handleDownloadApk} 
-              disabled={downloadingApk}
+              disabled={downloadingApk || apkNotAvailable}
               variant="outline"
               className="font-cairo w-full sm:w-auto"
             >
