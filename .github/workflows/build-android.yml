@@ -98,10 +98,24 @@ jobs:
             for folder in "${!sizes[@]}"; do
               size=${sizes[$folder]}
               mkdir -p "$RES_DIR/$folder"
-              convert "$SOURCE_ICON" -resize ${size}x${size} "$RES_DIR/$folder/ic_launcher.png"
-              convert "$SOURCE_ICON" -resize ${size}x${size} "$RES_DIR/$folder/ic_launcher_round.png"
-              convert "$SOURCE_ICON" -resize ${size}x${size} "$RES_DIR/$folder/ic_launcher_foreground.png"
-              echo "✅ Created ${size}x${size} icons in $folder"
+              # Create standard launcher icon with padding (72% of size for icon content)
+              icon_size=$((size * 72 / 100))
+              convert -size ${size}x${size} xc:transparent \
+                \( "$SOURCE_ICON" -resize ${icon_size}x${icon_size} \) \
+                -gravity center -composite \
+                "$RES_DIR/$folder/ic_launcher.png"
+              # Create round launcher icon
+              convert -size ${size}x${size} xc:transparent \
+                \( "$SOURCE_ICON" -resize ${icon_size}x${icon_size} \) \
+                -gravity center -composite \
+                "$RES_DIR/$folder/ic_launcher_round.png"
+              # Create foreground for adaptive icon (should be 108dp with icon at 66dp = 61%)
+              fg_size=$((size * 61 / 100))
+              convert -size ${size}x${size} xc:transparent \
+                \( "$SOURCE_ICON" -resize ${fg_size}x${fg_size} \) \
+                -gravity center -composite \
+                "$RES_DIR/$folder/ic_launcher_foreground.png"
+              echo "✅ Created ${size}x${size} icons in $folder (icon: ${icon_size}px, fg: ${fg_size}px)"
             done
           else
             echo "⚠️ Source icon not found at $SOURCE_ICON"
