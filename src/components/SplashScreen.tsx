@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { APP_VERSION } from "@/config/version";
 
 interface SplashScreenProps {
@@ -7,41 +7,39 @@ interface SplashScreenProps {
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   const [fadeOut, setFadeOut] = useState(false);
-  const hasFinished = useRef(false);
-
-  const handleFinish = useCallback(() => {
-    if (!hasFinished.current) {
-      hasFinished.current = true;
-      onFinish();
-    }
-  }, [onFinish]);
+  const onFinishRef = useRef(onFinish);
+  
+  // Keep the ref updated
+  onFinishRef.current = onFinish;
 
   useEffect(() => {
-    console.log("SplashScreen mounted");
+    let isMounted = true;
     
     // Fade out after 2.5s
     const fadeTimer = setTimeout(() => {
-      console.log("SplashScreen fading out");
-      setFadeOut(true);
+      if (isMounted) {
+        setFadeOut(true);
+      }
     }, 2500);
 
     // Finish after 3s
     const finishTimer = setTimeout(() => {
-      console.log("SplashScreen calling onFinish");
-      handleFinish();
+      if (isMounted) {
+        onFinishRef.current();
+      }
     }, 3000);
 
     return () => {
-      console.log("SplashScreen cleanup");
+      isMounted = false;
       clearTimeout(fadeTimer);
       clearTimeout(finishTimer);
     };
-  }, [handleFinish]);
+  }, []); // Empty dependency array - runs once on mount
 
   return (
     <div
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary/95 to-accent transition-opacity duration-500 ${
-        fadeOut ? "opacity-0" : "opacity-100"
+        fadeOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
       {/* Animated Background Particles */}
