@@ -26,9 +26,20 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Triggering APK build for repository: ${githubRepo}`);
+    // Parse request body to get version
+    let version = '1.0.0';
+    try {
+      const body = await req.json();
+      if (body.version) {
+        version = body.version;
+      }
+    } catch {
+      // If no body, use default version
+    }
 
-    // Trigger GitHub Actions workflow
+    console.log(`Triggering APK build for repository: ${githubRepo} with version: ${version}`);
+
+    // Trigger GitHub Actions workflow with version input
     const response = await fetch(
       `https://api.github.com/repos/${githubRepo}/actions/workflows/build-android.yml/dispatches`,
       {
@@ -41,6 +52,9 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           ref: 'main',
+          inputs: {
+            app_version: version,
+          },
         }),
       }
     );

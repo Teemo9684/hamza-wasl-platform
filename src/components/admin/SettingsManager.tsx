@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Save, Bell, Shield, Smartphone, Loader2 } from "lucide-react";
+import { Settings, Save, Bell, Shield, Smartphone, Loader2, Tag } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 
 interface NotificationSettings {
@@ -22,15 +23,28 @@ export const SettingsManager = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [buildingApk, setBuildingApk] = useState(false);
+  const [appVersion, setAppVersion] = useState("1.0.0");
 
   const { toast } = useToast();
 
   const handleTriggerApkBuild = async () => {
+    // Validate version format
+    const versionRegex = /^\d+\.\d+\.\d+$/;
+    if (!versionRegex.test(appVersion)) {
+      toast({
+        title: "خطأ",
+        description: "صيغة رقم الإصدار غير صحيحة. استخدم الصيغة: X.X.X",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setBuildingApk(true);
       
       const { data, error } = await supabase.functions.invoke('trigger-apk-build', {
         method: 'POST',
+        body: { version: appVersion },
       });
 
       if (error) throw error;
@@ -210,17 +224,29 @@ export const SettingsManager = () => {
             قم بتشغيل بناء ملف APK الجديد للتطبيق
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground font-cairo">
-                سيتم بناء ملف APK جديد وإرسال إشعار عند الانتهاء
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex-1 space-y-2 w-full sm:w-auto">
+              <Label className="font-cairo flex items-center gap-2">
+                <Tag className="w-4 h-4 text-primary" />
+                رقم الإصدار
+              </Label>
+              <Input
+                type="text"
+                value={appVersion}
+                onChange={(e) => setAppVersion(e.target.value)}
+                placeholder="1.0.0"
+                className="font-cairo text-left ltr max-w-[150px]"
+                dir="ltr"
+              />
+              <p className="text-xs text-muted-foreground font-cairo">
+                استخدم الصيغة: X.X.X (مثال: 1.0.0)
               </p>
             </div>
             <Button 
               onClick={handleTriggerApkBuild} 
               disabled={buildingApk}
-              className="font-cairo"
+              className="font-cairo mt-2 sm:mt-6"
             >
               {buildingApk ? (
                 <>
@@ -235,6 +261,9 @@ export const SettingsManager = () => {
               )}
             </Button>
           </div>
+          <p className="text-sm text-muted-foreground font-cairo">
+            سيتم بناء ملف APK جديد بالإصدار المحدد وإرسال إشعار عند الانتهاء
+          </p>
         </CardContent>
       </Card>
     </div>
