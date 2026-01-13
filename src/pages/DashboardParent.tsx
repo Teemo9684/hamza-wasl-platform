@@ -11,6 +11,7 @@ import { ParentMessages } from "@/components/parent/ParentMessages";
 import { ParentHomework } from "@/components/parent/ParentHomework";
 import { ParentSchedule } from "@/components/parent/ParentSchedule";
 import { ParentDocumentRequests } from "@/components/parent/ParentDocumentRequests";
+import { ParentSettings } from "@/components/parent/ParentSettings";
 import { NewsTicker } from "@/components/NewsTicker";
 import { DateTimeBar } from "@/components/DateTimeBar";
 import { AnimatePresence } from "framer-motion";
@@ -288,6 +289,13 @@ const DashboardParent = () => {
                 <ParentDocumentRequests
                   selectedChild={selectedChild}
                   children={children}
+                />
+              </section>
+
+              <section id="settings">
+                <ParentSettings
+                  children={children}
+                  onChildRemoved={fetchParentData}
                 />
               </section>
             </div>

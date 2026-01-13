@@ -146,7 +146,7 @@ export const parentNavItems: NavItem[] = [
   { id: "homework", icon: BookOpen, label: "الواجبات" },
   { id: "schedule", icon: Clock, label: "الجدول" },
   { id: "messages", icon: MessageSquare, label: "الرسائل" },
-  { id: "documents", icon: FileText, label: "الوثائق" },
+  { id: "settings", icon: Settings, label: "الإعدادات" },
 ];
 
 // Pre-defined nav items for admin dashboard
