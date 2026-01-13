@@ -1,15 +1,15 @@
 import { createRoot } from "react-dom/client";
 import { Capacitor } from "@capacitor/core";
 import { SplashScreen as CapacitorSplashScreen } from "@capacitor/splash-screen";
-import { StatusBar, Style } from "@capacitor/status-bar";
 import App from "./App.tsx";
 import "./index.css";
 import { registerSW } from 'virtual:pwa-register';
 
-// Configure status bar for native platforms
+// Configure status bar for native platforms (dynamic import to avoid web issues)
 const configureStatusBar = async () => {
   if (Capacitor.isNativePlatform()) {
     try {
+      const { StatusBar, Style } = await import("@capacitor/status-bar");
       // Set status bar to match app theme (dark icons on transparent/colored background)
       await StatusBar.setStyle({ style: Style.Light });
       await StatusBar.setBackgroundColor({ color: '#1e40af' });
