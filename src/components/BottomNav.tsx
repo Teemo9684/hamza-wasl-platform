@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Home, Calendar, BookOpen, MessageSquare, Send, FileText, Clock, Users, GraduationCap, Megaphone, Settings, BarChart3, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { lightHaptic } from "@/utils/haptics";
 
 interface NavItem {
   id: string;
@@ -60,6 +61,9 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
   }, [activeSection]);
 
   const handleClick = (sectionId: string) => {
+    // تشغيل الاهتزاز
+    lightHaptic();
+    
     if (onNavigate) {
       onNavigate(sectionId);
     } else {

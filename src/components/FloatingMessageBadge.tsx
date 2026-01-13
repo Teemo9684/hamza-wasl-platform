@@ -1,6 +1,7 @@
 import { MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { mediumHaptic } from "@/utils/haptics";
 
 interface FloatingMessageBadgeProps {
   unreadCount: number;
@@ -8,6 +9,11 @@ interface FloatingMessageBadgeProps {
 }
 
 export const FloatingMessageBadge = ({ unreadCount, onClick }: FloatingMessageBadgeProps) => {
+  const handleClick = () => {
+    mediumHaptic();
+    onClick?.();
+  };
+
   return (
     <AnimatePresence>
       {unreadCount > 0 && (
@@ -17,7 +23,7 @@ export const FloatingMessageBadge = ({ unreadCount, onClick }: FloatingMessageBa
           exit={{ scale: 0, opacity: 0, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           className="fixed bottom-24 left-4 z-50 cursor-pointer touch-feedback"
-          onClick={onClick}
+          onClick={handleClick}
           whileTap={{ scale: 0.9 }}
         >
           <div className="relative">
