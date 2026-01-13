@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Save, Bell, Shield, Smartphone, Loader2, Tag } from "lucide-react";
+import { Settings, Save, Bell, Shield, Smartphone, Loader2, Tag, Download, Calendar, HardDrive } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,13 @@ export const SettingsManager = () => {
   const [fetching, setFetching] = useState(true);
   const [buildingApk, setBuildingApk] = useState(false);
   const [appVersion, setAppVersion] = useState("1.0.0");
+  const [downloadingApk, setDownloadingApk] = useState(false);
+  const [latestApkInfo, setLatestApkInfo] = useState<{
+    name: string;
+    created_at: string;
+    size_in_bytes: number;
+    run_number: number;
+  } | null>(null);
 
   const { toast } = useToast();
 
@@ -67,7 +74,79 @@ export const SettingsManager = () => {
 
   useEffect(() => {
     fetchSettings();
+    fetchLatestApkInfo();
   }, []);
+
+  const fetchLatestApkInfo = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-apk-download', {
+        method: 'POST',
+      });
+
+      if (!error && data?.artifact) {
+        setLatestApkInfo({
+          name: data.artifact.name,
+          created_at: data.artifact.created_at,
+          size_in_bytes: data.artifact.size_in_bytes,
+          run_number: data.run.run_number,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching APK info:", error);
+    }
+  };
+
+  const handleDownloadApk = async () => {
+    try {
+      setDownloadingApk(true);
+      
+      const { data, error } = await supabase.functions.invoke('get-apk-download', {
+        method: 'POST',
+      });
+
+      if (error) throw error;
+
+      if (data?.downloadUrl) {
+        // Open download URL in new tab
+        window.open(data.downloadUrl, '_blank');
+        toast({
+          title: "نجاح",
+          description: "جاري تحميل ملف APK...",
+        });
+      } else if (data?.error) {
+        toast({
+          title: "تنبيه",
+          description: data.message || data.error,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error downloading APK:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تحميل ملف APK",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingApk(false);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ar-SA', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   const fetchSettings = async () => {
     try {
@@ -264,6 +343,56 @@ export const SettingsManager = () => {
           <p className="text-sm text-muted-foreground font-cairo">
             سيتم بناء ملف APK جديد بالإصدار المحدد وإرسال إشعار عند الانتهاء
           </p>
+
+          <Separator className="my-4" />
+
+          {/* Download APK Section */}
+          <div className="space-y-3">
+            <Label className="font-cairo flex items-center gap-2 text-base">
+              <Download className="w-4 h-4 text-green-500" />
+              تحميل آخر ملف APK
+            </Label>
+            
+            {latestApkInfo && (
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
+                  <Calendar className="w-4 h-4" />
+                  <span>تاريخ البناء: {formatDate(latestApkInfo.created_at)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
+                  <HardDrive className="w-4 h-4" />
+                  <span>الحجم: {formatFileSize(latestApkInfo.size_in_bytes)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
+                  <Tag className="w-4 h-4" />
+                  <span>رقم البناء: #{latestApkInfo.run_number}</span>
+                </div>
+              </div>
+            )}
+
+            <Button 
+              onClick={handleDownloadApk} 
+              disabled={downloadingApk}
+              variant="outline"
+              className="font-cairo w-full sm:w-auto"
+            >
+              {downloadingApk ? (
+                <>
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  جاري التحميل...
+                </>
+              ) : (
+                <>
+                  <Download className="ml-2 h-4 w-4" />
+                  تحميل ملف APK
+                </>
+              )}
+            </Button>
+            
+            <p className="text-xs text-muted-foreground font-cairo">
+              سيتم تحميل ملف مضغوط يحتوي على آخر نسخة من التطبيق
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
