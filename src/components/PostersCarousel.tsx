@@ -234,30 +234,24 @@ export const PostersCarousel = () => {
             </>
           )}
 
-          {/* Modern Progress Indicator - Inside the image */}
+          {/* Minimal Line Indicators */}
           {posters.length > 1 && (
-            <div className="absolute bottom-14 md:bottom-16 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2 rounded-full bg-black/30 backdrop-blur-md border border-white/10 shadow-lg">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
               {posters.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => handleDotClick(index)}
-                  className="group relative focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full"
+                  className="focus:outline-none"
                   aria-label={`انتقل إلى الملصقة ${index + 1}`}
                 >
                   <div 
                     className={cn(
-                      "relative overflow-hidden rounded-full transition-all duration-300",
+                      "h-1 rounded-full transition-all duration-300",
                       index === currentIndex 
-                        ? "w-8 h-2.5 bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
-                        : "w-2.5 h-2.5 bg-white/40 hover:bg-white/60 hover:scale-110"
+                        ? "w-6 bg-white/90" 
+                        : "w-3 bg-white/40 hover:bg-white/60"
                     )}
-                  >
-                    {index === currentIndex && (
-                      <div 
-                        className="absolute inset-0 bg-gradient-to-r from-white/80 via-white to-white/80 animate-pulse"
-                      />
-                    )}
-                  </div>
+                  />
                 </button>
               ))}
             </div>
