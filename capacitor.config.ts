@@ -12,8 +12,8 @@ const config: CapacitorConfig = {
     initialFocus: false,
     webContentsDebuggingEnabled: false,
     adjustResize: true,
-    // Enable edge-to-edge for transparent system bars like PWA
-    edgeToEdge: true
+    // Disable edge-to-edge - use solid system bar colors
+    edgeToEdge: false
   },
   server: {
     androidScheme: 'https',
@@ -35,11 +35,11 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: "DARK",
-      backgroundColor: "#00000000",
-      overlaysWebView: true
+      backgroundColor: "#1e40af",
+      overlaysWebView: false
     },
     NavigationBar: {
-      backgroundColor: "#00000000",
+      backgroundColor: "#000000",
       style: "DARK"
     }
   }
