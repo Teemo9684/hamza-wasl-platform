@@ -28,6 +28,27 @@ serve(async (req) => {
 
     console.log(`Fetching latest APK for repository: ${githubRepo}`);
 
+    // First, let's check all workflow runs (not just successful ones) to debug
+    const allRunsResponse = await fetch(
+      `https://api.github.com/repos/${githubRepo}/actions/workflows/build-android.yml/runs?per_page=5`,
+      {
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Lovable-App',
+        },
+      }
+    );
+
+    if (allRunsResponse.ok) {
+      const allRunsData = await allRunsResponse.json();
+      console.log(`All workflow runs count: ${allRunsData.workflow_runs?.length || 0}`);
+      if (allRunsData.workflow_runs?.length > 0) {
+        const latestRun = allRunsData.workflow_runs[0];
+        console.log(`Latest run status: ${latestRun.status}, conclusion: ${latestRun.conclusion}, id: ${latestRun.id}`);
+      }
+    }
+
     // Get the latest workflow runs
     const runsResponse = await fetch(
       `https://api.github.com/repos/${githubRepo}/actions/workflows/build-android.yml/runs?status=success&per_page=5`,
