@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { APP_VERSION } from "@/config/version";
 interface SplashScreenProps {
   onFinish: () => void;
 }
@@ -59,7 +59,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
       {/* Version Number */}
       <div className="absolute bottom-6 left-0 right-0 text-center">
-        <p className="text-white/70 text-sm font-cairo">الإصدار 1.0.0</p>
+        <p className="text-white/70 text-sm font-cairo">الإصدار {APP_VERSION}</p>
       </div>
     </div>
   );
