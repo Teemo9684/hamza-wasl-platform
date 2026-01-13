@@ -8,7 +8,13 @@ const config: CapacitorConfig = {
     contentInset: 'always'
   },
   android: {
-    allowMixedContent: true
+    allowMixedContent: true,
+    // Disable WebView zoom to match PWA behavior
+    initialFocus: false
+  },
+  server: {
+    // Ensure proper viewport handling
+    androidScheme: 'https'
   },
   plugins: {
     PushNotifications: {
