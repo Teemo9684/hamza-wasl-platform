@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/utils/formatters";
+import { APP_VERSION } from "@/config/version";
 
 interface NotificationSettings {
   enabled: boolean;
@@ -514,6 +515,13 @@ export const SettingsManager = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* App Version */}
+      <div className="text-center pt-4 pb-2">
+        <p className="text-xs text-muted-foreground font-cairo">
+          إصدار التطبيق: {APP_VERSION}
+        </p>
+      </div>
     </div>
   );
 };

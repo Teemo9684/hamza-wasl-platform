@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2, Info } from "lucide-react";
+import { APP_VERSION } from "@/config/version";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { lightHaptic, successHaptic, errorHaptic, warningHaptic } from "@/utils/haptics";
@@ -402,6 +403,13 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
           </CardContent>
         </Card>
       )}
+
+      {/* App Version */}
+      <div className="text-center pt-4 pb-2">
+        <p className="text-xs text-muted-foreground font-cairo">
+          إصدار التطبيق: {APP_VERSION}
+        </p>
+      </div>
     </div>
   );
 };
