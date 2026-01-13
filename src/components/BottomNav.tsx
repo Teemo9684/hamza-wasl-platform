@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Home, Calendar, BookOpen, MessageSquare, Send, FileText, Clock, Users, GraduationCap, Megaphone, Settings, BarChart3, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -17,13 +18,58 @@ interface BottomNavProps {
   activeSection?: string;
   onNavigate?: (sectionId: string) => void;
   notifications?: NotificationCounts;
+  useHashNavigation?: boolean; // تفعيل التنقل بالـ hash
 }
 
-export const BottomNav = ({ items, activeSection, onNavigate, notifications = {} }: BottomNavProps) => {
+export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}, useHashNavigation = true }: BottomNavProps) => {
+  const [currentSection, setCurrentSection] = useState<string>(activeSection || items[0]?.id || "");
+
+  // تتبع القسم الحالي من الـ hash
+  useEffect(() => {
+    if (!useHashNavigation) return;
+    
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && items.some(item => item.id === hash)) {
+        setCurrentSection(hash);
+      }
+    };
+    
+    // التحقق من الـ hash عند التحميل
+    const initialHash = window.location.hash.replace('#', '');
+    if (initialHash && items.some(item => item.id === initialHash)) {
+      setCurrentSection(initialHash);
+      // التمرير للقسم
+      setTimeout(() => {
+        const element = document.getElementById(initialHash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+    
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [items, useHashNavigation]);
+
+  // تحديث القسم من الـ prop
+  useEffect(() => {
+    if (activeSection) {
+      setCurrentSection(activeSection);
+    }
+  }, [activeSection]);
+
   const handleClick = (sectionId: string) => {
     if (onNavigate) {
       onNavigate(sectionId);
     } else {
+      // إضافة للـ history للسماح بزر الرجوع
+      if (useHashNavigation && sectionId !== currentSection) {
+        window.history.pushState(null, '', `#${sectionId}`);
+      }
+      
+      setCurrentSection(sectionId);
+      
       const element = document.getElementById(sectionId);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
@@ -36,7 +82,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
       <div className="flex items-center justify-around h-[72px] px-1 max-w-lg mx-auto">
         {items.map((item) => {
           const Icon = item.icon;
-          const isActive = activeSection === item.id;
+          const isActive = currentSection === item.id;
           const notificationCount = notifications[item.id] || 0;
           
           return (
