@@ -397,62 +397,70 @@ export const NewsTickerManager = () => {
         </Card>
       )}
 
-      <div className="grid gap-4">
+      <div className="grid gap-3">
         {newsItems.map((item, index) => (
           <Card key={item.id} className={!item.is_active ? "opacity-50" : ""}>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-4">
-                <div className="flex flex-col gap-2">
+            <CardContent className="p-3 md:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                {/* Move buttons - horizontal on mobile */}
+                <div className="flex sm:flex-col gap-1.5 order-2 sm:order-1">
                   <Button
-                    size="sm"
-                    variant="outline"
+                    size="icon"
+                    variant="ghost"
                     onClick={() => handleMove(item.id, "up")}
                     disabled={index === 0}
+                    className="h-8 w-8"
                   >
                     <MoveUp className="h-4 w-4" />
                   </Button>
                   <Button
-                    size="sm"
-                    variant="outline"
+                    size="icon"
+                    variant="ghost"
                     onClick={() => handleMove(item.id, "down")}
                     disabled={index === newsItems.length - 1}
+                    className="h-8 w-8"
                   >
                     <MoveDown className="h-4 w-4" />
                   </Button>
                 </div>
 
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                {/* Content */}
+                <div className="flex-1 min-w-0 order-1 sm:order-2">
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     <span
-                      className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold font-cairo`}
+                      className={`${item.badge_color} text-white px-2 py-0.5 rounded-full text-xs font-bold font-cairo`}
                     >
                       {item.icon_type}
                     </span>
-                    <h3 className="font-bold font-cairo">{item.title}</h3>
+                    <h3 className="font-bold font-cairo text-sm truncate">{item.title}</h3>
                   </div>
-                  <p className="text-muted-foreground font-cairo">
+                  <p className="text-muted-foreground font-cairo text-sm line-clamp-2">
                     {item.content}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* Action buttons */}
+                <div className="flex items-center gap-1.5 order-3 justify-end sm:justify-start">
                   <Switch
                     checked={item.is_active}
                     onCheckedChange={(checked) =>
                       toggleActive(item.id, checked)
                     }
+                    className="scale-90"
                   />
                   <Button
-                    size="sm"
-                    variant="outline"
+                    size="icon"
+                    variant="ghost"
                     onClick={() => handleEdit(item)}
+                    className="h-8 w-8 text-muted-foreground hover:text-primary"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button
-                    size="sm"
-                    variant="destructive"
+                    size="icon"
+                    variant="ghost"
                     onClick={() => handleDelete(item.id)}
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
