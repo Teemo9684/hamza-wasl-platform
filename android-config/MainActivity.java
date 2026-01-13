@@ -32,12 +32,15 @@ public class MainActivity extends BridgeActivity {
     private void enableEdgeToEdge() {
         Window window = getWindow();
         
-        // Enable edge-to-edge (content extends behind system bars)
-        WindowCompat.setDecorFitsSystemWindows(window, false);
+        // Disable edge-to-edge (content does NOT extend behind system bars)
+        WindowCompat.setDecorFitsSystemWindows(window, true);
     }
     
     private void configureSystemBars() {
         Window window = getWindow();
+        
+        // Disable edge-to-edge - content should NOT go behind system bars
+        WindowCompat.setDecorFitsSystemWindows(window, true);
         
         // Clear conflicting flags
         window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -45,32 +48,26 @@ public class MainActivity extends BridgeActivity {
         // Enable drawing system bar backgrounds
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         
-        // Make status bar and navigation bar TRANSPARENT
-        window.setStatusBarColor(Color.TRANSPARENT);
-        window.setNavigationBarColor(Color.TRANSPARENT);
+        // Set SOLID colors for status bar (app blue) and navigation bar (black)
+        window.setStatusBarColor(Color.parseColor("#1e40af")); // App blue color
+        window.setNavigationBarColor(Color.BLACK); // Black navigation bar
         
         // Get the window insets controller for modern API
         View decorView = window.getDecorView();
         WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(window, decorView);
         
         if (insetsController != null) {
-            // false = white/light icons on dark background (for gradient backgrounds)
+            // false = white/light icons on dark background
             insetsController.setAppearanceLightStatusBars(false);
             insetsController.setAppearanceLightNavigationBars(false);
         }
         
-        // Handle window insets for proper padding
-        ViewCompat.setOnApplyWindowInsetsListener(decorView, (v, windowInsets) -> {
-            // Let the WebView handle insets via CSS env(safe-area-inset-*)
-            return windowInsets;
-        });
-        
         // Legacy support for older Android versions
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             int flags = decorView.getSystemUiVisibility();
-            // Enable edge-to-edge layout flags
-            flags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-            flags |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+            // Remove edge-to-edge layout flags
+            flags &= ~View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+            flags &= ~View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
             flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
             // Light icons on dark background
             flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
