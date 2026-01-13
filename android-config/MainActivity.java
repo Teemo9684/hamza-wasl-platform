@@ -8,8 +8,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import androidx.activity.EdgeToEdge;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -19,9 +17,8 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // CRITICAL: Disable EdgeToEdge BEFORE super.onCreate()
-        // This must be called before any view is created
-        disableEdgeToEdge();
+        // Enable Edge-to-Edge BEFORE super.onCreate()
+        enableEdgeToEdge();
         
         super.onCreate(savedInstanceState);
         
@@ -32,55 +29,51 @@ public class MainActivity extends BridgeActivity {
         configureWebView();
     }
     
-    private void disableEdgeToEdge() {
+    private void enableEdgeToEdge() {
         Window window = getWindow();
         
-        // Force traditional (non-edge-to-edge) layout
-        WindowCompat.setDecorFitsSystemWindows(window, true);
+        // Enable edge-to-edge (content extends behind system bars)
+        WindowCompat.setDecorFitsSystemWindows(window, false);
     }
     
     private void configureSystemBars() {
         Window window = getWindow();
         
-        // Clear all problematic flags
+        // Clear conflicting flags
         window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-        window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         
-        // Enable drawing system bar backgrounds (required for custom colors)
+        // Enable drawing system bar backgrounds
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         
-        // Set the actual colors
-        window.setStatusBarColor(Color.parseColor("#1e40af"));
-        window.setNavigationBarColor(Color.BLACK);
+        // Make status bar and navigation bar TRANSPARENT
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
         
         // Get the window insets controller for modern API
         View decorView = window.getDecorView();
         WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(window, decorView);
         
         if (insetsController != null) {
-            // false = white/light icons on dark background
+            // false = white/light icons on dark background (for gradient backgrounds)
             insetsController.setAppearanceLightStatusBars(false);
             insetsController.setAppearanceLightNavigationBars(false);
         }
         
-        // Additional fix for Android 15+ (API 35)
-        if (Build.VERSION.SDK_INT >= 35) {
-            // Ensure content doesn't extend behind system bars
-            ViewCompat.setOnApplyWindowInsetsListener(decorView, (v, windowInsets) -> {
-                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-                // Return consumed insets - system handles the padding
-                return WindowInsetsCompat.CONSUMED;
-            });
-        }
+        // Handle window insets for proper padding
+        ViewCompat.setOnApplyWindowInsetsListener(decorView, (v, windowInsets) -> {
+            // Let the WebView handle insets via CSS env(safe-area-inset-*)
+            return windowInsets;
+        });
         
         // Legacy support for older Android versions
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             int flags = decorView.getSystemUiVisibility();
+            // Enable edge-to-edge layout flags
+            flags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+            flags |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+            flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+            // Light icons on dark background
             flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            flags &= ~View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-            flags &= ~View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
             }
