@@ -669,6 +669,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_student_exists: {
+        Args: { _national_school_id: string }
+        Returns: {
+          student_id: string
+          student_name: string
+        }[]
+      }
       get_pending_approvals: {
         Args: never
         Returns: {

@@ -57,14 +57,11 @@ const RegisterParent = () => {
       if (error) throw error;
 
       if (data.user) {
-        // First check if the student exists
+        // First check if the student exists using RPC function (bypasses RLS for new users)
         const { data: studentData, error: studentError } = await supabase
-          .from('students')
-          .select('id, full_name')
-          .eq('national_school_id', formData.nationalSchoolId.trim())
-          .maybeSingle();
+          .rpc('check_student_exists', { _national_school_id: formData.nationalSchoolId.trim() });
 
-        if (studentError || !studentData) {
+        if (studentError || !studentData || studentData.length === 0) {
           toast({
             title: "التلميذ غير موجود",
             description: `لم يتم العثور على تلميذ بالرقم الوطني "${formData.nationalSchoolId}". يرجى التأكد من أن التلميذ مسجل في النظام من قبل الإدارة.`,
@@ -72,6 +69,8 @@ const RegisterParent = () => {
           });
           return;
         }
+
+        const student = studentData[0];
 
         // Link parent to student using national school ID
         const { error: linkError } = await supabase.rpc('link_parent_to_student', {
@@ -82,7 +81,7 @@ const RegisterParent = () => {
         if (linkError) {
           toast({
             title: "خطأ في الربط",
-            description: `فشل ربط الحساب بالتلميذ "${studentData.full_name}". يرجى المحاولة مرة أخرى أو التواصل مع الإدارة.`,
+            description: `فشل ربط الحساب بالتلميذ "${student.student_name}". يرجى المحاولة مرة أخرى أو التواصل مع الإدارة.`,
             variant: "destructive",
           });
           return;
