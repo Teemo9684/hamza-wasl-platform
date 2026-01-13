@@ -142,6 +142,119 @@
   }
 }
 
+/* ========== Mobile UX Enhancements ========== */
+
+/* Better touch targets - minimum 44px */
+@media (max-width: 768px) {
+  button, 
+  a, 
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Larger tap areas for interactive elements */
+  button {
+    @apply py-3 px-4;
+  }
+
+  /* Better spacing for form elements */
+  input, textarea, select {
+    @apply py-3 px-4 text-base;
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+  }
+
+  /* Cards with better mobile spacing */
+  .card {
+    @apply p-4;
+  }
+
+  /* Better readable text sizes */
+  h1 { @apply text-2xl; }
+  h2 { @apply text-xl; }
+  h3 { @apply text-lg; }
+  
+  /* Active states for touch feedback */
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+}
+
+/* Touch-friendly active states */
+.touch-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+/* Smooth scrolling on mobile */
+.scroll-smooth {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area padding for notched devices */
+.safe-area-top {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+.safe-area-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Pull to refresh feel */
+.pull-indicator {
+  @apply flex items-center justify-center py-4 text-muted-foreground;
+}
+
+/* Swipeable cards */
+.swipeable {
+  touch-action: pan-x;
+  user-select: none;
+}
+
+/* Loading skeleton pulse for mobile */
+.skeleton-mobile {
+  @apply animate-pulse bg-muted rounded-lg;
+}
+
+/* Mobile-optimized card shadows */
+@media (max-width: 768px) {
+  .glass-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Haptic feedback simulation */
+@keyframes haptic {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-1px); }
+  75% { transform: translateX(1px); }
+}
+
+.haptic-feedback {
+  animation: haptic 0.1s ease-in-out;
+}
+
 @layer utilities {
   /* Glass Effect */
   .glass-card {

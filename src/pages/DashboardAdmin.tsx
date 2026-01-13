@@ -163,29 +163,35 @@ const DashboardAdmin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden scroll-smooth">
       <div className="absolute inset-0 animated-bg opacity-10 pointer-events-none" />
       
       <div className="relative z-10">
         {/* Header */}
-        <header className="sticky top-0 z-20 backdrop-blur-md bg-background/80 border-b">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield className="w-8 h-8 text-accent" />
-              <h1 className="text-2xl font-bold font-cairo">لوحة التحكم الإدارية</h1>
+        <header className="sticky top-0 z-20 backdrop-blur-xl bg-background/85 border-b shadow-sm safe-area-top">
+          <div className="container mx-auto px-3 md:px-4 py-3 md:py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+              <Shield className="w-6 h-6 md:w-8 md:h-8 text-accent flex-shrink-0" />
+              <h1 className="text-lg md:text-2xl font-bold font-cairo truncate">لوحة التحكم</h1>
             </div>
-            <Button onClick={handleLogout} variant="ghost" className="font-cairo">
-              <LogOut className="ml-2 h-4 w-4" />
-              تسجيل الخروج
+            <Button 
+              onClick={handleLogout} 
+              variant="ghost" 
+              className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
+              size="sm"
+            >
+              <LogOut className="ml-1.5 h-4 w-4" />
+              <span className="hidden sm:inline">تسجيل الخروج</span>
+              <span className="sm:hidden">خروج</span>
             </Button>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-8 pb-24">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2 font-cairo">مرحباً مديرة المدرسة</h2>
-            <p className="text-muted-foreground font-cairo">
+        <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 pb-28">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-xl md:text-3xl font-bold mb-1 md:mb-2 font-cairo">مرحباً مديرة المدرسة</h2>
+            <p className="text-sm md:text-base text-muted-foreground font-cairo">
               إدارة شاملة للمنصة التعليمية
             </p>
           </div>
