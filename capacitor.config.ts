@@ -8,9 +8,7 @@ const config: CapacitorConfig = {
     contentInset: 'always'
   },
   android: {
-    allowMixedContent: true,
-    // Prevent automatic scaling that makes UI too large
-    webContentsDebuggingEnabled: false
+    allowMixedContent: true
   },
   plugins: {
     PushNotifications: {
