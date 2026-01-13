@@ -7,8 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Clock, CheckCircle, XCircle, Loader2, User, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { formatDateTime } from "@/utils/formatters";
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: "قيد الانتظار", color: "bg-yellow-500", icon: Clock },
@@ -201,7 +200,7 @@ export const DocumentRequestsManager = () => {
                             </p>
                             <p className="flex items-center gap-2">
                               <Calendar className="h-4 w-4" />
-                              تاريخ الطلب: {new Date(request.created_at).toLocaleDateString("ar-u-nu-latn", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                              تاريخ الطلب: {formatDateTime(request.created_at)}
                             </p>
                           </div>
 

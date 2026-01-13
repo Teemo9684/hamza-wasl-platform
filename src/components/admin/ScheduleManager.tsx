@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, Trash2, Calendar } from "lucide-react";
+import { formatDateOnly } from "@/utils/formatters";
 
 const GRADE_LEVELS = [
   "التحضيري",
@@ -308,7 +309,7 @@ export const ScheduleManager = () => {
                 className="w-full h-auto rounded-lg border"
               />
               <p className="text-xs text-muted-foreground mt-2 font-cairo">
-                آخر تحديث: {new Date(schedule.updated_at).toLocaleDateString('ar-u-nu-latn')}
+                آخر تحديث: {formatDateOnly(schedule.updated_at)}
               </p>
             </CardContent>
           </Card>

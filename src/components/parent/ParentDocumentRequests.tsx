@@ -7,8 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Clock, CheckCircle, XCircle, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { formatDateOnly } from "@/utils/formatters";
 
 interface ParentDocumentRequestsProps {
   selectedChild: string;

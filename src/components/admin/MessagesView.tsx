@@ -6,6 +6,7 @@ import { MessageSquare, User, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { formatDateTime } from "@/utils/formatters";
 
 interface Message {
   id: string;
@@ -131,13 +132,7 @@ export const MessagesView = () => {
   };
 
   const formatDateDisplay = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("ar-u-nu-latn", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return formatDateTime(dateString);
   };
 
   if (loading) {

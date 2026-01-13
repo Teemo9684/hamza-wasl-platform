@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Calendar, FileText, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { formatDateOnly } from "@/utils/formatters";
 
 interface Homework {
   id: string;
@@ -208,7 +209,7 @@ export const ParentHomework = () => {
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4 text-primary" />
                             <span className="font-cairo">
-                              التسليم: {new Date(hw.due_date).toLocaleDateString('ar-u-nu-latn')}
+                              التسليم: {formatDateOnly(hw.due_date)}
                             </span>
                             {!overdue && (
                               <span className="text-muted-foreground font-cairo">

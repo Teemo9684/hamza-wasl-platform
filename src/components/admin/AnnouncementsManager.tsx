@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Megaphone, Plus, Edit, Trash2, Save, X, Send } from "lucide-react";
+import { formatDateOnly } from "@/utils/formatters";
 import {
   Select,
   SelectContent,
@@ -310,7 +311,7 @@ export const AnnouncementsManager = () => {
                         إعلان
                       </Badge>
                       <span className="text-sm text-muted-foreground font-cairo">
-                        {new Date(announcement.created_at).toLocaleDateString("ar-u-nu-latn")}
+                        {formatDateOnly(announcement.created_at)}
                       </span>
                     </div>
                   </div>
