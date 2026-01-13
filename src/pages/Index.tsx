@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { PostersCarousel } from "@/components/PostersCarousel";
+import DynamicBackground from "@/components/backgrounds/DynamicBackground";
 
 interface NewsItem {
   id: string;
@@ -334,8 +335,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
-      {/* Animated Gradient Background */}
-      <div className="absolute inset-0 animated-gradient-bg" />
+      {/* Dynamic Occasion-Based Background */}
+      <DynamicBackground />
 
       {/* News Ticker */}
       {newsItems.length > 0 && (
