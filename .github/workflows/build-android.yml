@@ -64,13 +64,28 @@ jobs:
           # Sync capacitor
           npx cap sync android
 
-      - name: Fix WebView Display Size
+      - name: Fix WebView Display Size and System Bars
         run: |
-          # Copy custom MainActivity.java to fix WebView scaling issue
+          # Copy custom MainActivity.java AFTER sync to ensure it's not overwritten
           TARGET_DIR="android/app/src/main/java/com/hamzawasl/app"
           mkdir -p "$TARGET_DIR"
           cp android-config/MainActivity.java "$TARGET_DIR/MainActivity.java"
-          echo "✅ MainActivity.java copied - WebView scaling fixed"
+          
+          # Verify the file was copied correctly
+          if grep -q "configureSystemBars" "$TARGET_DIR/MainActivity.java"; then
+            echo "✅ MainActivity.java copied with system bars configuration"
+          else
+            echo "❌ Error: configureSystemBars method not found"
+            exit 1
+          fi
+          
+          # Update styles.xml to ensure no conflicts with system bars
+          STYLES_FILE="android/app/src/main/res/values/styles.xml"
+          if [ -f "$STYLES_FILE" ]; then
+            # Remove any fullscreen theme items that might conflict
+            sed -i 's/<item name="android:windowFullscreen">true<\/item>/<item name="android:windowFullscreen">false<\/item>/g' "$STYLES_FILE"
+            echo "✅ styles.xml updated"
+          fi
 
       - name: Setup Firebase for Push Notifications
         run: |
