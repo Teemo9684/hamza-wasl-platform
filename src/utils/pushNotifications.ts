@@ -42,8 +42,11 @@ export const unlockAudio = () => {
   }
 };
 
-// Play notification sound
-export const playNotificationSound = () => {
+// نوع الإشعار
+export type NotificationType = 'default' | 'user' | 'document' | 'message';
+
+// Play notification sound based on type
+export const playNotificationSound = (type: NotificationType = 'default') => {
   try {
     const ctx = getAudioContext();
     if (!ctx) {
@@ -56,35 +59,130 @@ export const playNotificationSound = () => {
       ctx.resume();
     }
     
-    // Create a more pleasant notification sound
-    const oscillator1 = ctx.createOscillator();
-    const oscillator2 = ctx.createOscillator();
     const gainNode = ctx.createGain();
-
-    oscillator1.connect(gainNode);
-    oscillator2.connect(gainNode);
     gainNode.connect(ctx.destination);
 
-    // First tone
-    oscillator1.frequency.value = 880; // A5
-    oscillator1.type = 'sine';
+    switch (type) {
+      case 'user':
+        // صوت تسجيل مستخدم جديد - نغمة ترحيبية صاعدة
+        playUserNotificationSound(ctx, gainNode);
+        break;
+      case 'document':
+        // صوت طلب وثيقة - نغمة رسمية
+        playDocumentNotificationSound(ctx, gainNode);
+        break;
+      case 'message':
+        // صوت رسالة جديدة - نغمة خفيفة
+        playMessageNotificationSound(ctx, gainNode);
+        break;
+      default:
+        // الصوت الافتراضي
+        playDefaultNotificationSound(ctx, gainNode);
+    }
     
-    // Second tone (harmony)
-    oscillator2.frequency.value = 1100; // C#6
-    oscillator2.type = 'sine';
-
-    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-
-    oscillator1.start(ctx.currentTime);
-    oscillator2.start(ctx.currentTime + 0.1);
-    oscillator1.stop(ctx.currentTime + 0.5);
-    oscillator2.stop(ctx.currentTime + 0.6);
-    
-    console.log('Notification sound played');
+    console.log('Notification sound played:', type);
   } catch (error) {
     console.error('Error playing notification sound:', error);
   }
+};
+
+// صوت افتراضي
+const playDefaultNotificationSound = (ctx: AudioContext, gainNode: GainNode) => {
+  const oscillator1 = ctx.createOscillator();
+  const oscillator2 = ctx.createOscillator();
+
+  oscillator1.connect(gainNode);
+  oscillator2.connect(gainNode);
+
+  oscillator1.frequency.value = 880; // A5
+  oscillator1.type = 'sine';
+  
+  oscillator2.frequency.value = 1100; // C#6
+  oscillator2.type = 'sine';
+
+  gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+  oscillator1.start(ctx.currentTime);
+  oscillator2.start(ctx.currentTime + 0.1);
+  oscillator1.stop(ctx.currentTime + 0.5);
+  oscillator2.stop(ctx.currentTime + 0.6);
+};
+
+// صوت تسجيل مستخدم جديد - نغمة ترحيبية صاعدة (Do-Mi-Sol)
+const playUserNotificationSound = (ctx: AudioContext, gainNode: GainNode) => {
+  const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+  const duration = 0.15;
+  
+  notes.forEach((freq, index) => {
+    const oscillator = ctx.createOscillator();
+    const noteGain = ctx.createGain();
+    
+    oscillator.connect(noteGain);
+    noteGain.connect(gainNode);
+    
+    oscillator.frequency.value = freq;
+    oscillator.type = 'sine';
+    
+    const startTime = ctx.currentTime + (index * duration);
+    noteGain.gain.setValueAtTime(0, startTime);
+    noteGain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
+    noteGain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+    
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
+  });
+};
+
+// صوت طلب وثيقة - نغمتين رسميتين
+const playDocumentNotificationSound = (ctx: AudioContext, gainNode: GainNode) => {
+  const oscillator1 = ctx.createOscillator();
+  const oscillator2 = ctx.createOscillator();
+  
+  oscillator1.connect(gainNode);
+  oscillator2.connect(gainNode);
+  
+  // نغمة أولى منخفضة
+  oscillator1.frequency.value = 440; // A4
+  oscillator1.type = 'triangle';
+  
+  // نغمة ثانية أعلى
+  oscillator2.frequency.value = 554.37; // C#5
+  oscillator2.type = 'triangle';
+  
+  gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+  
+  oscillator1.start(ctx.currentTime);
+  oscillator1.stop(ctx.currentTime + 0.2);
+  
+  oscillator2.start(ctx.currentTime + 0.2);
+  oscillator2.stop(ctx.currentTime + 0.4);
+};
+
+// صوت رسالة جديدة - نغمة خفيفة وسريعة
+const playMessageNotificationSound = (ctx: AudioContext, gainNode: GainNode) => {
+  const oscillator1 = ctx.createOscillator();
+  const oscillator2 = ctx.createOscillator();
+  
+  oscillator1.connect(gainNode);
+  oscillator2.connect(gainNode);
+  
+  // نغمة عالية سريعة
+  oscillator1.frequency.value = 987.77; // B5
+  oscillator1.type = 'sine';
+  
+  oscillator2.frequency.value = 1174.66; // D6
+  oscillator2.type = 'sine';
+  
+  gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+  
+  oscillator1.start(ctx.currentTime);
+  oscillator1.stop(ctx.currentTime + 0.12);
+  
+  oscillator2.start(ctx.currentTime + 0.08);
+  oscillator2.stop(ctx.currentTime + 0.25);
 };
 
 export const initializePushNotifications = async () => {
