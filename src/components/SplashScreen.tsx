@@ -17,17 +17,22 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   }, [onFinish]);
 
   useEffect(() => {
+    console.log("SplashScreen mounted");
+    
     // Fade out after 2.5s
     const fadeTimer = setTimeout(() => {
+      console.log("SplashScreen fading out");
       setFadeOut(true);
     }, 2500);
 
     // Finish after 3s
     const finishTimer = setTimeout(() => {
+      console.log("SplashScreen calling onFinish");
       handleFinish();
     }, 3000);
 
     return () => {
+      console.log("SplashScreen cleanup");
       clearTimeout(fadeTimer);
       clearTimeout(finishTimer);
     };
