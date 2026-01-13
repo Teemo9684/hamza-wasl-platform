@@ -102,6 +102,63 @@ const DashboardParent = () => {
     };
   }, [currentUserId]);
 
+  // Real-time subscription for attendance updates
+  useEffect(() => {
+    if (!selectedChild) return;
+
+    const attendanceChannel = supabase
+      .channel(`attendance-updates-${selectedChild}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'attendance',
+          filter: `student_id=eq.${selectedChild}`
+        },
+        (payload) => {
+          const newAttendance = payload.new as any;
+          setAttendance(prev => [newAttendance, ...prev]);
+          sonnerToast.info('تم تسجيل الحضور', {
+            description: `حالة اليوم: ${newAttendance.status}`,
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'attendance',
+          filter: `student_id=eq.${selectedChild}`
+        },
+        (payload) => {
+          const updatedAttendance = payload.new as any;
+          setAttendance(prev => prev.map(a => 
+            a.id === updatedAttendance.id ? updatedAttendance : a
+          ));
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'attendance',
+          filter: `student_id=eq.${selectedChild}`
+        },
+        (payload) => {
+          const deletedAttendance = payload.old as any;
+          setAttendance(prev => prev.filter(a => a.id !== deletedAttendance.id));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(attendanceChannel);
+    };
+  }, [selectedChild]);
+
   useEffect(() => {
     if (selectedChild) {
       fetchChildDetails(selectedChild);
