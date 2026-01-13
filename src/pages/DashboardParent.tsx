@@ -225,28 +225,30 @@ const DashboardParent = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
-      <div className="sticky top-0 z-30 backdrop-blur-lg bg-background/70 border-b shadow-lg">
+    <div className="min-h-screen flex flex-col w-full overflow-x-hidden scroll-smooth">
+      <div className="sticky top-0 z-30 backdrop-blur-xl bg-background/80 border-b shadow-md safe-area-top">
         <NewsTicker />
         <header>
-          <div className="flex h-16 items-center justify-between px-4 md:px-6">
-            <div className="min-w-0">
-              <h1 className="text-base md:text-lg font-bold truncate">مرحباً، {parentName}</h1>
-              <p className="text-xs text-muted-foreground truncate hidden sm:block">لوحة تحكم ولي الأمر</p>
+          <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-sm md:text-lg font-bold truncate leading-tight">مرحباً، {parentName}</h1>
+              <p className="text-[11px] md:text-xs text-muted-foreground truncate">لوحة تحكم ولي الأمر</p>
             </div>
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="font-cairo"
+              className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
+              size="sm"
             >
-              <LogOut className="ml-2 h-4 w-4" />
-              تسجيل الخروج
+              <LogOut className="ml-1.5 h-4 w-4" />
+              <span className="hidden sm:inline">تسجيل الخروج</span>
+              <span className="sm:hidden">خروج</span>
             </Button>
           </div>
         </header>
       </div>
 
-      <main className="flex-1 overflow-y-auto p-4 pb-20 w-full">
+      <main className="flex-1 overflow-y-auto p-3 md:p-4 pb-24 w-full scroll-smooth">
         <AnimatePresence mode="wait">
           <AnimatedSection key="parent-dashboard">
             <div className="max-w-6xl mx-auto space-y-8 w-full">
