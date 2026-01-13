@@ -304,13 +304,16 @@ const setupPushNotificationListeners = () => {
     
     const data = notification.notification.data;
     
-    // Handle navigation based on notification type
+    // Handle navigation based on notification type using history API
+    // This maintains proper navigation stack for Capacitor
     if (data.type === 'message') {
-      // Navigate to messages
-      window.location.hash = '#messages';
+      // Navigate to messages section
+      window.history.pushState(null, '', '#messages');
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
     } else if (data.type === 'announcement') {
-      // Navigate to announcements
-      window.location.hash = '#announcements';
+      // Navigate to announcements section
+      window.history.pushState(null, '', '#announcements');
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
     }
   });
 };

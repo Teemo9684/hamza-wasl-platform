@@ -1,10 +1,23 @@
 import { createRoot } from "react-dom/client";
+import { Capacitor } from "@capacitor/core";
+import { SplashScreen } from "@capacitor/splash-screen";
 import App from "./App.tsx";
 import "./index.css";
 import { registerSW } from 'virtual:pwa-register';
 
-// Register service worker with aggressive auto-update
-if ('serviceWorker' in navigator) {
+// Hide native splash screen when app is ready
+const hideNativeSplash = async () => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await SplashScreen.hide();
+    } catch (e) {
+      console.log('Splash screen hide error:', e);
+    }
+  }
+};
+
+// Register service worker only for web/PWA (not native)
+if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
   const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
@@ -26,4 +39,14 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Initialize app
+const initApp = async () => {
+  createRoot(document.getElementById("root")!).render(<App />);
+  
+  // Hide splash after a short delay to ensure content is rendered
+  setTimeout(() => {
+    hideNativeSplash();
+  }, 100);
+};
+
+initApp();
