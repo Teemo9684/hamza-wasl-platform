@@ -234,28 +234,30 @@ export const PostersCarousel = () => {
             </>
           )}
 
-          {/* Progress Bar Indicator - Below the image */}
+          {/* Modern Progress Indicator - Inside the image */}
           {posters.length > 1 && (
-            <div className="absolute bottom-0 left-0 right-0 z-10 flex h-1">
+            <div className="absolute bottom-14 md:bottom-16 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2 rounded-full bg-black/30 backdrop-blur-md border border-white/10 shadow-lg">
               {posters.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => handleDotClick(index)}
-                  className="flex-1 relative overflow-hidden focus:outline-none group"
+                  className="group relative focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full"
                   aria-label={`انتقل إلى الملصقة ${index + 1}`}
                 >
-                  <div className="absolute inset-0 bg-white/30" />
                   <div 
                     className={cn(
-                      "absolute inset-0 bg-white transition-transform duration-300 origin-right",
+                      "relative overflow-hidden rounded-full transition-all duration-300",
                       index === currentIndex 
-                        ? "scale-x-100" 
-                        : index < currentIndex 
-                          ? "scale-x-100 bg-white/70"
-                          : "scale-x-0"
+                        ? "w-8 h-2.5 bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
+                        : "w-2.5 h-2.5 bg-white/40 hover:bg-white/60 hover:scale-110"
                     )}
-                  />
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors" />
+                  >
+                    {index === currentIndex && (
+                      <div 
+                        className="absolute inset-0 bg-gradient-to-r from-white/80 via-white to-white/80 animate-pulse"
+                      />
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
