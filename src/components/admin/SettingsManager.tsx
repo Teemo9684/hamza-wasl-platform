@@ -64,6 +64,9 @@ export const SettingsManager = () => {
       });
       setBuildJustTriggered(true);
       setApkNotAvailable(true);
+      
+      // Save the version for next time
+      await saveLastVersion(appVersion);
     } catch (error) {
       console.error("Error triggering APK build:", error);
       toast({
@@ -79,7 +82,60 @@ export const SettingsManager = () => {
   useEffect(() => {
     fetchSettings();
     fetchLatestApkInfo();
+    fetchLastVersion();
   }, []);
+
+  const fetchLastVersion = async () => {
+    try {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "last_apk_version")
+        .maybeSingle();
+
+      if (data?.setting_value) {
+        const settings = data.setting_value as { version: string };
+        if (settings.version) {
+          setAppVersion(settings.version);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching last version:", error);
+    }
+  };
+
+  const saveLastVersion = async (version: string) => {
+    try {
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      
+      // Try to update first
+      const { data: existing } = await supabase
+        .from("app_settings")
+        .select("id")
+        .eq("setting_key", "last_apk_version")
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from("app_settings")
+          .update({
+            setting_value: { version } as any,
+            updated_by: userId
+          })
+          .eq("setting_key", "last_apk_version");
+      } else {
+        await supabase
+          .from("app_settings")
+          .insert({
+            setting_key: "last_apk_version",
+            setting_value: { version } as any,
+            updated_by: userId
+          });
+      }
+    } catch (error) {
+      console.error("Error saving version:", error);
+    }
+  };
 
   const fetchLatestApkInfo = async () => {
     try {
