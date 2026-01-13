@@ -333,7 +333,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden">
+    <div className="min-h-screen w-full relative overflow-hidden pt-[env(safe-area-inset-top)]">
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 animated-gradient-bg" />
 
