@@ -193,7 +193,7 @@ export const PostersCarousel = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
                 
                 {/* Title */}
-                <div className="absolute inset-x-0 bottom-0 p-4 md:p-6 pointer-events-none">
+                <div className="absolute inset-x-0 bottom-6 p-4 md:p-6 pointer-events-none">
                   <h3 className="text-white text-lg md:text-2xl lg:text-3xl font-bold text-right drop-shadow-lg">
                     {currentPoster.title}
                   </h3>
