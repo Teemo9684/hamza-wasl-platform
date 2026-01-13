@@ -86,7 +86,8 @@ export const UserManagement = () => {
       if (error) throw error;
       return data as PendingApproval[];
     },
-    enabled: activeTab === "pending",
+    // تحميل عدد الحسابات المعلقة دائماً لعرض البادج
+    enabled: true,
   });
 
   const fetchUsers = async () => {
