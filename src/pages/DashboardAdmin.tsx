@@ -163,8 +163,8 @@ const DashboardAdmin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="absolute inset-0 animated-bg opacity-10" />
+    <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="absolute inset-0 animated-bg opacity-10 pointer-events-none" />
       
       <div className="relative z-10">
         {/* Header */}

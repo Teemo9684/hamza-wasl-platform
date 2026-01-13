@@ -444,7 +444,7 @@ const DashboardTeacher = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full">
+    <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
       <div className="sticky top-0 z-30 backdrop-blur-lg bg-background/70 border-b shadow-lg">
         <NewsTicker />
         <header>

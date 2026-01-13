@@ -1186,7 +1186,8 @@ export const StudentManagement = () => {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="space-y-4">
-              <div className="max-h-[400px] overflow-y-auto border rounded-lg">
+              <div className="max-h-[400px] overflow-auto border rounded-lg">
+                <div className="min-w-[600px]">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background">
                     <TableRow>
@@ -1238,6 +1239,7 @@ export const StudentManagement = () => {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </div>
               
               <div className="flex gap-2 justify-between items-center border-t pt-4">
@@ -1417,6 +1419,7 @@ export const StudentManagement = () => {
                 لا يوجد تلاميذ في هذا المستوى
               </div>
             ) : (
+              <div className="overflow-x-auto -mx-4 px-4">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -1486,6 +1489,7 @@ export const StudentManagement = () => {
                     ))}
                 </TableBody>
               </Table>
+              </div>
             )}
           </CardContent>
         </Card>
