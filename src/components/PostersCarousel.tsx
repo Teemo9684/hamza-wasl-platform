@@ -234,30 +234,30 @@ export const PostersCarousel = () => {
             </>
           )}
 
-          {/* Dots Indicator */}
+          {/* Progress Bar Indicator - Below the image */}
           {posters.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+            <div className="absolute bottom-0 left-0 right-0 z-10 flex h-1">
               {posters.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => handleDotClick(index)}
-                  className={cn(
-                    "h-2 rounded-full transition-all duration-300 focus:outline-none",
-                    index === currentIndex 
-                      ? "w-8 bg-white shadow-lg" 
-                      : "w-2 bg-white/50 hover:bg-white/80"
-                  )}
+                  className="flex-1 relative overflow-hidden focus:outline-none group"
                   aria-label={`انتقل إلى الملصقة ${index + 1}`}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/30" />
+                  <div 
+                    className={cn(
+                      "absolute inset-0 bg-white transition-transform duration-300 origin-right",
+                      index === currentIndex 
+                        ? "scale-x-100" 
+                        : index < currentIndex 
+                          ? "scale-x-100 bg-white/70"
+                          : "scale-x-0"
+                    )}
+                  />
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors" />
+                </button>
               ))}
-            </div>
-          )}
-
-          {/* Slide Counter */}
-          {posters.length > 1 && (
-            <div className="absolute top-3 right-3 z-10 
-              bg-black/50 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
-              {currentIndex + 1} / {posters.length}
             </div>
           )}
         </div>
