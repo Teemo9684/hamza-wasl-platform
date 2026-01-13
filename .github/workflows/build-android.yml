@@ -64,6 +64,9 @@ jobs:
           # Sync capacitor
           npx cap sync android
 
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
       - name: Setup Custom App Icons
         run: |
           # Define mipmap directories and sizes
