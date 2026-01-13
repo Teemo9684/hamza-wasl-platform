@@ -144,7 +144,14 @@ export const SettingsManager = () => {
       });
 
       if (error) {
-        // Check if it's a 404 (no build available)
+        console.error("Error fetching APK info:", error);
+        setApkNotAvailable(true);
+        setLatestApkInfo(null);
+        return;
+      }
+
+      // Check if build is available
+      if (data?.available === false || data?.success === false) {
         setApkNotAvailable(true);
         setLatestApkInfo(null);
         return;
@@ -159,7 +166,7 @@ export const SettingsManager = () => {
         });
         setApkNotAvailable(false);
         setBuildJustTriggered(false);
-      } else if (data?.error) {
+      } else {
         setApkNotAvailable(true);
         setLatestApkInfo(null);
       }
@@ -178,17 +185,25 @@ export const SettingsManager = () => {
       });
 
       if (error) {
-        // Check if it's a build not found error
         toast({
           title: "تنبيه",
-          description: "لا يوجد بناء متاح حالياً. قم ببناء التطبيق أولاً أو انتظر اكتمال البناء الجاري.",
+          description: "حدث خطأ أثناء جلب معلومات البناء",
+        });
+        setApkNotAvailable(true);
+        return;
+      }
+
+      // Check if build is not available
+      if (data?.available === false || data?.success === false) {
+        toast({
+          title: "تنبيه",
+          description: data.message || "لا يوجد بناء متاح حالياً. قم ببناء التطبيق أولاً أو انتظر اكتمال البناء الجاري.",
         });
         setApkNotAvailable(true);
         return;
       }
 
       if (data?.downloadUrl) {
-        // Open download URL in new tab
         window.open(data.downloadUrl, '_blank');
         toast({
           title: "نجاح",
@@ -205,7 +220,7 @@ export const SettingsManager = () => {
       console.error("Error downloading APK:", error);
       toast({
         title: "تنبيه",
-        description: "لا يوجد بناء متاح حالياً",
+        description: "حدث خطأ غير متوقع",
       });
       setApkNotAvailable(true);
     } finally {

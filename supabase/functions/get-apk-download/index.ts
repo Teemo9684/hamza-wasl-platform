@@ -78,11 +78,13 @@ serve(async (req) => {
     if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) {
       return new Response(
         JSON.stringify({ 
+          success: false,
+          available: false,
           error: 'لا يوجد بناء متاح',
           message: 'لم يتم العثور على أي بناء ناجح. قم ببناء التطبيق أولاً.'
         }),
         { 
-          status: 404, 
+          status: 200, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
@@ -120,11 +122,13 @@ serve(async (req) => {
     if (!artifactsData.artifacts || artifactsData.artifacts.length === 0) {
       return new Response(
         JSON.stringify({ 
+          success: false,
+          available: false,
           error: 'لا يوجد ملف APK',
           message: 'لم يتم العثور على ملف APK في آخر بناء.'
         }),
         { 
-          status: 404, 
+          status: 200, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
