@@ -78,128 +78,19 @@ jobs:
       - name: Configure System Bars Theme
         run: |
           STYLES_FILE="android/app/src/main/res/values/styles.xml"
-          cat > "$STYLES_FILE" << 'EOFSTYLES'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:colorPrimary">#1e40af</item>
-        <item name="android:colorPrimaryDark">#1e3a8a</item>
-        <item name="android:colorAccent">#3b82f6</item>
-        <item name="android:statusBarColor">#1e40af</item>
-        <item name="android:navigationBarColor">#000000</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:fitsSystemWindows">false</item>
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
-    </style>
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:colorPrimary">#1e40af</item>
-        <item name="android:colorPrimaryDark">#1e3a8a</item>
-        <item name="android:colorAccent">#3b82f6</item>
-        <item name="android:statusBarColor">#1e40af</item>
-        <item name="android:navigationBarColor">#000000</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:fitsSystemWindows">false</item>
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
-    </style>
-    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
-        <item name="android:background">#1e40af</item>
-    </style>
-</resources>
-EOFSTYLES
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">' '        <item name="android:colorPrimary">#1e40af</item>' '        <item name="android:colorPrimaryDark">#1e3a8a</item>' '        <item name="android:colorAccent">#3b82f6</item>' '        <item name="android:statusBarColor">#1e40af</item>' '        <item name="android:navigationBarColor">#000000</item>' '        <item name="android:windowLightStatusBar">false</item>' '        <item name="android:windowDrawsSystemBarBackgrounds">true</item>' '        <item name="android:fitsSystemWindows">false</item>' '        <item name="android:windowFullscreen">false</item>' '        <item name="android:windowTranslucentStatus">false</item>' '        <item name="android:windowTranslucentNavigation">false</item>' '    </style>' '    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">' '        <item name="android:colorPrimary">#1e40af</item>' '        <item name="android:colorPrimaryDark">#1e3a8a</item>' '        <item name="android:colorAccent">#3b82f6</item>' '        <item name="android:statusBarColor">#1e40af</item>' '        <item name="android:navigationBarColor">#000000</item>' '        <item name="android:windowLightStatusBar">false</item>' '        <item name="android:windowDrawsSystemBarBackgrounds">true</item>' '        <item name="android:fitsSystemWindows">false</item>' '        <item name="android:windowFullscreen">false</item>' '        <item name="android:windowTranslucentStatus">false</item>' '        <item name="android:windowTranslucentNavigation">false</item>' '    </style>' '    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">' '        <item name="android:background">#1e40af</item>' '    </style>' '</resources>' > "$STYLES_FILE"
           echo "✅ styles.xml updated"
 
       - name: Configure System Bars Theme v27
         run: |
           mkdir -p "android/app/src/main/res/values-v27"
-          cat > "android/app/src/main/res/values-v27/styles.xml" << 'EOFV27'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:colorPrimary">#1e40af</item>
-        <item name="android:colorPrimaryDark">#1e3a8a</item>
-        <item name="android:colorAccent">#3b82f6</item>
-        <item name="android:statusBarColor">#1e40af</item>
-        <item name="android:navigationBarColor">#000000</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:fitsSystemWindows">false</item>
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
-    </style>
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:colorPrimary">#1e40af</item>
-        <item name="android:colorPrimaryDark">#1e3a8a</item>
-        <item name="android:colorAccent">#3b82f6</item>
-        <item name="android:statusBarColor">#1e40af</item>
-        <item name="android:navigationBarColor">#000000</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:fitsSystemWindows">false</item>
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
-    </style>
-    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
-        <item name="android:background">#1e40af</item>
-    </style>
-</resources>
-EOFV27
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">' '        <item name="android:colorPrimary">#1e40af</item>' '        <item name="android:colorPrimaryDark">#1e3a8a</item>' '        <item name="android:colorAccent">#3b82f6</item>' '        <item name="android:statusBarColor">#1e40af</item>' '        <item name="android:navigationBarColor">#000000</item>' '        <item name="android:windowLightStatusBar">false</item>' '        <item name="android:windowLightNavigationBar">false</item>' '        <item name="android:windowDrawsSystemBarBackgrounds">true</item>' '        <item name="android:fitsSystemWindows">false</item>' '        <item name="android:windowFullscreen">false</item>' '        <item name="android:windowTranslucentStatus">false</item>' '        <item name="android:windowTranslucentNavigation">false</item>' '    </style>' '    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">' '        <item name="android:colorPrimary">#1e40af</item>' '        <item name="android:colorPrimaryDark">#1e3a8a</item>' '        <item name="android:colorAccent">#3b82f6</item>' '        <item name="android:statusBarColor">#1e40af</item>' '        <item name="android:navigationBarColor">#000000</item>' '        <item name="android:windowLightStatusBar">false</item>' '        <item name="android:windowLightNavigationBar">false</item>' '        <item name="android:windowDrawsSystemBarBackgrounds">true</item>' '        <item name="android:fitsSystemWindows">false</item>' '        <item name="android:windowFullscreen">false</item>' '        <item name="android:windowTranslucentStatus">false</item>' '        <item name="android:windowTranslucentNavigation">false</item>' '    </style>' '    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">' '        <item name="android:background">#1e40af</item>' '    </style>' '</resources>' > "android/app/src/main/res/values-v27/styles.xml"
           echo "✅ values-v27/styles.xml created"
 
       - name: Configure System Bars Theme v35
         run: |
           mkdir -p "android/app/src/main/res/values-v35"
-          cat > "android/app/src/main/res/values-v35/styles.xml" << 'EOFV35'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:colorPrimary">#1e40af</item>
-        <item name="android:colorPrimaryDark">#1e3a8a</item>
-        <item name="android:colorAccent">#3b82f6</item>
-        <item name="android:statusBarColor">#1e40af</item>
-        <item name="android:navigationBarColor">#000000</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:fitsSystemWindows">false</item>
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
-        <item name="android:enforceStatusBarContrast">false</item>
-        <item name="android:enforceNavigationBarContrast">false</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
-    </style>
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:colorPrimary">#1e40af</item>
-        <item name="android:colorPrimaryDark">#1e3a8a</item>
-        <item name="android:colorAccent">#3b82f6</item>
-        <item name="android:statusBarColor">#1e40af</item>
-        <item name="android:navigationBarColor">#000000</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:fitsSystemWindows">false</item>
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
-        <item name="android:enforceStatusBarContrast">false</item>
-        <item name="android:enforceNavigationBarContrast">false</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
-    </style>
-    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
-        <item name="android:background">#1e40af</item>
-    </style>
-</resources>
-EOFV35
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">' '        <item name="android:colorPrimary">#1e40af</item>' '        <item name="android:colorPrimaryDark">#1e3a8a</item>' '        <item name="android:colorAccent">#3b82f6</item>' '        <item name="android:statusBarColor">#1e40af</item>' '        <item name="android:navigationBarColor">#000000</item>' '        <item name="android:windowLightStatusBar">false</item>' '        <item name="android:windowLightNavigationBar">false</item>' '        <item name="android:windowDrawsSystemBarBackgrounds">true</item>' '        <item name="android:fitsSystemWindows">false</item>' '        <item name="android:windowFullscreen">false</item>' '        <item name="android:windowTranslucentStatus">false</item>' '        <item name="android:windowTranslucentNavigation">false</item>' '        <item name="android:enforceStatusBarContrast">false</item>' '        <item name="android:enforceNavigationBarContrast">false</item>' '        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>' '    </style>' '    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">' '        <item name="android:colorPrimary">#1e40af</item>' '        <item name="android:colorPrimaryDark">#1e3a8a</item>' '        <item name="android:colorAccent">#3b82f6</item>' '        <item name="android:statusBarColor">#1e40af</item>' '        <item name="android:navigationBarColor">#000000</item>' '        <item name="android:windowLightStatusBar">false</item>' '        <item name="android:windowLightNavigationBar">false</item>' '        <item name="android:windowDrawsSystemBarBackgrounds">true</item>' '        <item name="android:fitsSystemWindows">false</item>' '        <item name="android:windowFullscreen">false</item>' '        <item name="android:windowTranslucentStatus">false</item>' '        <item name="android:windowTranslucentNavigation">false</item>' '        <item name="android:enforceStatusBarContrast">false</item>' '        <item name="android:enforceNavigationBarContrast">false</item>' '        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>' '    </style>' '    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">' '        <item name="android:background">#1e40af</item>' '    </style>' '</resources>' > "android/app/src/main/res/values-v35/styles.xml"
           echo "✅ values-v35/styles.xml created"
 
       - name: Setup Firebase for Push Notifications
