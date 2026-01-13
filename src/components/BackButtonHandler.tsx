@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -6,6 +6,12 @@ import { Capacitor } from '@capacitor/core';
 export const BackButtonHandler = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const locationRef = useRef(location.pathname);
+
+  // تحديث المرجع عند تغير المسار
+  useEffect(() => {
+    locationRef.current = location.pathname;
+  }, [location.pathname]);
 
   useEffect(() => {
     // فقط في التطبيق الأصلي (Native App)
@@ -13,10 +19,11 @@ export const BackButtonHandler = () => {
       return;
     }
 
-    const handleBackButton = async () => {
-      // استمع لحدث زر الرجوع في الهاتف
-      const listener = await CapacitorApp.addListener('backButton', ({ canGoBack }) => {
-        const currentPath = location.pathname;
+    let listener: { remove: () => Promise<void> } | null = null;
+
+    const setupListener = async () => {
+      listener = await CapacitorApp.addListener('backButton', () => {
+        const currentPath = locationRef.current;
         
         // قائمة الصفحات الرئيسية التي عند الضغط على زر الرجوع منها يخرج من التطبيق
         const mainPages = [
@@ -26,29 +33,27 @@ export const BackButtonHandler = () => {
           '/dashboard/admin'
         ];
         
-        // إذا كنا في صفحة رئيسية ولا توجد صفحة سابقة، اخرج من التطبيق
-        if (mainPages.includes(currentPath) && !canGoBack) {
+        // التحقق من وجود سجل في التاريخ
+        const hasHistory = window.history.length > 1;
+        
+        // إذا كنا في صفحة رئيسية ولا يوجد تاريخ، اخرج من التطبيق
+        if (mainPages.includes(currentPath) && !hasHistory) {
           CapacitorApp.exitApp();
-        } 
-        // إذا كنا في صفحة رئيسية ولكن هناك صفحة سابقة، ارجع للصفحة السابقة
-        else if (mainPages.includes(currentPath) && canGoBack) {
-          navigate(-1);
-        }
-        // في أي صفحة أخرى، ارجع للصفحة السابقة
-        else {
-          navigate(-1);
+        } else {
+          // استخدم history.back() للعودة للصفحة السابقة الفعلية
+          window.history.back();
         }
       });
-
-      return listener;
     };
 
-    let listenerPromise = handleBackButton();
+    setupListener();
 
     return () => {
-      listenerPromise.then(listener => listener.remove());
+      if (listener) {
+        listener.remove();
+      }
     };
-  }, [navigate, location]);
+  }, [navigate]);
 
   return null;
 };
