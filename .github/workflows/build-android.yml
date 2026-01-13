@@ -64,6 +64,14 @@ jobs:
           # Sync capacitor
           npx cap sync android
 
+      - name: Fix WebView Display Size
+        run: |
+          # Copy custom MainActivity.java to fix WebView scaling issue
+          TARGET_DIR="android/app/src/main/java/com/hamzawasl/app"
+          mkdir -p "$TARGET_DIR"
+          cp android-config/MainActivity.java "$TARGET_DIR/MainActivity.java"
+          echo "✅ MainActivity.java copied - WebView scaling fixed"
+
       - name: Setup Firebase for Push Notifications
         run: |
           ANDROID_APP_DIR="android/app"
