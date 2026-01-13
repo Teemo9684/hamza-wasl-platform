@@ -9,7 +9,6 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { initializePushNotifications, isPushNotificationsAvailable, unlockAudio } from "@/utils/pushNotifications";
 import { setupRealtimeNotifications, requestBrowserNotificationPermission } from "@/utils/realtimeNotifications";
 import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifications";
-import { initializeBackgroundNotifications } from "@/utils/backgroundNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "@/components/SplashScreen";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
@@ -52,9 +51,6 @@ const App = () => {
 
     // Request browser notification permission for PWA
     requestBrowserNotificationPermission();
-
-    // Initialize background notifications (keeps session alive and allows background notifications)
-    initializeBackgroundNotifications();
 
     // Start school schedule notification system
     const cleanupScheduleNotifications = startSchoolScheduleNotifications();

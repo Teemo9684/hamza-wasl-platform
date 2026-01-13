@@ -1,45 +1,33 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { APP_VERSION } from "@/config/version";
-
 interface SplashScreenProps {
   onFinish: () => void;
 }
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   const [fadeOut, setFadeOut] = useState(false);
-  const onFinishRef = useRef(onFinish);
-  
-  // Keep the ref updated
-  onFinishRef.current = onFinish;
 
   useEffect(() => {
-    let isMounted = true;
-    
     // Fade out after 2.5s
     const fadeTimer = setTimeout(() => {
-      if (isMounted) {
-        setFadeOut(true);
-      }
+      setFadeOut(true);
     }, 2500);
 
     // Finish after 3s
     const finishTimer = setTimeout(() => {
-      if (isMounted) {
-        onFinishRef.current();
-      }
+      onFinish();
     }, 3000);
 
     return () => {
-      isMounted = false;
       clearTimeout(fadeTimer);
       clearTimeout(finishTimer);
     };
-  }, []); // Empty dependency array - runs once on mount
+  }, [onFinish]);
 
   return (
     <div
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary/95 to-accent transition-opacity duration-500 ${
-        fadeOut ? "opacity-0 pointer-events-none" : "opacity-100"
+        fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
       {/* Animated Background Particles */}

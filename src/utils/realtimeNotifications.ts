@@ -1,7 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { playNotificationSound } from './pushNotifications';
-import { sendBackgroundNotification } from './backgroundNotifications';
 
 // App logo URL for notifications
 const APP_ICON_URL = '/icon-192.png';
@@ -31,8 +30,8 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
           duration: 5000,
         });
 
-        // Show browser/background notification
-        sendBackgroundNotification('رسالة جديدة', 'لديك رسالة جديدة', { type: 'message' });
+        // Show browser notification if supported
+        showBrowserNotification('رسالة جديدة', 'لديك رسالة جديدة');
       }
     )
     .subscribe();
@@ -60,8 +59,8 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
             duration: 5000,
           });
 
-          // Show browser/background notification
-          sendBackgroundNotification('إعلان جديد', announcement.title, { type: 'announcement' });
+          // Show browser notification if supported
+          showBrowserNotification('إعلان جديد', announcement.title);
         }
       }
     )
