@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      apk_builds: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          download_url: string | null
+          error_message: string | null
+          id: string
+          run_id: string
+          run_number: number
+          started_at: string
+          status: string
+          triggered_by: string | null
+          version: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          download_url?: string | null
+          error_message?: string | null
+          id?: string
+          run_id: string
+          run_number: number
+          started_at?: string
+          status?: string
+          triggered_by?: string | null
+          version?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          download_url?: string | null
+          error_message?: string | null
+          id?: string
+          run_id?: string
+          run_number?: number
+          started_at?: string
+          status?: string
+          triggered_by?: string | null
+          version?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           id: string
