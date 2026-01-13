@@ -12,7 +12,9 @@ const config: CapacitorConfig = {
     initialFocus: false,
     webContentsDebuggingEnabled: false,
     // Match PWA display density
-    adjustResize: true
+    adjustResize: true,
+    // Use device default font scaling
+    overrideUserAgent: 'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
   },
   server: {
     androidScheme: 'https',
