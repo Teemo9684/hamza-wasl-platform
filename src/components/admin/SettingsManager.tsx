@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Save, Bell, Shield } from "lucide-react";
+import { Settings, Save, Bell, Shield, Smartphone, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
@@ -21,8 +21,35 @@ export const SettingsManager = () => {
   const [autoApprove, setAutoApprove] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [buildingApk, setBuildingApk] = useState(false);
 
   const { toast } = useToast();
+
+  const handleTriggerApkBuild = async () => {
+    try {
+      setBuildingApk(true);
+      
+      const { data, error } = await supabase.functions.invoke('trigger-apk-build', {
+        method: 'POST',
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "نجاح",
+        description: data.message || "تم تشغيل بناء التطبيق بنجاح",
+      });
+    } catch (error) {
+      console.error("Error triggering APK build:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تشغيل بناء التطبيق",
+        variant: "destructive"
+      });
+    } finally {
+      setBuildingApk(false);
+    }
+  };
 
   useEffect(() => {
     fetchSettings();
@@ -168,6 +195,45 @@ export const SettingsManager = () => {
               </p>
             </div>
             <Switch checked={autoApprove} onCheckedChange={setAutoApprove} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* APK Build Section */}
+      <Card className="glass-card border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 font-cairo">
+            <Smartphone className="w-5 h-5 text-primary" />
+            بناء تطبيق الأندرويد
+          </CardTitle>
+          <CardDescription className="font-cairo">
+            قم بتشغيل بناء ملف APK الجديد للتطبيق
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground font-cairo">
+                سيتم بناء ملف APK جديد وإرسال إشعار عند الانتهاء
+              </p>
+            </div>
+            <Button 
+              onClick={handleTriggerApkBuild} 
+              disabled={buildingApk}
+              className="font-cairo"
+            >
+              {buildingApk ? (
+                <>
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  جاري التشغيل...
+                </>
+              ) : (
+                <>
+                  <Smartphone className="ml-2 h-4 w-4" />
+                  بناء التطبيق
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
