@@ -12,8 +12,8 @@ const config: CapacitorConfig = {
     initialFocus: false,
     webContentsDebuggingEnabled: false,
     adjustResize: true,
-    // CRITICAL: Disable edge-to-edge to prevent system bars from being transparent/overlapping
-    edgeToEdge: false
+    // Enable edge-to-edge for transparent system bars like PWA
+    edgeToEdge: true
   },
   server: {
     androidScheme: 'https',
@@ -30,16 +30,16 @@ const config: CapacitorConfig = {
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
       showSpinner: false,
-      splashFullScreen: false,
-      splashImmersive: false
+      splashFullScreen: true,
+      splashImmersive: true
     },
     StatusBar: {
       style: "DARK",
-      backgroundColor: "#1e40af",
-      overlaysWebView: false
+      backgroundColor: "#00000000",
+      overlaysWebView: true
     },
     NavigationBar: {
-      backgroundColor: "#000000",
+      backgroundColor: "#00000000",
       style: "DARK"
     }
   }
