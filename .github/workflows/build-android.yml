@@ -51,11 +51,18 @@ jobs:
         run: |
           sed -i "s/version: '.*'/version: '${{ env.APP_VERSION }}'/" capacitor.config.ts || true
 
-      - name: Add Android platform
-        run: npx cap add android || true
-
-      - name: Sync Capacitor
-        run: npx cap sync android
+      - name: Setup Android platform
+        run: |
+          # Remove existing android folder if it exists but is incomplete
+          if [ -d "android" ] && [ ! -f "android/build.gradle" ]; then
+            rm -rf android
+          fi
+          # Add android platform if not exists
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          # Sync capacitor
+          npx cap sync android
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
