@@ -12,11 +12,21 @@ if (Capacitor.isNativePlatform()) {
   
   // Force viewport scale for Android WebView
   if (platform === 'android') {
+    // Add meta viewport with proper density settings
     const viewport = document.querySelector('meta[name="viewport"]');
     if (viewport) {
       viewport.setAttribute('content', 
-        'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, target-densitydpi=device-dpi'
+        'width=device-width, initial-scale=0.88, minimum-scale=0.88, maximum-scale=0.88, user-scalable=no, viewport-fit=cover'
       );
+    }
+    
+    // Also try to detect screen density and adjust
+    const screenDensity = window.devicePixelRatio || 1;
+    console.log('Android screen density:', screenDensity);
+    
+    // For high density screens, apply additional class
+    if (screenDensity > 2) {
+      document.documentElement.classList.add('high-density');
     }
   }
 }
