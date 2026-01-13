@@ -1,26 +1,42 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar } from "lucide-react";
+import { Users, Calendar, ChevronDown } from "lucide-react";
+import { AddChildDialog } from "./AddChildDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { lightHaptic } from "@/utils/haptics";
 
 interface ParentOverviewProps {
   children: any[];
   selectedChild: string;
+  onSelectChild?: (childId: string) => void;
   attendance: any[];
   calculateAttendanceRate: (childId: string) => number;
+  onChildAdded?: () => void;
 }
 
 export const ParentOverview = ({
   children,
   selectedChild,
+  onSelectChild,
   attendance,
   calculateAttendanceRate,
+  onChildAdded,
 }: ParentOverviewProps) => {
   const selectedChildData = children.find(c => c.id === selectedChild);
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <div>
-        <h2 className="text-xl md:text-3xl font-bold mb-1 md:mb-2">نظرة عامة</h2>
-        <p className="text-sm md:text-base text-muted-foreground">متابعة الأداء الأكاديمي لأبنائك</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl md:text-3xl font-bold mb-1 md:mb-2">نظرة عامة</h2>
+          <p className="text-sm md:text-base text-muted-foreground">متابعة الأداء الأكاديمي لأبنائك</p>
+        </div>
+        {onChildAdded && <AddChildDialog onChildAdded={onChildAdded} />}
       </div>
 
       <div className="grid gap-3 md:gap-6 grid-cols-2">
@@ -50,6 +66,35 @@ export const ParentOverview = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Child Selector - shown when multiple children exist */}
+      {children.length > 1 && onSelectChild && (
+        <Card className="border-primary/20">
+          <CardContent className="p-3 md:p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">اختر الابن:</span>
+              <Select 
+                value={selectedChild} 
+                onValueChange={(value) => {
+                  lightHaptic();
+                  onSelectChild(value);
+                }}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="اختر ابناً" />
+                </SelectTrigger>
+                <SelectContent>
+                  {children.map((child) => (
+                    <SelectItem key={child.id} value={child.id}>
+                      {child.full_name} - {child.grade_level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {selectedChildData && (
         <Card className="overflow-hidden">
