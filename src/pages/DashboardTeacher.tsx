@@ -449,7 +449,7 @@ const DashboardTeacher = () => {
     <div className="min-h-screen flex flex-col w-full overflow-x-clip">
       {/* Fixed News Ticker - Always visible at top */}
       {hasNews && (
-        <div className="fixed top-0 left-0 right-0 z-50">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-primary" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
           <NewsTicker />
         </div>
       )}
