@@ -11,6 +11,7 @@ import { TeacherMessages } from "@/components/teacher/TeacherMessages";
 import { TeacherGroupMessaging } from "@/components/teacher/TeacherGroupMessaging";
 import { TeacherHomework } from "@/components/teacher/TeacherHomework";
 import { NewsTicker } from "@/components/NewsTicker";
+import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
@@ -24,6 +25,7 @@ interface StudentsByGrade {
 const DashboardTeacher = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { hasNews, tickerHeight } = useNewsTicker();
   const [students, setStudents] = useState<any[]>([]);
   const [studentsByGrade, setStudentsByGrade] = useState<StudentsByGrade>({});
   const [messages, setMessages] = useState<any[]>([]);
@@ -445,8 +447,21 @@ const DashboardTeacher = () => {
 
   return (
     <div className="min-h-screen flex flex-col w-full overflow-x-clip">
-      <div className="sticky top-0 z-30 backdrop-blur-xl bg-background/80 border-b shadow-md">
-        <NewsTicker />
+      {/* Fixed News Ticker - Always visible at top */}
+      {hasNews && (
+        <div className="fixed top-0 left-0 right-0 z-50">
+          <NewsTicker />
+        </div>
+      )}
+      
+      {/* Spacer for fixed ticker */}
+      {hasNews && <div style={{ height: tickerHeight }} />}
+      
+      {/* Sticky Header */}
+      <div 
+        className="sticky z-30 backdrop-blur-xl bg-background/80 border-b shadow-md"
+        style={{ top: hasNews ? tickerHeight : 0 }}
+      >
         <header>
           <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
             <div className="min-w-0 flex-1">
