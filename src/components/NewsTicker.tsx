@@ -11,6 +11,8 @@ interface NewsItem {
   is_active: boolean;
 }
 
+const TICKER_HEIGHT = 36; // Height in pixels
+
 export const NewsTicker = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
 
@@ -43,13 +45,15 @@ export const NewsTicker = () => {
     return cleanup;
   }, [fetchNewsItems]);
 
-
   if (newsItems.length === 0) {
     return null;
   }
 
   return (
-    <div className="w-full bg-primary/10 backdrop-blur-md border-b border-primary/20 overflow-hidden">
+    <div 
+      className="w-full bg-primary/10 backdrop-blur-md border-b border-primary/20 overflow-hidden"
+      style={{ height: TICKER_HEIGHT }}
+    >
       <div className="ticker-animation py-2 inline-flex min-w-max items-center gap-6 whitespace-nowrap">
         {/* Repeat items 3 times for seamless scrolling */}
         {[...Array(3)].map((_, repeatIndex) => (
@@ -87,3 +91,6 @@ export const NewsTicker = () => {
     </div>
   );
 };
+
+// Export ticker height for use in other components
+export const getTickerHeight = () => TICKER_HEIGHT;

@@ -13,15 +13,18 @@ import { ParentSchedule } from "@/components/parent/ParentSchedule";
 import { ParentDocumentRequests } from "@/components/parent/ParentDocumentRequests";
 import { ParentSettings } from "@/components/parent/ParentSettings";
 import { NewsTicker } from "@/components/NewsTicker";
+import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { DateTimeBar } from "@/components/DateTimeBar";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { realtimeManager } from "@/utils/realtimeManager";
+
 const DashboardParent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { hasNews, tickerHeight } = useNewsTicker();
   const [children, setChildren] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [selectedChild, setSelectedChild] = useState<string>("");
@@ -284,8 +287,21 @@ const DashboardParent = () => {
 
   return (
     <div className="min-h-screen flex flex-col w-full overflow-x-clip">
-      <div className="sticky top-0 z-30 backdrop-blur-xl bg-background/80 border-b shadow-md">
-        <NewsTicker />
+      {/* Fixed News Ticker - Always visible at top */}
+      {hasNews && (
+        <div className="fixed top-0 left-0 right-0 z-50">
+          <NewsTicker />
+        </div>
+      )}
+      
+      {/* Spacer for fixed ticker */}
+      {hasNews && <div style={{ height: tickerHeight }} />}
+      
+      {/* Sticky Header */}
+      <div 
+        className="sticky z-30 backdrop-blur-xl bg-background/80 border-b shadow-md"
+        style={{ top: hasNews ? tickerHeight : 0 }}
+      >
         <header>
           <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
             <div className="min-w-0 flex-1">
