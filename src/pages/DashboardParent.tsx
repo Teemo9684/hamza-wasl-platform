@@ -21,6 +21,7 @@ import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { setAppBadge } from "@/utils/appBadge";
+import { playNotificationSound } from "@/utils/pushNotifications";
 
 const DashboardParent = () => {
   const navigate = useNavigate();
@@ -43,6 +44,8 @@ const DashboardParent = () => {
   useEffect(() => {
     if (!currentUserId) return;
 
+    console.log('Setting up realtime subscription for messages, user:', currentUserId);
+
     const channel = supabase
       .channel(`parent-messages-${currentUserId}`)
       .on(
@@ -54,6 +57,7 @@ const DashboardParent = () => {
           filter: `recipient_id=eq.${currentUserId}`
         },
         async (payload) => {
+          console.log('New message received via realtime:', payload);
           // تم استلام رسالة جديدة - إضافتها مباشرة للقائمة
           const newMessage = payload.new as any;
           
@@ -80,8 +84,19 @@ const DashboardParent = () => {
             student: studentData
           };
 
-          setReceivedMessages(prev => [enrichedMessage, ...prev]);
-          sonnerToast.success("رسالة جديدة من المعلم");
+          setReceivedMessages(prev => {
+            const updated = [enrichedMessage, ...prev];
+            // Update badge count with new unread count
+            const unreadCount = updated.filter(m => !m.is_read).length;
+            setAppBadge(unreadCount);
+            return updated;
+          });
+          
+          // Play notification sound
+          playNotificationSound('message');
+          sonnerToast.success("رسالة جديدة", {
+            description: senderData?.full_name || 'رسالة جديدة من المعلم',
+          });
         }
       )
       .on(
@@ -93,15 +108,25 @@ const DashboardParent = () => {
           filter: `recipient_id=eq.${currentUserId}`
         },
         (payload) => {
+          console.log('Message updated via realtime:', payload);
           const updatedMessage = payload.new as any;
-          setReceivedMessages(prev => prev.map(msg => 
-            msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
-          ));
+          setReceivedMessages(prev => {
+            const updated = prev.map(msg => 
+              msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
+            );
+            // Update badge count
+            const unreadCount = updated.filter(m => !m.is_read).length;
+            setAppBadge(unreadCount);
+            return updated;
+          });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
   }, [currentUserId]);
