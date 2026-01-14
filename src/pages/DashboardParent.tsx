@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,7 @@ import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
-
+import { realtimeManager } from "@/utils/realtimeManager";
 const DashboardParent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();

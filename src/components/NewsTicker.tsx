@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { realtimeManager } from "@/utils/realtimeManager";
 
 interface NewsItem {
   id: string;
@@ -13,34 +14,7 @@ interface NewsItem {
 export const NewsTicker = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
 
-  useEffect(() => {
-    fetchNewsItems();
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('news-ticker-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'news_ticker',
-        },
-        (payload) => {
-          console.log('NewsTicker: Realtime update received', payload);
-          fetchNewsItems();
-        }
-      )
-      .subscribe((status) => {
-        console.log('NewsTicker: Subscription status', status);
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchNewsItems = async () => {
+  const fetchNewsItems = useCallback(async () => {
     const { data } = await supabase
       .from("news_ticker")
       .select("*")
@@ -48,9 +22,27 @@ export const NewsTicker = () => {
       .order("display_order", { ascending: true });
 
     if (data) {
+      console.log('NewsTicker: Fetched', data.length, 'items');
       setNewsItems(data);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchNewsItems();
+
+    // Subscribe using realtimeManager for better reconnection handling
+    const cleanup = realtimeManager.subscribe(
+      'news-ticker-global',
+      'news_ticker',
+      (payload) => {
+        console.log('NewsTicker: Realtime update received', payload);
+        fetchNewsItems();
+      }
+    );
+
+    return cleanup;
+  }, [fetchNewsItems]);
+
 
   if (newsItems.length === 0) {
     return null;
