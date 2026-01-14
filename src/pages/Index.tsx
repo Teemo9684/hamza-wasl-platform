@@ -689,7 +689,8 @@ const Index = () => {
                       onClick={() => navigate(getUserTypeInfo()?.registerPath || "")}
                       className="w-full font-cairo"
                     >
-                      ليس لديك حساب؟ سجل الآن
+                      ليس لديك حساب؟{" "}
+                      <span className="text-purple-500 animate-pulse font-bold">سجل الآن</span>
                     </Button>
                   )}
                 </CardFooter>
