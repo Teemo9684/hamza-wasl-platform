@@ -14,7 +14,7 @@ import { PostersCarousel } from "@/components/PostersCarousel";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
-import { APP_VERSION } from "@/config/version";
+import { useAppVersion } from "@/hooks/useAppVersion";
 
 interface NewsItem {
   id: string;
@@ -29,6 +29,7 @@ type UserType = "parent" | "teacher" | "admin" | null;
 
 const Index = () => {
   const navigate = useNavigate();
+  const { version: appVersion } = useAppVersion();
   const [isInstalled, setIsInstalled] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
   const [email, setEmail] = useState("");
@@ -700,7 +701,7 @@ const Index = () => {
       
       {/* App Version Display */}
       <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
-        v{APP_VERSION}
+        v{appVersion}
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2, Info } from "lucide-react";
-import { APP_VERSION } from "@/config/version";
+import { useAppVersion } from "@/hooks/useAppVersion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { lightHaptic, successHaptic, errorHaptic, warningHaptic } from "@/utils/haptics";
@@ -27,6 +27,7 @@ interface ParentSettingsProps {
 }
 
 export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps) => {
+  const { version: appVersion } = useAppVersion();
   const [profile, setProfile] = useState({
     full_name: "",
     phone: "",
@@ -407,7 +408,7 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
       {/* App Version */}
       <div className="text-center pt-4 pb-2">
         <p className="text-xs text-muted-foreground font-cairo">
-          إصدار التطبيق: {APP_VERSION}
+          إصدار التطبيق: {appVersion}
         </p>
       </div>
     </div>

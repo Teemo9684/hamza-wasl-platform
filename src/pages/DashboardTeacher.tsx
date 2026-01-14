@@ -444,7 +444,7 @@ const DashboardTeacher = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-clip scroll-smooth">
+    <div className="min-h-screen flex flex-col w-full overflow-x-clip">
       <div className="sticky top-0 z-30 backdrop-blur-xl bg-background/80 border-b shadow-md">
         <NewsTicker />
         <header>
@@ -467,7 +467,7 @@ const DashboardTeacher = () => {
         </header>
       </div>
 
-      <main className="flex-1 overflow-y-auto p-3 md:p-4 pb-24 w-full scroll-smooth">
+      <main className="flex-1 p-3 md:p-4 pb-24 w-full">
         <AnimatePresence mode="wait">
           <AnimatedSection key="teacher-dashboard">
             <div className="max-w-6xl mx-auto space-y-8 w-full">
