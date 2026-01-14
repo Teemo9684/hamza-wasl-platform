@@ -1,4 +1,4 @@
-package com.hamzawasl.app;
+package app.hamzawasl.app;
 
 import android.graphics.Color;
 import android.os.Build;

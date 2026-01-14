@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const targetPath = 'android/app/src/main/java/com/hamzawasl/app/MainActivity.java';
+const targetPath = 'android/app/src/main/java/app/hamzawasl/app/MainActivity.java';
 const sourcePath = 'android-config/MainActivity.java';
 
 console.log('🔧 إعداد Android WebView...\n');
