@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { sendMessageNotification } from "@/utils/sendPushNotification";
 
 interface GradeLevel {
   grade_level: string;
@@ -219,6 +220,13 @@ export const GroupMessaging = () => {
         .insert(messages);
 
       if (error) throw error;
+
+      // Send push notification to all recipients
+      await sendMessageNotification(
+        recipientIds,
+        'إدارة المدرسة',
+        subject
+      );
 
       toast({
         title: "تم الإرسال",

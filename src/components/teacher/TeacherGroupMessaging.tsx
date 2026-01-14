@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { sendMessageNotification } from "@/utils/sendPushNotification";
 
 interface GradeLevel {
   grade_level: string;
@@ -189,6 +190,20 @@ export const TeacherGroupMessaging = () => {
         .insert(messages);
 
       if (error) throw error;
+
+      // Get teacher name for notification
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      // Send push notification to all recipients
+      await sendMessageNotification(
+        recipientIds,
+        profile?.full_name || 'معلم',
+        subject
+      );
 
       toast({
         title: "تم الإرسال",

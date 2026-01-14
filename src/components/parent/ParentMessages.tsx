@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { messageSchema } from "@/lib/validations";
 import { formatDateOnly, formatDateTime } from "@/utils/formatters";
+import { sendMessageNotification } from "@/utils/sendPushNotification";
 
 interface ParentMessagesProps {
   teachers: any[];
@@ -66,6 +67,20 @@ export const ParentMessages = ({
       });
 
       if (error) throw error;
+
+      // Get sender name for notification
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      // Send push notification to recipient
+      await sendMessageNotification(
+        [newMessage.recipient_id],
+        profile?.full_name || 'ولي أمر',
+        newMessage.subject
+      );
 
       toast({
         title: "تم إرسال الرسالة",
