@@ -10,7 +10,7 @@
 بعد تشغيل `npx cap add android`، انسخ ملف `MainActivity.java` المخصص:
 
 ```bash
-cp android-config/MainActivity.java android/app/src/main/java/com/hamzawasl/app/MainActivity.java
+cp android-config/MainActivity.java android/app/src/main/java/app/hamzawasl/app/MainActivity.java
 ```
 
 ### الخطوة 2: المزامنة والبناء
