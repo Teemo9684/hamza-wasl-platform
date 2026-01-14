@@ -105,6 +105,24 @@ export const getCurrentBundleInfo = async () => {
   }
 };
 
+// Mark the current bundle as ready (prevents rollback)
+// This MUST be called after app loads successfully to confirm the update works
+export const markBundleAsReady = async (): Promise<boolean> => {
+  if (!isNativeApp()) {
+    return false;
+  }
+
+  try {
+    const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
+    await LiveUpdate.ready();
+    console.log("Bundle marked as ready - update confirmed");
+    return true;
+  } catch (error) {
+    console.error("Error marking bundle as ready:", error);
+    return false;
+  }
+};
+
 // Reset to the original bundle (shipped with the app)
 export const resetToOriginalBundle = async (): Promise<boolean> => {
   if (!isNativeApp()) {
