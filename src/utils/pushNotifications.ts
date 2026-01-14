@@ -3,6 +3,9 @@ import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Store the current token for re-registration
+let currentPushToken: string | null = null;
+
 // Get platform info
 const getPlatform = (): string => {
   if (Capacitor.isNativePlatform()) {
@@ -238,44 +241,10 @@ const setupPushNotificationListeners = () => {
   // Called when registration is successful
   PushNotifications.addListener('registration', async (token) => {
     console.log('Push registration success, token:', token.value);
+    currentPushToken = token.value;
     
     // Save the token to the push_tokens table
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && token.value) {
-        // Check if token already exists
-        const { data: existingToken } = await supabase
-          .from('push_tokens')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('token', token.value)
-          .single();
-
-        if (!existingToken) {
-          // Insert new token
-          await supabase
-            .from('push_tokens')
-            .upsert({
-              user_id: user.id,
-              token: token.value,
-              platform: getPlatform(),
-              device_name: getDeviceName(),
-              last_used_at: new Date().toISOString()
-            }, {
-              onConflict: 'token'
-            });
-          console.log('Push token saved successfully');
-        } else {
-          // Update last used time
-          await supabase
-            .from('push_tokens')
-            .update({ last_used_at: new Date().toISOString() })
-            .eq('id', existingToken.id);
-        }
-      }
-    } catch (error) {
-      console.error('Error saving push token:', error);
-    }
+    await saveTokenToDatabase(token.value);
   });
 
   // Called when registration fails
@@ -287,9 +256,10 @@ const setupPushNotificationListeners = () => {
   // Called when a notification is received (app in foreground)
   PushNotifications.addListener('pushNotificationReceived', (notification) => {
     // Push notification received
+    console.log('Push notification received in foreground:', notification);
     
     // Play notification sound
-    playNotificationSound();
+    playNotificationSound('message');
     
     // Show toast notification
     toast.success(notification.title || 'إشعار جديد', {
@@ -301,16 +271,17 @@ const setupPushNotificationListeners = () => {
   // Called when user taps on a notification
   PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
     // Push notification action performed
+    console.log('Push notification tapped:', notification);
     
     const data = notification.notification.data;
     
     // Handle navigation based on notification type using history API
     // This maintains proper navigation stack for Capacitor
-    if (data.type === 'message') {
+    if (data?.type === 'message') {
       // Navigate to messages section
       window.history.pushState(null, '', '#messages');
       window.dispatchEvent(new HashChangeEvent('hashchange'));
-    } else if (data.type === 'announcement') {
+    } else if (data?.type === 'announcement') {
       // Navigate to announcements section
       window.history.pushState(null, '', '#announcements');
       window.dispatchEvent(new HashChangeEvent('hashchange'));
@@ -318,13 +289,74 @@ const setupPushNotificationListeners = () => {
   });
 };
 
+// Save token to database
+const saveTokenToDatabase = async (token: string) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log('No user logged in, token will be saved on login');
+      return false;
+    }
+
+    if (!token) {
+      console.log('No token to save');
+      return false;
+    }
+
+    // Upsert token (insert or update based on token)
+    const { error } = await supabase
+      .from('push_tokens')
+      .upsert({
+        user_id: user.id,
+        token: token,
+        platform: getPlatform(),
+        device_name: getDeviceName(),
+        last_used_at: new Date().toISOString()
+      }, {
+        onConflict: 'token'
+      });
+
+    if (error) {
+      console.error('Error saving push token:', error);
+      return false;
+    }
+
+    console.log('Push token saved successfully for user:', user.id);
+    return true;
+  } catch (error) {
+    console.error('Error saving push token:', error);
+    return false;
+  }
+};
+
+// Re-register push token when user logs in
+export const registerPushTokenForUser = async () => {
+  if (!isPushNotificationsAvailable()) {
+    return false;
+  }
+
+  // If we already have a token, try to save it
+  if (currentPushToken) {
+    return await saveTokenToDatabase(currentPushToken);
+  }
+
+  // Otherwise, try to re-register
+  try {
+    await PushNotifications.register();
+    return true;
+  } catch (error) {
+    console.error('Error re-registering push token:', error);
+    return false;
+  }
+};
+
 export const removePushNotificationListeners = async () => {
   await PushNotifications.removeAllListeners();
 };
 
-// Function to check if push notifications are supported
-export const isPushNotificationsAvailable = () => {
-  return 'PushNotifications' in window;
+// Function to check if push notifications are supported (native only)
+export const isPushNotificationsAvailable = (): boolean => {
+  return Capacitor.isNativePlatform();
 };
 
 // Function to get current notification badges

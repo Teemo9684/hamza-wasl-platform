@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { initializePushNotifications, isPushNotificationsAvailable, unlockAudio } from "@/utils/pushNotifications";
+import { initializePushNotifications, isPushNotificationsAvailable, unlockAudio, registerPushTokenForUser } from "@/utils/pushNotifications";
 import { setupRealtimeNotifications, requestBrowserNotificationPermission } from "@/utils/realtimeNotifications";
 import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifications";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,6 +91,11 @@ const App = () => {
 
           if (roleData) {
             cleanupRealtime = await setupRealtimeNotifications(session.user.id, roleData.role);
+          }
+
+          // Register push token for the logged-in user
+          if (isPushNotificationsAvailable()) {
+            await registerPushTokenForUser();
           }
         }, 0);
       } else if (event === 'SIGNED_OUT') {
