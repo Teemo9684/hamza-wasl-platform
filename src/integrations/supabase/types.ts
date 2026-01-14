@@ -80,6 +80,45 @@ export type Database = {
         }
         Relationships: []
       }
+      app_versions: {
+        Row: {
+          bundle_id: string
+          bundle_url: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          is_mandatory: boolean | null
+          min_app_version: string | null
+          release_notes: string | null
+          version: string
+        }
+        Insert: {
+          bundle_id: string
+          bundle_url: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_mandatory?: boolean | null
+          min_app_version?: string | null
+          release_notes?: string | null
+          version: string
+        }
+        Update: {
+          bundle_id?: string
+          bundle_url?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_mandatory?: boolean | null
+          min_app_version?: string | null
+          release_notes?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           created_at: string | null
