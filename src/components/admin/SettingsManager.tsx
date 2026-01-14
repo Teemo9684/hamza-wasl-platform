@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/utils/formatters";
-import { APP_VERSION } from "@/config/version";
+import { useAppVersion } from "@/hooks/useAppVersion";
 import { OTAUpdatesManager } from "./OTAUpdatesManager";
 
 interface NotificationSettings {
@@ -21,6 +21,7 @@ interface AutoApprovalSettings {
 }
 
 export const SettingsManager = () => {
+  const { version: currentAppVersion } = useAppVersion();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -536,7 +537,7 @@ export const SettingsManager = () => {
       {/* App Version */}
       <div className="text-center pt-4 pb-2">
         <p className="text-xs text-muted-foreground font-cairo">
-          إصدار التطبيق: {APP_VERSION}
+          إصدار التطبيق: {currentAppVersion}
         </p>
       </div>
     </div>

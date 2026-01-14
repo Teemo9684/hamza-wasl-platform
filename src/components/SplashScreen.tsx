@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { APP_VERSION } from "@/config/version";
+import { useAppVersion } from "@/hooks/useAppVersion";
+
 interface SplashScreenProps {
   onFinish: () => void;
 }
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   const [fadeOut, setFadeOut] = useState(false);
+  const { version: appVersion } = useAppVersion();
 
   useEffect(() => {
     // Fade out after 2.5s
@@ -59,7 +61,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
       {/* Version Number */}
       <div className="absolute bottom-6 left-0 right-0 text-center">
-        <p className="text-white/70 text-sm font-cairo">الإصدار {APP_VERSION}</p>
+        <p className="text-white/70 text-sm font-cairo">الإصدار {appVersion}</p>
       </div>
     </div>
   );
