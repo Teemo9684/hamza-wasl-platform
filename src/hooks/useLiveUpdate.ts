@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { toast } from "sonner";
 import {
   isNativeApp,
   checkForUpdate,
@@ -116,29 +115,26 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
   // Apply the update
   const applyUpdate = useCallback(async () => {
     if (!globalState.updateInfo?.bundleUrl) {
-      toast.error("لا يوجد تحديث للتطبيق");
       return false;
+    }
+
+    // IMPORTANT: Save the version BEFORE starting download/apply
+    // This prevents re-notification after app reloads
+    if (globalState.updateInfo.version) {
+      setNotifiedVersion(globalState.updateInfo.version);
     }
 
     notifyListeners({ ...globalState, isDownloading: true, downloadProgress: 0 });
 
     try {
-      toast.loading("جارٍ تحميل التحديث...", { id: "update-download" });
-
-      // Save the version we're applying so we don't show notification again
-      if (globalState.updateInfo.version) {
-        setNotifiedVersion(globalState.updateInfo.version);
-      }
-
       const success = await downloadAndApplyUpdate(
         globalState.updateInfo.bundleUrl,
         (progress) => {
-          notifyListeners({ ...globalState, downloadProgress: progress });
+          notifyListeners({ ...globalState, isDownloading: true, downloadProgress: progress });
         }
       );
 
       if (success) {
-        toast.success("تم تطبيق التحديث بنجاح!", { id: "update-download" });
         // Clear the update info after successful application
         notifyListeners({ 
           ...globalState, 
@@ -153,7 +149,6 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
       const errorMessage =
         error instanceof Error ? error.message : "فشل تحميل التحديث";
       notifyListeners({ ...globalState, isDownloading: false, error: errorMessage });
-      toast.error("فشل تحميل التحديث", { id: "update-download" });
       console.error("Update failed:", error);
       return false;
     }

@@ -68,12 +68,9 @@ export const UpdateNotificationBanner = () => {
 
             <div className="flex items-center gap-2 flex-shrink-0">
               {isDownloading ? (
-                <div className="flex items-center gap-2 min-w-[120px]">
+                <div className="flex items-center gap-2 min-w-[140px]">
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <div className="flex-1">
-                    <Progress value={downloadProgress} className="h-2 bg-white/20" />
-                  </div>
-                  <span className="text-xs font-cairo">{downloadProgress}%</span>
+                  <span className="text-xs font-cairo whitespace-nowrap">جارٍ التحديث...</span>
                 </div>
               ) : (
                 <>
