@@ -12,11 +12,10 @@ export const UpdateNotificationBanner = () => {
     downloadProgress,
     applyUpdate,
     isNativeApp,
-  } = useLiveUpdate(true);
+  } = useLiveUpdate(false); // Don't auto-check here, LiveUpdateChecker handles it
 
   const [dismissed, setDismissed] = useState(false);
 
-  // Reset dismissed state when a new update is available
   useEffect(() => {
     if (updateInfo?.hasUpdate) {
       setDismissed(false);

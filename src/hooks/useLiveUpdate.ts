@@ -26,17 +26,36 @@ interface LiveUpdateState {
   error: string | null;
 }
 
-// Global flag to prevent multiple update checks showing multiple notifications
+// Global state to share between hook instances
+let globalState: LiveUpdateState = createInitialState();
 let globalUpdateCheckInProgress = false;
 let lastUpdateVersion: string | null = null;
+const listeners = new Set<(state: LiveUpdateState) => void>();
+
+const notifyListeners = (newState: LiveUpdateState) => {
+  globalState = newState;
+  listeners.forEach((listener) => listener(newState));
+};
 
 export const useLiveUpdate = (autoCheck: boolean = true) => {
-  const [state, setState] = useState<LiveUpdateState>(createInitialState());
-  const hasChecked = useRef(false);
+  const [state, setState] = useState<LiveUpdateState>(globalState);
+  const hasCheckedRef = useRef(false);
+  const isNative = isNativeApp();
+
+  // Subscribe to global state changes
+  useEffect(() => {
+    const listener = (newState: LiveUpdateState) => {
+      setState(newState);
+    };
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  }, []);
 
   // Check for updates
   const checkUpdate = useCallback(async () => {
-    if (!isNativeApp()) {
+    if (!isNative) {
       console.log("Not a native app, skipping update check");
       return;
     }
@@ -48,23 +67,22 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     }
 
     globalUpdateCheckInProgress = true;
-    setState((prev) => ({ ...prev, isChecking: true, error: null }));
+    notifyListeners({ ...globalState, isChecking: true, error: null });
 
     try {
       const updateInfo = await checkForUpdate();
-      
+
       // Check if we already applied this version
       const appliedVersion = getAppliedVersion();
       if (updateInfo.hasUpdate && updateInfo.version === appliedVersion) {
         console.log("Update already applied, clearing applied version marker");
-        // User just updated to this version, so it's not really a new update
         updateInfo.hasUpdate = false;
       }
 
       // Check if we already notified about this version
       if (updateInfo.hasUpdate && updateInfo.version === lastUpdateVersion) {
         console.log("Already notified about this version, skipping notification");
-        setState((prev) => ({ ...prev, isChecking: false, updateInfo }));
+        notifyListeners({ ...globalState, isChecking: false, updateInfo });
         globalUpdateCheckInProgress = false;
         return updateInfo;
       }
@@ -73,40 +91,40 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
         lastUpdateVersion = updateInfo.version || null;
       }
 
-      setState((prev) => ({ ...prev, isChecking: false, updateInfo }));
+      notifyListeners({ ...globalState, isChecking: false, updateInfo });
       globalUpdateCheckInProgress = false;
 
-      // Note: We don't show toasts here anymore - UpdateNotificationBanner handles the UI
       return updateInfo;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "فشل التحقق من التحديثات";
-      setState((prev) => ({ ...prev, isChecking: false, error: errorMessage }));
+      const errorMessage =
+        error instanceof Error ? error.message : "فشل التحقق من التحديثات";
+      notifyListeners({ ...globalState, isChecking: false, error: errorMessage });
       globalUpdateCheckInProgress = false;
       console.error("Update check failed:", error);
     }
-  }, []);
+  }, [isNative]);
 
   // Apply the update
   const applyUpdate = useCallback(async () => {
-    if (!state.updateInfo?.bundleUrl) {
+    if (!globalState.updateInfo?.bundleUrl) {
       toast.error("لا يوجد تحديث للتطبيق");
       return false;
     }
 
-    setState((prev) => ({ ...prev, isDownloading: true, downloadProgress: 0 }));
+    notifyListeners({ ...globalState, isDownloading: true, downloadProgress: 0 });
 
     try {
       toast.loading("جارٍ تحميل التحديث...", { id: "update-download" });
 
       // Save the version we're applying so we don't show notification again
-      if (state.updateInfo.version) {
-        setAppliedVersion(state.updateInfo.version);
+      if (globalState.updateInfo.version) {
+        setAppliedVersion(globalState.updateInfo.version);
       }
 
       const success = await downloadAndApplyUpdate(
-        state.updateInfo.bundleUrl,
+        globalState.updateInfo.bundleUrl,
         (progress) => {
-          setState((prev) => ({ ...prev, downloadProgress: progress }));
+          notifyListeners({ ...globalState, downloadProgress: progress });
         }
       );
 
@@ -117,31 +135,31 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
         throw new Error("فشل تطبيق التحديث");
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "فشل تحميل التحديث";
-      setState((prev) => ({ ...prev, isDownloading: false, error: errorMessage }));
+      const errorMessage =
+        error instanceof Error ? error.message : "فشل تحميل التحديث";
+      notifyListeners({ ...globalState, isDownloading: false, error: errorMessage });
       toast.error("فشل تحميل التحديث", { id: "update-download" });
       console.error("Update failed:", error);
       return false;
     }
-  }, [state.updateInfo]);
+  }, []);
 
   // Auto-check for updates on mount - only once per app lifecycle
   useEffect(() => {
-    if (autoCheck && isNativeApp() && !hasChecked.current) {
-      hasChecked.current = true;
-      // Delay the check slightly to allow the app to fully initialize
+    if (autoCheck && isNative && !hasCheckedRef.current) {
+      hasCheckedRef.current = true;
       const timer = setTimeout(() => {
         checkUpdate();
       }, 3000);
 
       return () => clearTimeout(timer);
     }
-  }, [autoCheck, checkUpdate]);
+  }, [autoCheck, isNative, checkUpdate]);
 
   return {
     ...state,
     currentVersion: getCurrentVersion(),
-    isNativeApp: isNativeApp(),
+    isNativeApp: isNative,
     checkUpdate,
     applyUpdate,
   };
