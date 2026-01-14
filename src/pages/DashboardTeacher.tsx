@@ -445,7 +445,7 @@ const DashboardTeacher = () => {
 
   return (
     <div className="min-h-screen flex flex-col w-full overflow-x-clip scroll-smooth">
-      <div className="sticky top-0 z-30 backdrop-blur-xl bg-background/80 border-b shadow-md safe-area-top">
+      <div className="sticky top-0 z-30 backdrop-blur-xl bg-background/80 border-b shadow-md">
         <NewsTicker />
         <header>
           <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
