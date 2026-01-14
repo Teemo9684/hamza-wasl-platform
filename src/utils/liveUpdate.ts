@@ -154,6 +154,36 @@ export const getAllBundles = async () => {
   }
 };
 
+// Storage key for tracking applied versions
+const APPLIED_VERSION_KEY = "ota_applied_version";
+
+// Get the version that was just applied (to prevent showing update notification after applying)
+export const getAppliedVersion = (): string | null => {
+  try {
+    return localStorage.getItem(APPLIED_VERSION_KEY);
+  } catch {
+    return null;
+  }
+};
+
+// Set the version that was just applied
+export const setAppliedVersion = (version: string): void => {
+  try {
+    localStorage.setItem(APPLIED_VERSION_KEY, version);
+  } catch (error) {
+    console.error("Error saving applied version:", error);
+  }
+};
+
+// Clear the applied version marker (useful for testing)
+export const clearAppliedVersion = (): void => {
+  try {
+    localStorage.removeItem(APPLIED_VERSION_KEY);
+  } catch (error) {
+    console.error("Error clearing applied version:", error);
+  }
+};
+
 // Create initial state for live update
 export const createInitialState = (): LiveUpdateState => ({
   isChecking: false,
