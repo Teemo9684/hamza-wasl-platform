@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { PostersCarousel } from "@/components/PostersCarousel";
 import { formatDateWithWeekday } from "@/utils/formatters";
+import { realtimeManager } from "@/utils/realtimeManager";
 
 interface NewsItem {
   id: string;
@@ -51,6 +52,19 @@ const Index = () => {
   }, []);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
 
+  const fetchNewsItems = useCallback(async () => {
+    const { data } = await supabase
+      .from("news_ticker")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+
+    if (data) {
+      console.log('Index: Fetched', data.length, 'news items');
+      setNewsItems(data);
+    }
+  }, []);
+
   useEffect(() => {
     fetchNewsItems();
     
@@ -59,30 +73,21 @@ const Index = () => {
       fetchNewsItems();
     });
 
-    // Subscribe to real-time updates for news ticker
-    const newsChannel = supabase
-      .channel('index-news-ticker-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'news_ticker',
-        },
-        (payload) => {
-          console.log('Index: News ticker realtime update received', payload);
-          fetchNewsItems();
-        }
-      )
-      .subscribe((status) => {
-        console.log('Index: News ticker subscription status', status);
-      });
+    // Subscribe using realtimeManager for better reconnection handling
+    const cleanup = realtimeManager.subscribe(
+      'index-news-ticker',
+      'news_ticker',
+      (payload) => {
+        console.log('Index: News ticker realtime update received', payload);
+        fetchNewsItems();
+      }
+    );
 
     return () => {
       subscription.unsubscribe();
-      supabase.removeChannel(newsChannel);
+      cleanup();
     };
-  }, []);
+  }, [fetchNewsItems]);
 
   useEffect(() => {
     // Update time every second
@@ -93,17 +98,6 @@ const Index = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const fetchNewsItems = async () => {
-    const { data } = await supabase
-      .from("news_ticker")
-      .select("*")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true });
-
-    if (data) {
-      setNewsItems(data);
-    }
-  };
 
   const handleCardClick = (userType: UserType) => {
     setSelectedUserType(userType);

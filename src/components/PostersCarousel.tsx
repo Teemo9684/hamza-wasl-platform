@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { realtimeManager } from '@/utils/realtimeManager';
 
 interface Poster {
   id: string;
@@ -117,32 +118,20 @@ export const PostersCarousel = () => {
     resetInterval();
   }, [goToSlide, resetInterval]);
 
-  // Setup realtime subscription
+  // Setup realtime subscription using realtimeManager for better reconnection
   useEffect(() => {
     fetchPosters();
 
-    const channelName = `posters-realtime-${Date.now()}`;
-    
-    channelRef.current = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'school_posters',
-        },
-        () => {
-          fetchPosters();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+    const cleanup = realtimeManager.subscribe(
+      'posters-carousel-global',
+      'school_posters',
+      (payload) => {
+        console.log('PostersCarousel: Realtime update received', payload);
+        fetchPosters();
       }
-    };
+    );
+
+    return cleanup;
   }, [fetchPosters]);
 
   // Reset current index if it exceeds posters length
