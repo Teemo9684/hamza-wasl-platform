@@ -20,6 +20,7 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { realtimeManager } from "@/utils/realtimeManager";
+import { setAppBadge } from "@/utils/appBadge";
 
 const DashboardParent = () => {
   const navigate = useNavigate();
@@ -277,6 +278,11 @@ const DashboardParent = () => {
   }
 
   const unreadMessagesCount = receivedMessages.filter(m => !m.is_read).length;
+
+  // Update app icon badge with unread count
+  useEffect(() => {
+    setAppBadge(unreadMessagesCount);
+  }, [unreadMessagesCount]);
 
   const scrollToMessages = () => {
     const messagesSection = document.getElementById('messages');
