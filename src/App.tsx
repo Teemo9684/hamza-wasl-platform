@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SplashScreen from "@/components/SplashScreen";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { LiveUpdateChecker } from "@/components/LiveUpdateChecker";
+import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import RegisterParent from "./pages/RegisterParent";
@@ -122,6 +123,7 @@ const App = () => {
           <BrowserRouter>
             <BackButtonHandler />
             <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
+            <UpdateNotificationBanner />
             <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/register" element={<Register />} />
