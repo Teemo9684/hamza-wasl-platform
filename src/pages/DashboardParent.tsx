@@ -286,10 +286,10 @@ const DashboardParent = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-clip">
+    <div className="min-h-screen flex flex-col w-full overflow-x-clip pt-[env(safe-area-inset-top)]">
       {/* Fixed News Ticker - Always visible at top */}
       {hasNews && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-primary" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="fixed top-[env(safe-area-inset-top)] left-0 right-0 z-50">
           <NewsTicker />
         </div>
       )}
