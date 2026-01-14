@@ -269,6 +269,13 @@ const DashboardParent = () => {
     return Number(((presentCount / childAttendance.length) * 100).toFixed(1));
   };
 
+  const unreadMessagesCount = receivedMessages.filter(m => !m.is_read).length;
+
+  // Update app icon badge with unread count
+  useEffect(() => {
+    setAppBadge(unreadMessagesCount);
+  }, [unreadMessagesCount]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -276,13 +283,6 @@ const DashboardParent = () => {
       </div>
     );
   }
-
-  const unreadMessagesCount = receivedMessages.filter(m => !m.is_read).length;
-
-  // Update app icon badge with unread count
-  useEffect(() => {
-    setAppBadge(unreadMessagesCount);
-  }, [unreadMessagesCount]);
 
   const scrollToMessages = () => {
     const messagesSection = document.getElementById('messages');
