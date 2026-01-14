@@ -445,6 +445,8 @@ const DashboardTeacher = () => {
     }
   };
 
+  const headerHeight = 56; // h-14 = 56px
+
   return (
     <div className="min-h-screen flex flex-col w-full overflow-x-clip pt-[env(safe-area-inset-top)]">
       {/* Fixed News Ticker - Always visible at top */}
@@ -454,13 +456,10 @@ const DashboardTeacher = () => {
         </div>
       )}
       
-      {/* Spacer for fixed ticker */}
-      {hasNews && <div style={{ height: tickerHeight }} />}
-      
-      {/* Sticky Header */}
+      {/* Fixed Header - Below News Ticker */}
       <div 
-        className="sticky z-30 backdrop-blur-xl bg-background/80 border-b shadow-md"
-        style={{ top: hasNews ? tickerHeight : 0 }}
+        className="fixed left-0 right-0 z-40 backdrop-blur-xl bg-background/80 border-b shadow-md"
+        style={{ top: `calc(env(safe-area-inset-top) + ${hasNews ? tickerHeight : 0}px)` }}
       >
         <header>
           <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
@@ -481,6 +480,9 @@ const DashboardTeacher = () => {
           </div>
         </header>
       </div>
+
+      {/* Spacer for fixed ticker + header */}
+      <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
         <AnimatePresence mode="wait">
