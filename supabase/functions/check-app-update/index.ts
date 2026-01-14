@@ -56,33 +56,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Compare versions
+    // Simply compare versions - no minimum version check
     const hasUpdate = compareVersions(latestVersion.version, currentVersion) > 0;
-
-    // Check if current version meets minimum requirement
-    const meetsMinVersion = compareVersions(currentVersion, latestVersion.min_app_version) >= 0;
-
-    if (!meetsMinVersion) {
-      // Force update required
-      const response: UpdateResponse = {
-        hasUpdate: true,
-        version: latestVersion.version,
-        bundleUrl: latestVersion.bundle_url,
-        isMandatory: true,
-        releaseNotes: latestVersion.release_notes || "تحديث إلزامي - يرجى التحديث للاستمرار في استخدام التطبيق",
-      };
-      return new Response(
-        JSON.stringify(response),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
 
     if (hasUpdate) {
       const response: UpdateResponse = {
         hasUpdate: true,
         version: latestVersion.version,
         bundleUrl: latestVersion.bundle_url,
-        isMandatory: latestVersion.is_mandatory,
+        isMandatory: latestVersion.is_mandatory || false,
         releaseNotes: latestVersion.release_notes,
       };
       return new Response(

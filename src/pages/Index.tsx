@@ -13,6 +13,8 @@ import { format } from "date-fns";
 import { PostersCarousel } from "@/components/PostersCarousel";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
+import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
+import { APP_VERSION } from "@/config/version";
 
 interface NewsItem {
   id: string;
@@ -389,6 +391,11 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Update Notification Banner - Below Date/Time */}
+      <div className="absolute top-[6.5rem] left-0 right-0 z-20">
+        <UpdateNotificationBanner />
+      </div>
+
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32">
         {/* Logo and Title */}
@@ -690,6 +697,11 @@ const Index = () => {
           </div>
         </div>
       )}
+      
+      {/* App Version Display */}
+      <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
+        v{APP_VERSION}
+      </div>
     </div>
   );
 };
