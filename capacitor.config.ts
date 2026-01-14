@@ -16,6 +16,8 @@ const config: CapacitorConfig = {
     edgeToEdge: false
   },
   server: {
+    url: "https://5901e610-6a23-469f-803b-aed9690ed218.lovableproject.com?forceHideBadge=true",
+    cleartext: true,
     androidScheme: 'https',
     iosScheme: 'https'
   },
