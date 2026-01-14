@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import {
   isNativeApp,
@@ -6,6 +6,8 @@ import {
   downloadAndApplyUpdate,
   getCurrentVersion,
   createInitialState,
+  getAppliedVersion,
+  setAppliedVersion,
 } from "@/utils/liveUpdate";
 
 interface UpdateInfo {
@@ -24,8 +26,13 @@ interface LiveUpdateState {
   error: string | null;
 }
 
+// Global flag to prevent multiple update checks showing multiple notifications
+let globalUpdateCheckInProgress = false;
+let lastUpdateVersion: string | null = null;
+
 export const useLiveUpdate = (autoCheck: boolean = true) => {
   const [state, setState] = useState<LiveUpdateState>(createInitialState());
+  const hasChecked = useRef(false);
 
   // Check for updates
   const checkUpdate = useCallback(async () => {
@@ -34,38 +41,47 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
       return;
     }
 
+    // Prevent multiple simultaneous checks
+    if (globalUpdateCheckInProgress) {
+      console.log("Update check already in progress, skipping");
+      return;
+    }
+
+    globalUpdateCheckInProgress = true;
     setState((prev) => ({ ...prev, isChecking: true, error: null }));
 
     try {
       const updateInfo = await checkForUpdate();
-      setState((prev) => ({ ...prev, isChecking: false, updateInfo }));
-
-      if (updateInfo.hasUpdate) {
-        if (updateInfo.isMandatory) {
-          toast.error("تحديث إلزامي متوفر!", {
-            description: updateInfo.releaseNotes || `الإصدار ${updateInfo.version}`,
-            duration: Infinity,
-            action: {
-              label: "تحديث الآن",
-              onClick: () => applyUpdate(),
-            },
-          });
-        } else {
-          toast.info("تحديث جديد متوفر!", {
-            description: updateInfo.releaseNotes || `الإصدار ${updateInfo.version}`,
-            duration: 10000,
-            action: {
-              label: "تحديث",
-              onClick: () => applyUpdate(),
-            },
-          });
-        }
+      
+      // Check if we already applied this version
+      const appliedVersion = getAppliedVersion();
+      if (updateInfo.hasUpdate && updateInfo.version === appliedVersion) {
+        console.log("Update already applied, clearing applied version marker");
+        // User just updated to this version, so it's not really a new update
+        updateInfo.hasUpdate = false;
       }
 
+      // Check if we already notified about this version
+      if (updateInfo.hasUpdate && updateInfo.version === lastUpdateVersion) {
+        console.log("Already notified about this version, skipping notification");
+        setState((prev) => ({ ...prev, isChecking: false, updateInfo }));
+        globalUpdateCheckInProgress = false;
+        return updateInfo;
+      }
+
+      if (updateInfo.hasUpdate) {
+        lastUpdateVersion = updateInfo.version || null;
+      }
+
+      setState((prev) => ({ ...prev, isChecking: false, updateInfo }));
+      globalUpdateCheckInProgress = false;
+
+      // Note: We don't show toasts here anymore - UpdateNotificationBanner handles the UI
       return updateInfo;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "فشل التحقق من التحديثات";
       setState((prev) => ({ ...prev, isChecking: false, error: errorMessage }));
+      globalUpdateCheckInProgress = false;
       console.error("Update check failed:", error);
     }
   }, []);
@@ -81,6 +97,11 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
 
     try {
       toast.loading("جارٍ تحميل التحديث...", { id: "update-download" });
+
+      // Save the version we're applying so we don't show notification again
+      if (state.updateInfo.version) {
+        setAppliedVersion(state.updateInfo.version);
+      }
 
       const success = await downloadAndApplyUpdate(
         state.updateInfo.bundleUrl,
@@ -104,9 +125,10 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     }
   }, [state.updateInfo]);
 
-  // Auto-check for updates on mount
+  // Auto-check for updates on mount - only once per app lifecycle
   useEffect(() => {
-    if (autoCheck && isNativeApp()) {
+    if (autoCheck && isNativeApp() && !hasChecked.current) {
+      hasChecked.current = true;
       // Delay the check slightly to allow the app to fully initialize
       const timer = setTimeout(() => {
         checkUpdate();
