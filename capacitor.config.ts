@@ -16,8 +16,8 @@ const config: CapacitorConfig = {
     edgeToEdge: false
   },
   server: {
-    url: "https://5901e610-6a23-469f-803b-aed9690ed218.lovableproject.com?forceHideBadge=true",
-    cleartext: true,
+    // For OTA updates, the app loads from local dist folder
+    // Updates are downloaded and applied via Capawesome Live Update
     androidScheme: 'https',
     iosScheme: 'https'
   },
@@ -43,6 +43,11 @@ const config: CapacitorConfig = {
     NavigationBar: {
       backgroundColor: "#000000",
       style: "DARK"
+    },
+    LiveUpdate: {
+      enabled: true,
+      autoDeleteBundles: true,
+      readyTimeout: 10000
     }
   }
 };
