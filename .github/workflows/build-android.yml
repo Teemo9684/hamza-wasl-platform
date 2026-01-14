@@ -63,7 +63,15 @@ jobs:
 
       - name: Fix WebView Display Size and System Bars
         run: |
-          TARGET_DIR="android/app/src/main/java/com/hamzawasl/app"
+          # Remove old path if exists to avoid duplicate class error
+          OLD_DIR="android/app/src/main/java/com/hamzawasl/app"
+          if [ -d "$OLD_DIR" ]; then
+            rm -rf "$OLD_DIR"
+            echo "🗑️ Removed old MainActivity path"
+          fi
+          
+          # Use correct path matching package name in MainActivity.java
+          TARGET_DIR="android/app/src/main/java/app/hamzawasl/app"
           mkdir -p "$TARGET_DIR"
           cp android-config/MainActivity.java "$TARGET_DIR/MainActivity.java"
           
