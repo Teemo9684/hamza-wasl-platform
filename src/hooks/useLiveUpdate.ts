@@ -6,8 +6,6 @@ import {
   downloadAndApplyUpdate,
   getCurrentVersion,
   createInitialState,
-  getAppliedVersion,
-  setAppliedVersion,
 } from "@/utils/liveUpdate";
 
 interface UpdateInfo {
@@ -29,8 +27,27 @@ interface LiveUpdateState {
 // Global state to share between hook instances
 let globalState: LiveUpdateState = createInitialState();
 let globalUpdateCheckInProgress = false;
-let lastUpdateVersion: string | null = null;
+let hasPerformedInitialCheck = false;
 const listeners = new Set<(state: LiveUpdateState) => void>();
+
+// Storage key for tracking the last notified version
+const NOTIFIED_VERSION_KEY = "ota_notified_version";
+
+const getNotifiedVersion = (): string | null => {
+  try {
+    return localStorage.getItem(NOTIFIED_VERSION_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const setNotifiedVersion = (version: string): void => {
+  try {
+    localStorage.setItem(NOTIFIED_VERSION_KEY, version);
+  } catch (error) {
+    console.error("Error saving notified version:", error);
+  }
+};
 
 const notifyListeners = (newState: LiveUpdateState) => {
   globalState = newState;
@@ -48,6 +65,8 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
       setState(newState);
     };
     listeners.add(listener);
+    // Sync with current global state
+    setState(globalState);
     return () => {
       listeners.delete(listener);
     };
@@ -71,24 +90,14 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
 
     try {
       const updateInfo = await checkForUpdate();
-
-      // Check if we already applied this version
-      const appliedVersion = getAppliedVersion();
-      if (updateInfo.hasUpdate && updateInfo.version === appliedVersion) {
-        console.log("Update already applied, clearing applied version marker");
-        updateInfo.hasUpdate = false;
-      }
-
+      
       // Check if we already notified about this version
-      if (updateInfo.hasUpdate && updateInfo.version === lastUpdateVersion) {
+      const notifiedVersion = getNotifiedVersion();
+      if (updateInfo.hasUpdate && updateInfo.version === notifiedVersion) {
         console.log("Already notified about this version, skipping notification");
-        notifyListeners({ ...globalState, isChecking: false, updateInfo });
+        notifyListeners({ ...globalState, isChecking: false, updateInfo: null });
         globalUpdateCheckInProgress = false;
-        return updateInfo;
-      }
-
-      if (updateInfo.hasUpdate) {
-        lastUpdateVersion = updateInfo.version || null;
+        return { hasUpdate: false };
       }
 
       notifyListeners({ ...globalState, isChecking: false, updateInfo });
@@ -118,7 +127,7 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
 
       // Save the version we're applying so we don't show notification again
       if (globalState.updateInfo.version) {
-        setAppliedVersion(globalState.updateInfo.version);
+        setNotifiedVersion(globalState.updateInfo.version);
       }
 
       const success = await downloadAndApplyUpdate(
@@ -130,6 +139,12 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
 
       if (success) {
         toast.success("تم تطبيق التحديث بنجاح!", { id: "update-download" });
+        // Clear the update info after successful application
+        notifyListeners({ 
+          ...globalState, 
+          isDownloading: false, 
+          updateInfo: null 
+        });
         return true;
       } else {
         throw new Error("فشل تطبيق التحديث");
@@ -144,10 +159,11 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     }
   }, []);
 
-  // Auto-check for updates on mount - only once per app lifecycle
+  // Auto-check for updates on mount - only once globally
   useEffect(() => {
-    if (autoCheck && isNative && !hasCheckedRef.current) {
+    if (autoCheck && isNative && !hasCheckedRef.current && !hasPerformedInitialCheck) {
       hasCheckedRef.current = true;
+      hasPerformedInitialCheck = true;
       const timer = setTimeout(() => {
         checkUpdate();
       }, 3000);
