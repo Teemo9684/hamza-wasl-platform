@@ -17,6 +17,7 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
+import { sendMessageNotification } from "@/utils/sendPushNotification";
 
 interface StudentsByGrade {
   [gradeLevel: string]: any[];
@@ -397,6 +398,13 @@ const DashboardTeacher = () => {
         });
 
       if (error) throw error;
+
+      // Send push notification to recipient
+      await sendMessageNotification(
+        [recipientId],
+        teacherInfo.name || 'معلم',
+        `رد: ${originalSubject}`
+      );
 
       toast({
         title: "تم بنجاح",
