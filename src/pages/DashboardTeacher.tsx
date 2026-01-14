@@ -18,6 +18,7 @@ import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
 import { sendMessageNotification } from "@/utils/sendPushNotification";
+import { setAppBadge } from "@/utils/appBadge";
 
 interface StudentsByGrade {
   [gradeLevel: string]: any[];
@@ -445,6 +446,11 @@ const DashboardTeacher = () => {
   }
 
   const unreadCount = messages.filter(m => !m.is_read).length;
+
+  // Update app icon badge with unread count
+  useEffect(() => {
+    setAppBadge(unreadCount);
+  }, [unreadCount]);
 
   const scrollToMessages = () => {
     const messagesSection = document.getElementById('messages');
