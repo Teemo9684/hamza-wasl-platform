@@ -298,7 +298,7 @@ const DashboardParent = () => {
       
       {/* Fixed Header - Below News Ticker */}
       <div 
-        className="fixed left-0 right-0 z-40 backdrop-blur-xl bg-background/80 border-b shadow-md"
+        className="fixed left-0 right-0 z-40 bg-background/98 backdrop-blur-xl border-b shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
         style={{ top: `calc(env(safe-area-inset-top) + ${hasNews ? tickerHeight : 0}px)` }}
       >
         <header>
