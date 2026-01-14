@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Save, Bell, Shield, Smartphone, Loader2, Tag, Download, Calendar, HardDrive } from "lucide-react";
+import { Settings, Save, Bell, Shield, Smartphone, Loader2, Tag, Download, Calendar, HardDrive, RefreshCw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/utils/formatters";
 import { APP_VERSION } from "@/config/version";
+import { OTAUpdatesManager } from "./OTAUpdatesManager";
 
 interface NotificationSettings {
   enabled: boolean;
@@ -513,6 +514,22 @@ export const SettingsManager = () => {
               سيتم تحميل ملف مضغوط يحتوي على آخر نسخة من التطبيق
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* OTA Updates Manager */}
+      <Card className="glass-card border-green-500/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 font-cairo">
+            <RefreshCw className="w-5 h-5 text-green-500" />
+            تحديثات OTA (التحديث عن بُعد)
+          </CardTitle>
+          <CardDescription className="font-cairo">
+            إدارة تحديثات التطبيق التي يتم تنزيلها تلقائياً دون الحاجة لإعادة تثبيت التطبيق
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OTAUpdatesManager />
         </CardContent>
       </Card>
 
