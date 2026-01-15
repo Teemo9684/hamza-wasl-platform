@@ -8,7 +8,7 @@ import { FileText, Clock, CheckCircle, XCircle, Send, Loader2 } from "lucide-rea
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDateOnly } from "@/utils/formatters";
-
+import { sendNewDocumentRequestNotification } from "@/utils/sendPushNotification";
 interface ParentDocumentRequestsProps {
   selectedChild: string;
   children: any[];
@@ -93,6 +93,17 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("غير مصرح");
 
+      // Get parent name for notification
+      const { data: parentProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      // Get student name for notification
+      const student = children.find(c => c.id === selectedStudent);
+      const studentName = student?.full_name || 'التلميذ';
+
       const { error } = await supabase
         .from('document_requests')
         .insert({
@@ -103,6 +114,13 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
         });
 
       if (error) throw error;
+
+      // Send notification to admins
+      await sendNewDocumentRequestNotification(
+        documentType,
+        studentName,
+        parentProfile?.full_name || 'ولي الأمر'
+      );
 
       toast.success("تم إرسال طلب الوثيقة بنجاح");
       setDocumentType("");

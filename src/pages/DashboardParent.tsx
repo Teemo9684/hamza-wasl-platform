@@ -17,7 +17,7 @@ import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { DateTimeBar } from "@/components/DateTimeBar";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
-import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
+import { FloatingNotificationBadge, NotificationType } from "@/components/FloatingNotificationBadge";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { setAppBadge } from "@/utils/appBadge";
@@ -304,11 +304,60 @@ const DashboardParent = () => {
   };
 
   const unreadMessagesCount = receivedMessages.filter(m => !m.is_read).length;
+  const [pendingDocuments, setPendingDocuments] = useState(0);
 
   // Update app icon badge with unread count
   useEffect(() => {
     setAppBadge(unreadMessagesCount);
   }, [unreadMessagesCount]);
+
+  // Fetch pending document updates
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const fetchPendingDocs = async () => {
+      // Get document requests that have been updated (not pending anymore)
+      const { data } = await supabase
+        .from('document_requests')
+        .select('id, status')
+        .eq('parent_id', currentUserId)
+        .neq('status', 'pending');
+      
+      // Count documents that are ready or approved (notifications for parent)
+      const count = data?.filter(d => d.status === 'ready' || d.status === 'approved').length || 0;
+      setPendingDocuments(count);
+    };
+
+    fetchPendingDocs();
+
+    // Subscribe to document request updates
+    const channel = supabase
+      .channel(`parent-document-updates-${currentUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'document_requests',
+          filter: `parent_id=eq.${currentUserId}`
+        },
+        (payload) => {
+          const updated = payload.new as any;
+          if (updated.status !== 'pending') {
+            playNotificationSound('document');
+            sonnerToast.info('تحديث طلب وثيقة', {
+              description: `تم تحديث حالة الطلب إلى: ${updated.status === 'ready' ? 'جاهزة للاستلام' : updated.status === 'approved' ? 'تمت الموافقة' : updated.status}`,
+            });
+            fetchPendingDocs();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId]);
 
   if (loading) {
     return (
@@ -322,6 +371,13 @@ const DashboardParent = () => {
     const messagesSection = document.getElementById('messages');
     if (messagesSection) {
       messagesSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const scrollToDocuments = () => {
+    const documentsSection = document.getElementById('documents');
+    if (documentsSection) {
+      documentsSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -418,7 +474,12 @@ const DashboardParent = () => {
         </AnimatePresence>
       </main>
 
-      <FloatingMessageBadge unreadCount={unreadMessagesCount} onClick={scrollToMessages} />
+      <FloatingNotificationBadge 
+        notifications={[
+          { type: 'message' as NotificationType, count: unreadMessagesCount, onClick: scrollToMessages },
+          { type: 'document' as NotificationType, count: pendingDocuments, onClick: scrollToDocuments },
+        ]}
+      />
       <BottomNav 
         items={parentNavItems} 
         notifications={{
