@@ -170,9 +170,8 @@ const LoginParent = () => {
     }
   };
 
-  const handleBackToHome = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('parent_email');
+  const handleBackToHome = () => {
+    // Don't sign out when going back to home - preserve session
     navigate("/");
   };
 

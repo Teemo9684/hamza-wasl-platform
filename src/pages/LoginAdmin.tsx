@@ -129,8 +129,8 @@ const LoginAdmin = () => {
     }
   };
 
-  const handleBackToHome = async () => {
-    await supabase.auth.signOut();
+  const handleBackToHome = () => {
+    // Don't sign out when going back to home - preserve session
     navigate("/");
   };
 
