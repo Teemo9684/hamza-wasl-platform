@@ -16,6 +16,7 @@ import { sendMessageNotification } from "@/utils/sendPushNotification";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { setAppBadge } from "@/utils/appBadge";
 import { playNotificationSound } from "@/utils/pushNotifications";
+import { mediumHaptic } from "@/utils/haptics";
 
 const TeacherMessagesPage = () => {
   const navigate = useNavigate();
@@ -86,7 +87,10 @@ const TeacherMessagesPage = () => {
           return updated;
         });
         
+        // Play sound + vibration
         playNotificationSound('message');
+        mediumHaptic();
+        
         sonnerToast.success("رسالة جديدة", {
           description: senderData?.full_name || 'رسالة جديدة من ولي أمر',
         });
