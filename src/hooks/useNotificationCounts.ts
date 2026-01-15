@@ -167,17 +167,23 @@ export const useNotificationCounts = ({ userId, userRole, childIds = [] }: UseNo
               return;
             }
 
-            if (payload.eventType === 'INSERT') {
+            // Handle both INSERT and UPDATE (upsert triggers UPDATE for existing records)
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
               const newAttendance = payload.new as any;
               
-              // Trigger notification with vibration
-              triggerNotification(
-                'attendance',
-                'تم تسجيل الحضور',
-                `حالة اليوم: ${newAttendance.status}`
-              );
-              
-              setTodayAttendanceRecorded(prev => new Set([...prev, childId]));
+              // Only notify if this is today's attendance
+              const today = new Date().toISOString().split('T')[0];
+              if (newAttendance.date === today) {
+                // Trigger notification with vibration
+                triggerNotification(
+                  'attendance',
+                  'تم تسجيل الحضور',
+                  `حالة اليوم: ${newAttendance.status}`
+                );
+                
+                setCounts(prev => ({ ...prev, attendance: prev.attendance + 1 }));
+                setTodayAttendanceRecorded(prev => new Set([...prev, childId]));
+              }
             }
           },
           `student_id=eq.${childId}`
