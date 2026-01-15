@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { toast as sonnerToast } from "sonner";
 import { TeacherMessages } from "@/components/teacher/TeacherMessages";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
@@ -13,10 +12,7 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { messageSchema } from "@/lib/validations";
 import { sendMessageNotification } from "@/utils/sendPushNotification";
-import { realtimeManager } from "@/utils/realtimeManager";
-import { setAppBadge } from "@/utils/appBadge";
-import { playNotificationSound } from "@/utils/pushNotifications";
-import { mediumHaptic } from "@/utils/haptics";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const TeacherMessagesPage = () => {
   const navigate = useNavigate();
@@ -26,98 +22,17 @@ const TeacherMessagesPage = () => {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [teacherName, setTeacherName] = useState("");
+  
+  const { counts, setUserId, setUserRole, clearSection, refreshCounts } = useNotifications();
 
   useEffect(() => {
     fetchTeacherData();
   }, []);
 
-  // Real-time subscription for messages
+  // Clear messages notification when visiting this page
   useEffect(() => {
-    if (!currentUserId) return;
-
-    const handleMessageChange = async (payload: any) => {
-      if (payload.eventType === 'REFRESH') {
-        const { data: messagesData } = await supabase
-          .from('messages')
-          .select(`
-            *,
-            sender:profiles!messages_sender_id_fkey(full_name),
-            student:students(full_name)
-          `)
-          .eq('recipient_id', currentUserId)
-          .order('created_at', { ascending: false });
-        
-        if (messagesData) {
-          setMessages(messagesData);
-          const unreadCount = messagesData.filter(m => !m.is_read).length;
-          setAppBadge(unreadCount);
-        }
-        return;
-      }
-
-      if (payload.eventType === 'INSERT') {
-        const newMessage = payload.new as any;
-        
-        const { data: senderData } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', newMessage.sender_id)
-          .single();
-        
-        let studentData = null;
-        if (newMessage.student_id) {
-          const { data } = await supabase
-            .from('students')
-            .select('full_name')
-            .eq('id', newMessage.student_id)
-            .single();
-          studentData = data;
-        }
-
-        const enrichedMessage = {
-          ...newMessage,
-          sender: senderData,
-          student: studentData
-        };
-
-        setMessages(prev => {
-          const updated = [enrichedMessage, ...prev];
-          const unreadCount = updated.filter(m => !m.is_read).length;
-          setAppBadge(unreadCount);
-          return updated;
-        });
-        
-        // Play sound + vibration
-        playNotificationSound('message');
-        mediumHaptic();
-        
-        sonnerToast.success("رسالة جديدة", {
-          description: senderData?.full_name || 'رسالة جديدة من ولي أمر',
-        });
-      }
-
-      if (payload.eventType === 'UPDATE') {
-        const updatedMessage = payload.new as any;
-        setMessages(prev => {
-          const updated = prev.map(msg => 
-            msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
-          );
-          const unreadCount = updated.filter(m => !m.is_read).length;
-          setAppBadge(unreadCount);
-          return updated;
-        });
-      }
-    };
-
-    const cleanup = realtimeManager.subscribe(
-      `teacher-messages-${currentUserId}`,
-      'messages',
-      handleMessageChange,
-      `recipient_id=eq.${currentUserId}`
-    );
-
-    return () => cleanup();
-  }, [currentUserId]);
+    clearSection('messages');
+  }, [clearSection]);
 
   const fetchTeacherData = async () => {
     try {
@@ -128,6 +43,10 @@ const TeacherMessagesPage = () => {
       }
 
       setCurrentUserId(user.id);
+      
+      // Set up notification context
+      setUserId(user.id);
+      setUserRole('teacher');
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -236,8 +155,6 @@ const TeacherMessagesPage = () => {
     }
   };
 
-  const unreadCount = messages.filter(m => !m.is_read).length;
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -301,7 +218,7 @@ const TeacherMessagesPage = () => {
         onNavigate={handleNavigate}
         useHashNavigation={false}
         notifications={{
-          messages: unreadCount,
+          messages: counts.messages,
         }}
       />
     </div>

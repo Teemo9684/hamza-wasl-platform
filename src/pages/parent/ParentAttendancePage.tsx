@@ -26,7 +26,7 @@ const ParentAttendancePage = () => {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const { counts, clearSection, setUserId, setChildIds } = useNotifications();
+  const { counts, clearSection, setUserId, setChildIds, setUserRole } = useNotifications();
 
   // Clear attendance badge when entering this page
   useEffect(() => {

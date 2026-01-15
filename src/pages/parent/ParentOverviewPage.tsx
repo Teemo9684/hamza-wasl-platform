@@ -23,7 +23,7 @@ const ParentOverviewPage = () => {
   const [loading, setLoading] = useState(true);
   const [parentName, setParentName] = useState<string>("");
   
-  const { counts, clearSection, setUserId, setChildIds } = useNotifications();
+  const { counts, clearSection, setUserId, setChildIds, setUserRole } = useNotifications();
 
   useEffect(() => {
     fetchParentData();
@@ -89,8 +89,9 @@ const ParentOverviewPage = () => {
         return;
       }
 
-      // Set user ID in notification context
+      // Set user ID and role in notification context
       setUserId(user.id);
+      setUserRole('parent');
 
       const { data: profileData } = await supabase
         .from('profiles')

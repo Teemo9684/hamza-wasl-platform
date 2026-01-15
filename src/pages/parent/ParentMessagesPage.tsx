@@ -27,7 +27,7 @@ const ParentMessagesPage = () => {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  const { counts, clearSection, setUserId, setChildIds, refreshCounts } = useNotifications();
+  const { counts, clearSection, setUserId, setChildIds, setUserRole, refreshCounts } = useNotifications();
 
   useEffect(() => {
     fetchParentData();

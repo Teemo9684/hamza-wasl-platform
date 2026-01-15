@@ -12,6 +12,7 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { attendanceNotesSchema } from "@/lib/validations";
 import { sendAttendanceNotification } from "@/utils/sendPushNotification";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const TeacherAttendancePage = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const TeacherAttendancePage = () => {
   const { hasNews, tickerHeight } = useNewsTicker();
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const { counts, setUserId, setUserRole } = useNotifications();
 
   useEffect(() => {
     fetchTeacherData();
@@ -31,6 +34,10 @@ const TeacherAttendancePage = () => {
         navigate("/login/teacher");
         return;
       }
+
+      // Set up notification context
+      setUserId(user.id);
+      setUserRole('teacher');
 
       const { data: teacherGradeLevels } = await supabase
         .from('teacher_grade_levels')
@@ -224,6 +231,9 @@ const TeacherAttendancePage = () => {
         activeSection="attendance"
         onNavigate={handleNavigate}
         useHashNavigation={false}
+        notifications={{
+          messages: counts.messages,
+        }}
       />
     </div>
   );
