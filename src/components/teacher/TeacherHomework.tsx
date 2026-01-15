@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Plus, Trash2, Upload, FileText, Calendar, Loader2 } from "lucide-react";
+import { sendHomeworkNotification } from "@/utils/sendPushNotification";
 import {
   Dialog,
   DialogContent,
@@ -198,9 +199,12 @@ export const TeacherHomework = () => {
 
       if (error) throw error;
 
+      // Send push notification to parents of this grade level
+      await sendHomeworkNotification(selectedGrade, title, subject, dueDate);
+
       toast({
         title: "تم بنجاح",
-        description: "تم إضافة الواجب بنجاح",
+        description: "تم إضافة الواجب بنجاح وإرسال الإشعارات",
       });
 
       // Reset form

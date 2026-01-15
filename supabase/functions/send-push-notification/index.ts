@@ -203,6 +203,19 @@ serve(async (req) => {
         if (tokenError) throw tokenError;
         tokens = tokenData?.map(t => t.token) || [];
       }
+    } else {
+      // No user_ids or grade_level specified - send to ALL users (for global announcements)
+      console.log('No specific target - fetching ALL tokens for global notification');
+      const { data: tokenData, error } = await supabase
+        .from('push_tokens')
+        .select('token');
+
+      if (error) {
+        console.error('Error fetching all tokens:', error);
+        throw error;
+      }
+      console.log('Found all tokens:', tokenData?.length || 0);
+      tokens = tokenData?.map(t => t.token) || [];
     }
 
     console.log('Total tokens to send:', tokens.length);
