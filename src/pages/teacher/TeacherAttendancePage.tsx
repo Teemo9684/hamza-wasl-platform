@@ -118,14 +118,19 @@ const TeacherAttendancePage = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Use upsert to update if record exists for same student and date
       const { error } = await supabase
         .from('attendance')
-        .insert({
+        .upsert({
           student_id: studentId,
-          date: new Date().toISOString().split('T')[0],
+          date: today,
           status: status,
           notes: notes,
           recorded_by: user.id,
+        }, {
+          onConflict: 'student_id,date'
         });
 
       if (error) throw error;
