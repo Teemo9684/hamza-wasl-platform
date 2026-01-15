@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { ParentOverview } from "@/components/parent/ParentOverview";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
@@ -11,6 +12,8 @@ import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { setAppBadge } from "@/utils/appBadge";
+import { realtimeManager } from "@/utils/realtimeManager";
+import { playNotificationSound } from "@/utils/pushNotifications";
 
 const ParentOverviewPage = () => {
   const navigate = useNavigate();
@@ -22,6 +25,7 @@ const ParentOverviewPage = () => {
   const [loading, setLoading] = useState(true);
   const [parentName, setParentName] = useState<string>("");
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchParentData();
@@ -33,6 +37,119 @@ const ParentOverviewPage = () => {
     }
   }, [selectedChild]);
 
+  // Real-time subscription for messages
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const handleMessageChange = async (payload: any) => {
+      if (payload.eventType === 'REFRESH') {
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select('id, is_read')
+          .eq('recipient_id', currentUserId)
+          .eq('is_read', false);
+        
+        const unreadCount = messagesData?.length || 0;
+        setUnreadMessagesCount(unreadCount);
+        setAppBadge(unreadCount);
+        return;
+      }
+
+      if (payload.eventType === 'INSERT') {
+        const newMessage = payload.new as any;
+        
+        const { data: senderData } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', newMessage.sender_id)
+          .single();
+
+        setUnreadMessagesCount(prev => {
+          const newCount = prev + 1;
+          setAppBadge(newCount);
+          return newCount;
+        });
+        
+        playNotificationSound('message');
+        sonnerToast.success("رسالة جديدة", {
+          description: senderData?.full_name || 'رسالة جديدة من المعلم',
+        });
+      }
+
+      if (payload.eventType === 'UPDATE') {
+        // Refetch unread count on update
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select('id, is_read')
+          .eq('recipient_id', currentUserId)
+          .eq('is_read', false);
+        
+        const unreadCount = messagesData?.length || 0;
+        setUnreadMessagesCount(unreadCount);
+        setAppBadge(unreadCount);
+      }
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      `parent-overview-messages-${currentUserId}`,
+      'messages',
+      handleMessageChange,
+      `recipient_id=eq.${currentUserId}`
+    );
+
+    return () => cleanup();
+  }, [currentUserId]);
+
+  // Real-time subscription for attendance
+  useEffect(() => {
+    if (!selectedChild) return;
+
+    const handleAttendanceChange = async (payload: any) => {
+      if (payload.eventType === 'REFRESH') {
+        const { data: attendanceData } = await supabase
+          .from('attendance')
+          .select('*')
+          .eq('student_id', selectedChild)
+          .order('date', { ascending: false });
+        
+        if (attendanceData) {
+          setAttendance(attendanceData);
+        }
+        return;
+      }
+
+      if (payload.eventType === 'INSERT') {
+        const newAttendance = payload.new as any;
+        setAttendance(prev => [newAttendance, ...prev]);
+        playNotificationSound('attendance');
+        sonnerToast.info('تم تسجيل الحضور', {
+          description: `حالة اليوم: ${newAttendance.status}`,
+        });
+      }
+
+      if (payload.eventType === 'UPDATE') {
+        const updatedAttendance = payload.new as any;
+        setAttendance(prev => prev.map(a => 
+          a.id === updatedAttendance.id ? updatedAttendance : a
+        ));
+      }
+
+      if (payload.eventType === 'DELETE') {
+        const deletedAttendance = payload.old as any;
+        setAttendance(prev => prev.filter(a => a.id !== deletedAttendance.id));
+      }
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      `parent-overview-attendance-${selectedChild}`,
+      'attendance',
+      handleAttendanceChange,
+      `student_id=eq.${selectedChild}`
+    );
+
+    return () => cleanup();
+  }, [selectedChild]);
+
   const fetchParentData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -40,6 +157,8 @@ const ParentOverviewPage = () => {
         navigate("/login/parent");
         return;
       }
+
+      setCurrentUserId(user.id);
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -118,6 +237,9 @@ const ParentOverviewPage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
+    if (sectionId === 'overview') {
+      return;
+    }
     navigate(`/dashboard/parent/${sectionId}`);
   };
 
@@ -184,6 +306,7 @@ const ParentOverviewPage = () => {
 
       <BottomNav 
         items={parentNavItems} 
+        activeSection="overview"
         onNavigate={handleNavigate}
         useHashNavigation={false}
         notifications={{
