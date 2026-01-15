@@ -147,60 +147,65 @@ const DashboardParent = () => {
     };
   }, [currentUserId]);
 
-  // Real-time subscription for attendance updates
+  // Real-time subscription for attendance updates using realtimeManager
   useEffect(() => {
     if (!selectedChild) return;
 
-    const attendanceChannel = supabase
-      .channel(`attendance-updates-${selectedChild}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'attendance',
-          filter: `student_id=eq.${selectedChild}`
-        },
-        (payload) => {
-          const newAttendance = payload.new as any;
-          setAttendance(prev => [newAttendance, ...prev]);
-          sonnerToast.info('تم تسجيل الحضور', {
-            description: `حالة اليوم: ${newAttendance.status}`,
-          });
+    console.log('Setting up realtime subscription for attendance via realtimeManager, child:', selectedChild);
+
+    const handleAttendanceChange = async (payload: any) => {
+      console.log('Attendance change received:', payload);
+      
+      // Handle REFRESH event
+      if (payload.eventType === 'REFRESH') {
+        console.log('Refreshing attendance data...');
+        const { data: attendanceData } = await supabase
+          .from('attendance')
+          .select('*')
+          .eq('student_id', selectedChild)
+          .order('date', { ascending: false });
+        
+        if (attendanceData) {
+          setAttendance(attendanceData);
         }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'attendance',
-          filter: `student_id=eq.${selectedChild}`
-        },
-        (payload) => {
-          const updatedAttendance = payload.new as any;
-          setAttendance(prev => prev.map(a => 
-            a.id === updatedAttendance.id ? updatedAttendance : a
-          ));
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'attendance',
-          filter: `student_id=eq.${selectedChild}`
-        },
-        (payload) => {
-          const deletedAttendance = payload.old as any;
-          setAttendance(prev => prev.filter(a => a.id !== deletedAttendance.id));
-        }
-      )
-      .subscribe();
+        return;
+      }
+
+      // Handle INSERT event
+      if (payload.eventType === 'INSERT') {
+        const newAttendance = payload.new as any;
+        setAttendance(prev => [newAttendance, ...prev]);
+        playNotificationSound('attendance');
+        sonnerToast.info('تم تسجيل الحضور', {
+          description: `حالة اليوم: ${newAttendance.status}`,
+        });
+      }
+
+      // Handle UPDATE event
+      if (payload.eventType === 'UPDATE') {
+        const updatedAttendance = payload.new as any;
+        setAttendance(prev => prev.map(a => 
+          a.id === updatedAttendance.id ? updatedAttendance : a
+        ));
+      }
+
+      // Handle DELETE event
+      if (payload.eventType === 'DELETE') {
+        const deletedAttendance = payload.old as any;
+        setAttendance(prev => prev.filter(a => a.id !== deletedAttendance.id));
+      }
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      `parent-attendance-${selectedChild}`,
+      'attendance',
+      handleAttendanceChange,
+      `student_id=eq.${selectedChild}`
+    );
 
     return () => {
-      supabase.removeChannel(attendanceChannel);
+      console.log('Cleaning up attendance subscription');
+      cleanup();
     };
   }, [selectedChild]);
 
@@ -319,9 +324,11 @@ const DashboardParent = () => {
     setAppBadge(unreadMessagesCount);
   }, [unreadMessagesCount]);
 
-  // Fetch pending document updates
+  // Fetch pending document updates using realtimeManager
   useEffect(() => {
     if (!currentUserId) return;
+
+    console.log('Setting up realtime subscription for documents via realtimeManager, user:', currentUserId);
 
     const fetchPendingDocs = async () => {
       // Get document requests that have been updated (not pending anymore)
@@ -338,38 +345,45 @@ const DashboardParent = () => {
 
     fetchPendingDocs();
 
-    // Subscribe to document request updates
-    const channel = supabase
-      .channel(`parent-document-updates-${currentUserId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'document_requests',
-          filter: `parent_id=eq.${currentUserId}`
-        },
-        (payload) => {
-          const updated = payload.new as any;
-          if (updated.status !== 'pending') {
-            playNotificationSound('document');
-            sonnerToast.info('تحديث طلب وثيقة', {
-              description: `تم تحديث حالة الطلب إلى: ${updated.status === 'ready' ? 'جاهزة للاستلام' : updated.status === 'approved' ? 'تمت الموافقة' : updated.status}`,
-            });
-            // Re-show document notifications when new update arrives
-            setDismissedNotifications(prev => {
-              const newSet = new Set(prev);
-              newSet.delete('document');
-              return newSet;
-            });
-            fetchPendingDocs();
-          }
+    const handleDocumentChange = async (payload: any) => {
+      console.log('Document change received:', payload);
+      
+      // Handle REFRESH event
+      if (payload.eventType === 'REFRESH') {
+        console.log('Refreshing documents data...');
+        fetchPendingDocs();
+        return;
+      }
+
+      // Handle UPDATE event
+      if (payload.eventType === 'UPDATE') {
+        const updated = payload.new as any;
+        if (updated.status !== 'pending') {
+          playNotificationSound('document');
+          sonnerToast.info('تحديث طلب وثيقة', {
+            description: `تم تحديث حالة الطلب إلى: ${updated.status === 'ready' ? 'جاهزة للاستلام' : updated.status === 'approved' ? 'تمت الموافقة' : updated.status}`,
+          });
+          // Re-show document notifications when new update arrives
+          setDismissedNotifications(prev => {
+            const newSet = new Set(prev);
+            newSet.delete('document');
+            return newSet;
+          });
+          fetchPendingDocs();
         }
-      )
-      .subscribe();
+      }
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      `parent-documents-${currentUserId}`,
+      'document_requests',
+      handleDocumentChange,
+      `parent_id=eq.${currentUserId}`
+    );
 
     return () => {
-      supabase.removeChannel(channel);
+      console.log('Cleaning up documents subscription');
+      cleanup();
     };
   }, [currentUserId]);
 
