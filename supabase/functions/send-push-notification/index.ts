@@ -128,21 +128,32 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
 
+    console.log('Push notification request received');
+    console.log('Firebase service account configured:', !!serviceAccountJson);
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { user_ids, grade_level, title, body, data }: PushNotificationRequest = await req.json();
+
+    console.log('Request params:', { user_ids_count: user_ids?.length, grade_level, title });
 
     // Get push tokens based on criteria
     let tokens: string[] = [];
 
     if (user_ids && user_ids.length > 0) {
+      console.log('Fetching tokens for user_ids:', user_ids);
       const { data: tokenData, error } = await supabase
         .from('push_tokens')
-        .select('token')
+        .select('token, user_id')
         .in('user_id', user_ids);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching tokens:', error);
+        throw error;
+      }
+      console.log('Found tokens:', tokenData?.length || 0);
       tokens = tokenData?.map(t => t.token) || [];
     } else if (grade_level) {
+      console.log('Fetching tokens for grade_level:', grade_level);
       const { data: studentParents, error: spError } = await supabase
         .from('students')
         .select(`parent_students (parent_id)`)
@@ -153,6 +164,8 @@ serve(async (req) => {
       const parentIds = studentParents
         ?.flatMap(s => s.parent_students?.map(ps => ps.parent_id) || [])
         .filter((id, index, self) => self.indexOf(id) === index) || [];
+
+      console.log('Found parent IDs:', parentIds.length);
 
       if (parentIds.length > 0) {
         const { data: tokenData, error: tokenError } = await supabase
@@ -165,7 +178,10 @@ serve(async (req) => {
       }
     }
 
+    console.log('Total tokens to send:', tokens.length);
+
     if (tokens.length === 0) {
+      console.log('No tokens found to send notifications');
       return new Response(
         JSON.stringify({ success: true, message: 'No tokens found to send notifications' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -174,8 +190,45 @@ serve(async (req) => {
 
     // Send notifications via FCM v1 API
     if (serviceAccountJson) {
-      const serviceAccount: ServiceAccount = JSON.parse(serviceAccountJson);
+      // Validate that the service account is valid JSON
+      let serviceAccount: ServiceAccount;
+      try {
+        serviceAccount = JSON.parse(serviceAccountJson);
+        
+        // Validate required fields
+        if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
+          console.error('Invalid service account: missing required fields');
+          console.error('Has project_id:', !!serviceAccount.project_id);
+          console.error('Has private_key:', !!serviceAccount.private_key);
+          console.error('Has client_email:', !!serviceAccount.client_email);
+          
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Invalid Firebase service account configuration. Please ensure the complete JSON file is provided.',
+              tokens_count: tokens.length 
+            }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch (parseError) {
+        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT as JSON:', parseError);
+        console.error('First 50 chars of value:', serviceAccountJson?.substring(0, 50));
+        
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'FIREBASE_SERVICE_ACCOUNT is not valid JSON. Please provide the complete Firebase service account JSON file.',
+            tokens_count: tokens.length 
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('Firebase project ID:', serviceAccount.project_id);
+      
       const accessToken = await getAccessToken(serviceAccount);
+      console.log('Got FCM access token');
 
       console.log(`Sending notifications to ${tokens.length} devices...`);
 
@@ -187,6 +240,15 @@ serve(async (req) => {
       const failCount = tokens.length - successCount;
 
       console.log(`Sent ${successCount} notifications, ${failCount} failed`);
+
+      // Log failed notifications for debugging
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`Token ${index} failed:`, result.reason);
+        } else if (!(result.value as any).success) {
+          console.error(`Token ${index} FCM error:`, (result.value as any).error);
+        }
+      });
 
       return new Response(
         JSON.stringify({ 
@@ -202,8 +264,8 @@ serve(async (req) => {
       
       return new Response(
         JSON.stringify({ 
-          success: true, 
-          message: 'FCM not configured - notifications logged only',
+          success: false, 
+          message: 'FCM not configured - FIREBASE_SERVICE_ACCOUNT secret not set',
           tokens_count: tokens.length 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
