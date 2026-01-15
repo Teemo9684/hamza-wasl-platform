@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Clock, CheckCircle, XCircle, Send, Loader2 } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, Send, Loader2, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDateOnly } from "@/utils/formatters";
@@ -133,6 +134,22 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
     }
   };
 
+  const handleDeleteRequest = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from('document_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast.success("تم حذف الطلب بنجاح");
+      fetchRequests();
+    } catch (error: any) {
+      toast.error("فشل في حذف الطلب");
+    }
+  };
+
   const selectedChildData = children.find(c => c.id === selectedStudent);
 
   return (
@@ -253,10 +270,41 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
                       </div>
                     </div>
                     
-                    <Badge className={`${status.color} text-white flex items-center gap-1 w-fit`}>
-                      <StatusIcon className="h-3 w-3" />
-                      {status.label}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={`${status.color} text-white flex items-center gap-1 w-fit`}>
+                        <StatusIcon className="h-3 w-3" />
+                        {status.label}
+                      </Badge>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>حذف الطلب</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className="gap-2">
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => handleDeleteRequest(request.id)}
+                            >
+                              حذف
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 );
               })}
