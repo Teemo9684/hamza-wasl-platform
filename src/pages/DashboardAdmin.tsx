@@ -617,9 +617,10 @@ const DashboardAdmin = () => {
           }}
           notifications={{
             users: stats.pendingRequests,
-            reports: stats.pendingDocuments,
+            documentRequests: stats.pendingDocuments,
             messages: stats.unreadMessages,
           }}
+          scrollable={true}
         />
       </div>
     </div>
