@@ -36,6 +36,7 @@ const DashboardTeacher = () => {
   const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLanguageTeacher, setIsLanguageTeacher] = useState(false);
+  const [dismissedNotifications, setDismissedNotifications] = useState(false);
 
   useEffect(() => {
     fetchTeacherData();
@@ -92,6 +93,9 @@ const DashboardTeacher = () => {
             setAppBadge(unreadCount);
             return updated;
           });
+          
+          // Re-show notifications when new message arrives
+          setDismissedNotifications(false);
           
           // Play notification sound
           playNotificationSound('message');
@@ -504,6 +508,8 @@ const DashboardTeacher = () => {
     if (messagesSection) {
       messagesSection.scrollIntoView({ behavior: 'smooth' });
     }
+    // Dismiss message notifications when clicked
+    setDismissedNotifications(true);
   };
 
   const headerHeight = 56; // h-14 = 56px
@@ -588,7 +594,7 @@ const DashboardTeacher = () => {
         </AnimatePresence>
       </main>
 
-      <FloatingMessageBadge unreadCount={unreadCount} onClick={scrollToMessages} />
+      <FloatingMessageBadge unreadCount={dismissedNotifications ? 0 : unreadCount} onClick={scrollToMessages} />
       <BottomNav 
         items={teacherNavItems} 
         notifications={{
