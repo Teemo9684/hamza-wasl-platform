@@ -28,6 +28,9 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [currentDotIndex, setCurrentDotIndex] = useState(0);
+  const itemsPerView = 5; // عدد العناصر المرئية تقريباً
+  const totalDots = Math.ceil(items.length / itemsPerView);
 
   // تتبع القسم الحالي من الـ hash
   useEffect(() => {
@@ -72,7 +75,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
     }
   }, [currentSection, scrollable]);
 
-  // تتبع إمكانية التمرير
+  // تتبع إمكانية التمرير وتحديث النقاط
   useEffect(() => {
     if (!scrollable || !scrollContainerRef.current) return;
 
@@ -82,6 +85,11 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
       
       setCanScrollLeft(container.scrollLeft > 10);
       setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 10);
+      
+      // حساب مؤشر النقطة الحالية
+      const scrollPercentage = container.scrollLeft / (container.scrollWidth - container.clientWidth);
+      const dotIndex = Math.round(scrollPercentage * (totalDots - 1));
+      setCurrentDotIndex(Math.max(0, Math.min(dotIndex, totalDots - 1)));
     };
 
     const container = scrollContainerRef.current;
@@ -97,7 +105,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
       container.removeEventListener('scroll', checkScrollability);
       window.removeEventListener('resize', checkScrollability);
     };
-  }, [scrollable, items]);
+  }, [scrollable, items, totalDots]);
 
   const handleClick = (sectionId: string) => {
     lightHaptic();
@@ -127,78 +135,106 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
     });
   };
 
+  const scrollToDot = (dotIndex: number) => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const scrollWidth = container.scrollWidth - container.clientWidth;
+    const scrollPosition = (dotIndex / (totalDots - 1)) * scrollWidth;
+    container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/98 backdrop-blur-xl border-t shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-area-bottom">
       {scrollable ? (
-        <div className="relative">
-          {/* مؤشر التمرير لليسار */}
-          {canScrollLeft && (
-            <button
-              onClick={() => scrollToDirection('left')}
-              className="absolute left-0 top-0 bottom-0 z-10 w-8 flex items-center justify-center bg-gradient-to-r from-background via-background/80 to-transparent"
+        <div className="relative flex flex-col">
+          <div className="relative">
+            {/* مؤشر التمرير لليسار */}
+            {canScrollLeft && (
+              <button
+                onClick={() => scrollToDirection('left')}
+                className="absolute left-0 top-0 bottom-0 z-10 w-8 flex items-center justify-center bg-gradient-to-r from-background via-background/80 to-transparent"
+              >
+                <ChevronLeft className="w-5 h-5 text-muted-foreground animate-pulse" />
+              </button>
+            )}
+            
+            {/* مؤشر التمرير لليمين */}
+            {canScrollRight && (
+              <button
+                onClick={() => scrollToDirection('right')}
+                className="absolute right-0 top-0 bottom-0 z-10 w-8 flex items-center justify-center bg-gradient-to-l from-background via-background/80 to-transparent"
+              >
+                <ChevronRight className="w-5 h-5 text-muted-foreground animate-pulse" />
+              </button>
+            )}
+            
+            <div 
+              ref={scrollContainerRef}
+              className="flex items-center gap-1 h-[64px] px-2 overflow-x-auto scrollbar-hide"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              <ChevronLeft className="w-5 h-5 text-muted-foreground animate-pulse" />
-            </button>
-          )}
-          
-          {/* مؤشر التمرير لليمين */}
-          {canScrollRight && (
-            <button
-              onClick={() => scrollToDirection('right')}
-              className="absolute right-0 top-0 bottom-0 z-10 w-8 flex items-center justify-center bg-gradient-to-l from-background via-background/80 to-transparent"
-            >
-              <ChevronRight className="w-5 h-5 text-muted-foreground animate-pulse" />
-            </button>
-          )}
-          
-          <div 
-            ref={scrollContainerRef}
-            className="flex items-center gap-1 h-[72px] px-2 overflow-x-auto scrollbar-hide"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {items.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentSection === item.id;
-              const notificationCount = notifications[item.id] || 0;
-              
-              return (
-                <button
-                  key={item.id}
-                  data-section={item.id}
-                  onClick={() => handleClick(item.id)}
-                  className={cn(
-                    "relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[64px] min-h-[56px] flex-shrink-0 active:scale-95 touch-feedback select-none",
-                    isActive 
-                      ? "bg-primary/15 text-primary shadow-sm" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted/70"
-                  )}
-                >
-                  <div className="relative">
-                    <Icon className={cn(
-                      "h-5 w-5 transition-transform duration-200",
-                      isActive && "scale-110"
-                    )} />
-                    {notificationCount > 0 && (
-                      <Badge 
-                        className="absolute -top-2 -right-2 h-4 min-w-4 px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold animate-pulse border-2 border-background shadow-md"
-                      >
-                        {notificationCount > 99 ? "99+" : notificationCount}
-                      </Badge>
+              {items.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentSection === item.id;
+                const notificationCount = notifications[item.id] || 0;
+                
+                return (
+                  <button
+                    key={item.id}
+                    data-section={item.id}
+                    onClick={() => handleClick(item.id)}
+                    className={cn(
+                      "relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[64px] min-h-[56px] flex-shrink-0 active:scale-95 touch-feedback select-none",
+                      isActive 
+                        ? "bg-primary/15 text-primary shadow-sm" 
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted/70"
                     )}
-                  </div>
-                  <span className={cn(
-                    "text-[10px] font-semibold font-cairo whitespace-nowrap transition-colors",
-                    isActive && "text-primary"
-                  )}>
-                    {item.label}
-                  </span>
-                  {isActive && (
-                    <div className="absolute bottom-1 w-4 h-0.5 rounded-full bg-primary/60" />
-                  )}
-                </button>
-              );
-            })}
+                  >
+                    <div className="relative">
+                      <Icon className={cn(
+                        "h-5 w-5 transition-transform duration-200",
+                        isActive && "scale-110"
+                      )} />
+                      {notificationCount > 0 && (
+                        <Badge 
+                          className="absolute -top-2 -right-2 h-4 min-w-4 px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold animate-pulse border-2 border-background shadow-md"
+                        >
+                          {notificationCount > 99 ? "99+" : notificationCount}
+                        </Badge>
+                      )}
+                    </div>
+                    <span className={cn(
+                      "text-[10px] font-semibold font-cairo whitespace-nowrap transition-colors",
+                      isActive && "text-primary"
+                    )}>
+                      {item.label}
+                    </span>
+                    {isActive && (
+                      <div className="absolute bottom-1 w-4 h-0.5 rounded-full bg-primary/60" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+          
+          {/* نقاط الموقع */}
+          {totalDots > 1 && (
+            <div className="flex items-center justify-center gap-1.5 pb-2 pt-1">
+              {Array.from({ length: totalDots }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => scrollToDot(index)}
+                  className={cn(
+                    "rounded-full transition-all duration-300",
+                    currentDotIndex === index 
+                      ? "w-4 h-1.5 bg-primary" 
+                      : "w-1.5 h-1.5 bg-muted-foreground/40 hover:bg-muted-foreground/60"
+                  )}
+                />
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex items-center justify-around h-[72px] px-1 max-w-lg mx-auto">
