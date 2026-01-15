@@ -26,7 +26,7 @@ const configureStatusBar = async () => {
   }
 };
 
-// Hide native splash screen when app is ready
+// Hide native splash screen immediately when app starts
 const hideNativeSplash = () => {
   if (Capacitor.isNativePlatform()) {
     CapacitorSplashScreen.hide().catch((e) => {
@@ -58,9 +58,7 @@ if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
   });
 }
 
-// Configure status bar and render app
+// Hide native splash immediately, configure status bar, then render app
+hideNativeSplash();
 configureStatusBar();
 createRoot(document.getElementById("root")!).render(<App />);
-
-// Hide native splash after a short delay
-setTimeout(hideNativeSplash, 100);
