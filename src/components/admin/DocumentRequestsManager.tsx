@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDateTime } from "@/utils/formatters";
 import { sendDocumentStatusNotification } from "@/utils/sendPushNotification";
+import { realtimeManager } from "@/utils/realtimeManager";
+
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: "قيد الانتظار", color: "bg-yellow-500", icon: Clock },
   approved: { label: "تمت الموافقة", color: "bg-blue-500", icon: CheckCircle },
@@ -29,32 +31,7 @@ export const DocumentRequestsManager = () => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
-  useEffect(() => {
-    fetchRequests();
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel('admin-document-requests')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'document_requests'
-        },
-        () => {
-          fetchRequests();
-          toast.info("تم تحديث طلبات الوثائق");
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('document_requests')
@@ -72,7 +49,31 @@ export const DocumentRequestsManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchRequests();
+
+    // Subscribe to realtime updates using realtimeManager for instant updates
+    const handleDocumentChange = (payload: any) => {
+      console.log('DocumentRequestsManager: Update received', payload);
+      fetchRequests();
+      if (payload.eventType !== 'REFRESH') {
+        toast.info("تم تحديث طلبات الوثائق");
+      }
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      'admin-document-requests-manager',
+      'document_requests',
+      handleDocumentChange
+    );
+
+    return () => {
+      cleanup();
+    };
+  }, [fetchRequests]);
+
 
   const handleStatusChange = async (requestId: string, newStatus: string) => {
     setUpdatingId(requestId);
