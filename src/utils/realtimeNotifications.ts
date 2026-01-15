@@ -8,6 +8,22 @@ import { mediumHaptic, warningHaptic } from './haptics';
 // App logo URL for notifications
 const APP_ICON_URL = '/icon-192.png';
 
+// Process notification queue - call edge function to send push notifications
+const processNotificationQueue = async () => {
+  try {
+    console.log('Triggering notification queue processing...');
+    const { data, error } = await supabase.functions.invoke('process-notification-queue');
+    
+    if (error) {
+      console.error('Error processing notification queue:', error);
+    } else {
+      console.log('Notification queue processed:', data);
+    }
+  } catch (error) {
+    console.error('Failed to process notification queue:', error);
+  }
+};
+
 // Set up real-time listeners for notifications
 export const setupRealtimeNotifications = async (userId: string, userRole: 'admin' | 'teacher' | 'parent') => {
   console.log('Setting up realtime notifications for user:', userId, 'role:', userRole);
@@ -87,11 +103,28 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
     }
   );
 
+  // Listen for notification queue and process it (for admin only)
+  let queueCleanup = () => {};
+  if (userRole === 'admin') {
+    queueCleanup = realtimeManager.subscribe(
+      `notification-queue-processor`,
+      'notification_queue',
+      async (payload) => {
+        if (payload.eventType === 'INSERT') {
+          console.log('New notification queued, processing...');
+          // Small delay to batch multiple inserts
+          setTimeout(() => processNotificationQueue(), 1000);
+        }
+      }
+    );
+  }
+
   // Return cleanup function
   return () => {
     console.log('Cleaning up global realtime subscriptions');
     messageCleanup();
     announcementCleanup();
+    queueCleanup();
   };
 };
 
