@@ -14,7 +14,7 @@ import { GroupMessaging } from "@/components/admin/GroupMessaging";
 import { ScheduleManager } from "@/components/admin/ScheduleManager";
 import { DocumentRequestsManager } from "@/components/admin/DocumentRequestsManager";
 import { PostersManager } from "@/components/admin/PostersManager";
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { playNotificationSound } from "@/utils/pushNotifications";
 import { BottomNav, adminNavItems } from "@/components/BottomNav";
 import { FloatingNotificationBadge, NotificationType } from "@/components/FloatingNotificationBadge";
+import { realtimeManager } from "@/utils/realtimeManager";
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -70,77 +71,117 @@ const DashboardAdmin = () => {
     fetchStatistics();
   }, []);
 
-  // Real-time notifications for new document requests, user registrations and messages
+  // Real-time notifications for new document requests using realtimeManager
   useEffect(() => {
-    const documentRequestsChannel = supabase
-      .channel('admin-document-requests')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'document_requests'
-        },
-        () => {
-          // تم استلام طلب وثيقة جديد
-          playNotificationSound('document');
-          toast.info('طلب وثيقة جديد', {
-            description: 'تم استلام طلب وثيقة جديد',
+    console.log('Setting up realtime subscription for admin document requests via realtimeManager');
+
+    const handleDocumentChange = async (payload: any) => {
+      console.log('Admin document change received:', payload);
+      
+      // Handle REFRESH event
+      if (payload.eventType === 'REFRESH') {
+        console.log('Refreshing admin documents data...');
+        const { count } = await supabase
+          .from("document_requests")
+          .select("*", { count: "exact", head: true })
+          .eq("status", "pending");
+        
+        setStats(prev => ({
+          ...prev,
+          pendingDocuments: count || 0
+        }));
+        return;
+      }
+
+      // Handle INSERT event
+      if (payload.eventType === 'INSERT') {
+        playNotificationSound('document');
+        toast.info('طلب وثيقة جديد', {
+          description: 'تم استلام طلب وثيقة جديد',
+          duration: 5000,
+        });
+        // Re-show document notifications when new request arrives
+        setDismissedNotifications(prev => {
+          const newSet = new Set(prev);
+          newSet.delete('document');
+          return newSet;
+        });
+        setStats(prev => ({
+          ...prev,
+          pendingDocuments: prev.pendingDocuments + 1
+        }));
+      }
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      'admin-document-requests',
+      'document_requests',
+      handleDocumentChange
+    );
+
+    return () => {
+      console.log('Cleaning up admin document requests subscription');
+      cleanup();
+    };
+  }, []);
+
+  // Real-time notifications for new user registrations using realtimeManager
+  useEffect(() => {
+    console.log('Setting up realtime subscription for admin user registrations via realtimeManager');
+
+    const handleProfileChange = async (payload: any) => {
+      console.log('Admin profile change received:', payload);
+      
+      // Handle REFRESH event
+      if (payload.eventType === 'REFRESH') {
+        console.log('Refreshing admin profiles data...');
+        const { count } = await supabase
+          .from("profiles")
+          .select("*", { count: "exact", head: true })
+          .eq("is_approved", false);
+        
+        setStats(prev => ({
+          ...prev,
+          pendingRequests: count || 0
+        }));
+        return;
+      }
+
+      // Handle INSERT event
+      if (payload.eventType === 'INSERT') {
+        const newProfile = payload.new as any;
+        if (!newProfile.is_approved) {
+          playNotificationSound('user');
+          toast.info('تسجيل مستخدم جديد', {
+            description: `${newProfile.full_name} في انتظار الموافقة`,
             duration: 5000,
           });
-          // Re-show document notifications when new request arrives
+          // Re-show user notifications when new registration arrives
           setDismissedNotifications(prev => {
             const newSet = new Set(prev);
-            newSet.delete('document');
+            newSet.delete('user');
             return newSet;
           });
           setStats(prev => ({
             ...prev,
-            pendingDocuments: prev.pendingDocuments + 1
+            pendingRequests: prev.pendingRequests + 1
           }));
         }
-      )
-      .subscribe();
+      }
+    };
 
-    const profilesChannel = supabase
-      .channel('admin-user-registrations')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          const newProfile = payload.new as any;
-          if (!newProfile.is_approved) {
-            // تسجيل مستخدم جديد
-            playNotificationSound('user');
-            toast.info('تسجيل مستخدم جديد', {
-              description: `${newProfile.full_name} في انتظار الموافقة`,
-              duration: 5000,
-            });
-            // Re-show user notifications when new registration arrives
-            setDismissedNotifications(prev => {
-              const newSet = new Set(prev);
-              newSet.delete('user');
-              return newSet;
-            });
-            setStats(prev => ({
-              ...prev,
-              pendingRequests: prev.pendingRequests + 1
-            }));
-          }
-        }
-      )
-      .subscribe();
+    const cleanup = realtimeManager.subscribe(
+      'admin-user-registrations',
+      'profiles',
+      handleProfileChange
+    );
 
     // الإدارة تراقب الرسائل فقط وليست طرفاً فيها
     // لذا لا نُظهر إشعارات للرسائل الجديدة (هي بين المعلمين والأولياء)
 
     return () => {
-      supabase.removeChannel(documentRequestsChannel);
-      supabase.removeChannel(profilesChannel);
+      console.log('Cleaning up admin user registrations subscription');
+      cleanup();
     };
   }, []);
 
