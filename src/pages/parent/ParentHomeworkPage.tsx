@@ -10,12 +10,20 @@ import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const ParentHomeworkPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hasNews, tickerHeight } = useNewsTicker();
   const [loading, setLoading] = useState(true);
+  
+  const { counts, clearSection, setUserId, setChildIds } = useNotifications();
+
+  // Clear homework badge when entering this page
+  useEffect(() => {
+    clearSection('homework');
+  }, [clearSection]);
 
   useEffect(() => {
     checkAuth();
@@ -27,6 +35,18 @@ const ParentHomeworkPage = () => {
       if (!user) {
         navigate("/login/parent");
         return;
+      }
+      
+      setUserId(user.id);
+      
+      // Fetch children to set in context
+      const { data: childrenData } = await supabase
+        .from('students')
+        .select(`id, parent_students!inner(parent_id)`)
+        .eq('parent_students.parent_id', user.id);
+      
+      if (childrenData && childrenData.length > 0) {
+        setChildIds(childrenData.map(c => c.id));
       }
     } catch (error: any) {
       toast({
@@ -40,6 +60,12 @@ const ParentHomeworkPage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
+    if (sectionId === 'homework') {
+      return; // Already here
+    }
+    if (sectionId === 'attendance') {
+      clearSection('attendance');
+    }
     if (sectionId === 'overview') {
       navigate('/dashboard/parent');
     } else {
@@ -105,6 +131,11 @@ const ParentHomeworkPage = () => {
         activeSection="homework"
         onNavigate={handleNavigate}
         useHashNavigation={false}
+        notifications={{
+          messages: counts.messages,
+          attendance: counts.attendance,
+          homework: counts.homework,
+        }}
       />
     </div>
   );

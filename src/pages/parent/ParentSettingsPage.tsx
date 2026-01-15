@@ -12,6 +12,7 @@ import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const ParentSettingsPage = () => {
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ const ParentSettingsPage = () => {
   const [children, setChildren] = useState<any[]>([]);
   const [selectedChild, setSelectedChild] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  
+  const { counts, clearSection, setUserId, setChildIds } = useNotifications();
 
   useEffect(() => {
     fetchParentData();
@@ -33,6 +36,8 @@ const ParentSettingsPage = () => {
         return;
       }
 
+      setUserId(user.id);
+
       const { data: childrenData, error: childrenError } = await supabase
         .from('students')
         .select(`
@@ -45,6 +50,7 @@ const ParentSettingsPage = () => {
       setChildren(childrenData || []);
 
       if (childrenData && childrenData.length > 0) {
+        setChildIds(childrenData.map(c => c.id));
         setSelectedChild(childrenData[0].id);
       }
     } catch (error: any) {
@@ -59,6 +65,14 @@ const ParentSettingsPage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
+    if (sectionId === 'settings') {
+      return; // Already here
+    }
+    if (sectionId === 'attendance') {
+      clearSection('attendance');
+    } else if (sectionId === 'homework') {
+      clearSection('homework');
+    }
     if (sectionId === 'overview') {
       navigate('/dashboard/parent');
     } else {
@@ -148,6 +162,11 @@ const ParentSettingsPage = () => {
         activeSection="settings"
         onNavigate={handleNavigate}
         useHashNavigation={false}
+        notifications={{
+          messages: counts.messages,
+          attendance: counts.attendance,
+          homework: counts.homework,
+        }}
       />
     </div>
   );

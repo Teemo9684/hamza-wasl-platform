@@ -15,7 +15,7 @@ import { playNotificationSound } from "@/utils/pushNotifications";
 import { mediumHaptic } from "@/utils/haptics";
 import { toast as sonnerToast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { setAppBadge } from "@/utils/appBadge";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const ParentAttendancePage = () => {
   const navigate = useNavigate();
@@ -25,8 +25,13 @@ const ParentAttendancePage = () => {
   const [selectedChild, setSelectedChild] = useState<string>("");
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  const { counts, clearSection, setUserId, setChildIds } = useNotifications();
+
+  // Clear attendance badge when entering this page
+  useEffect(() => {
+    clearSection('attendance');
+  }, [clearSection]);
 
   useEffect(() => {
     fetchParentData();
@@ -37,37 +42,6 @@ const ParentAttendancePage = () => {
       fetchChildDetails(selectedChild);
     }
   }, [selectedChild]);
-
-  // Real-time subscription for messages (to show badge)
-  useEffect(() => {
-    if (!currentUserId) return;
-
-    const handleMessageChange = async (payload: any) => {
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('id, is_read')
-        .eq('recipient_id', currentUserId)
-        .eq('is_read', false);
-      
-      const unreadCount = messagesData?.length || 0;
-      setUnreadMessagesCount(unreadCount);
-      setAppBadge(unreadCount);
-      
-      if (payload.eventType === 'INSERT') {
-        playNotificationSound('message');
-        mediumHaptic();
-      }
-    };
-
-    const cleanup = realtimeManager.subscribe(
-      `parent-attendance-messages-${currentUserId}`,
-      'messages',
-      handleMessageChange,
-      `recipient_id=eq.${currentUserId}`
-    );
-
-    return () => cleanup();
-  }, [currentUserId]);
 
   // Real-time subscription for attendance updates
   useEffect(() => {
@@ -91,10 +65,8 @@ const ParentAttendancePage = () => {
         const newAttendance = payload.new as any;
         setAttendance(prev => [newAttendance, ...prev]);
         
-        // Play sound + vibration
         playNotificationSound('attendance');
         mediumHaptic();
-        
         sonnerToast.info('تم تسجيل الحضور', {
           description: `حالة اليوم: ${newAttendance.status}`,
         });
@@ -131,7 +103,7 @@ const ParentAttendancePage = () => {
         return;
       }
 
-      setCurrentUserId(user.id);
+      setUserId(user.id);
 
       const { data: childrenData, error: childrenError } = await supabase
         .from('students')
@@ -145,18 +117,9 @@ const ParentAttendancePage = () => {
       setChildren(childrenData || []);
 
       if (childrenData && childrenData.length > 0) {
+        setChildIds(childrenData.map(c => c.id));
         setSelectedChild(childrenData[0].id);
       }
-
-      // Get unread messages count
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('id, is_read')
-        .eq('recipient_id', user.id)
-        .eq('is_read', false);
-
-      const unreadCount = messagesData?.length || 0;
-      setUnreadMessagesCount(unreadCount);
     } catch (error: any) {
       toast({
         title: "خطأ",
@@ -188,6 +151,12 @@ const ParentAttendancePage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
+    if (sectionId === 'attendance') {
+      return; // Already here
+    }
+    if (sectionId === 'homework') {
+      clearSection('homework');
+    }
     if (sectionId === 'overview') {
       navigate('/dashboard/parent');
     } else {
@@ -271,7 +240,9 @@ const ParentAttendancePage = () => {
         onNavigate={handleNavigate}
         useHashNavigation={false}
         notifications={{
-          messages: unreadMessagesCount,
+          messages: counts.messages,
+          attendance: counts.attendance,
+          homework: counts.homework,
         }}
       />
     </div>
