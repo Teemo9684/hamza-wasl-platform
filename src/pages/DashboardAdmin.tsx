@@ -43,6 +43,7 @@ const DashboardAdmin = () => {
     unreadMessages: 0,
   });
   const scrollPositionRef = useRef<number>(0);
+  const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
 
   // تحديث القسم عند تغير الـ hash
   useEffect(() => {
@@ -87,6 +88,12 @@ const DashboardAdmin = () => {
             description: 'تم استلام طلب وثيقة جديد',
             duration: 5000,
           });
+          // Re-show document notifications when new request arrives
+          setDismissedNotifications(prev => {
+            const newSet = new Set(prev);
+            newSet.delete('document');
+            return newSet;
+          });
           setStats(prev => ({
             ...prev,
             pendingDocuments: prev.pendingDocuments + 1
@@ -112,6 +119,12 @@ const DashboardAdmin = () => {
             toast.info('تسجيل مستخدم جديد', {
               description: `${newProfile.full_name} في انتظار الموافقة`,
               duration: 5000,
+            });
+            // Re-show user notifications when new registration arrives
+            setDismissedNotifications(prev => {
+              const newSet = new Set(prev);
+              newSet.delete('user');
+              return newSet;
             });
             setStats(prev => ({
               ...prev,
@@ -204,13 +217,16 @@ const DashboardAdmin = () => {
     window.history.pushState(null, '', `#${section}`);
     setActiveSection(section);
     
-    // تصفير الإشعارات عند زيارة القسم المعني
+    // تصفير الإشعارات عند زيارة القسم المعني وإخفاء الإشعارات العائمة
     if (section === "users") {
       setStats(prev => ({ ...prev, pendingRequests: 0 }));
+      setDismissedNotifications(prev => new Set([...prev, 'user']));
     } else if (section === "documentRequests") {
       setStats(prev => ({ ...prev, pendingDocuments: 0 }));
+      setDismissedNotifications(prev => new Set([...prev, 'document']));
     } else if (section === "messages") {
       setStats(prev => ({ ...prev, unreadMessages: 0 }));
+      setDismissedNotifications(prev => new Set([...prev, 'message']));
     }
   };
 
@@ -538,12 +554,12 @@ const DashboardAdmin = () => {
           notifications={[
             { 
               type: 'document' as NotificationType, 
-              count: stats.pendingDocuments, 
+              count: dismissedNotifications.has('document') ? 0 : stats.pendingDocuments, 
               onClick: () => handleOpenSection('documentRequests') 
             },
             { 
               type: 'message' as NotificationType, 
-              count: stats.unreadMessages, 
+              count: dismissedNotifications.has('message') ? 0 : stats.unreadMessages, 
               onClick: () => handleOpenSection('messages') 
             },
           ]}
