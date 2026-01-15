@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Megaphone, Plus, Edit, Trash2, Save, X, Send } from "lucide-react";
 import { formatDateOnly } from "@/utils/formatters";
+import { sendAnnouncementNotification } from "@/utils/sendPushNotification";
 import {
   Select,
   SelectContent,
@@ -137,9 +138,12 @@ export const AnnouncementsManager = () => {
 
       if (error) throw error;
 
+      // Send push notifications to all target users
+      await sendAnnouncementNotification(targetUserIds, formData.subject, formData.content);
+
       toast({
         title: "نجاح",
-        description: `تم إرسال الإعلان إلى ${targetUserIds.length} مستخدم`,
+        description: `تم إرسال الإعلان والإشعارات إلى ${targetUserIds.length} مستخدم`,
       });
 
       resetForm();

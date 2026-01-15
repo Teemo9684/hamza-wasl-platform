@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Save, X, MoveUp, MoveDown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { newsTickerSchema } from "@/lib/validations";
+import { sendNewsTickerNotification } from "@/utils/sendPushNotification";
 import {
   Select,
   SelectContent,
@@ -149,9 +150,14 @@ export const NewsTickerManager = () => {
           return;
         }
 
+        // Send push notification for new active news
+        if (validatedData.is_active) {
+          await sendNewsTickerNotification(validatedData.title, validatedData.content);
+        }
+
         toast({
           title: "نجاح",
-          description: "تم إضافة الخبر بنجاح",
+          description: "تم إضافة الخبر وإرسال الإشعارات بنجاح",
         });
       }
 

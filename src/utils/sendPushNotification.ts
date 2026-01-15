@@ -77,3 +77,120 @@ export const sendGradeLevelNotification = async (
     console.error('Failed to send grade level notification:', error);
   }
 };
+
+/**
+ * Send push notification for new homework
+ */
+export const sendHomeworkNotification = async (
+  gradeLevel: string,
+  homeworkTitle: string,
+  subject?: string | null,
+  dueDate?: string
+): Promise<void> => {
+  try {
+    const bodyParts = [homeworkTitle];
+    if (subject) bodyParts.push(`المادة: ${subject}`);
+    if (dueDate) {
+      const formattedDate = new Date(dueDate).toLocaleDateString('ar-u-nu-latn');
+      bodyParts.push(`التسليم: ${formattedDate}`);
+    }
+
+    await sendPushNotification({
+      grade_level: gradeLevel,
+      title: '📚 واجب منزلي جديد',
+      body: bodyParts.join(' | '),
+      data: {
+        type: 'homework',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to send homework notification:', error);
+  }
+};
+
+/**
+ * Send push notification for announcements (bulk to users)
+ */
+export const sendAnnouncementNotification = async (
+  userIds: string[],
+  subject: string,
+  content: string
+): Promise<void> => {
+  if (userIds.length === 0) return;
+
+  try {
+    // Truncate content if too long
+    const truncatedContent = content.length > 100 
+      ? content.substring(0, 100) + '...' 
+      : content;
+
+    await sendPushNotification({
+      user_ids: userIds,
+      title: `📢 ${subject}`,
+      body: truncatedContent,
+      data: {
+        type: 'announcement',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to send announcement notification:', error);
+  }
+};
+
+/**
+ * Send push notification for news ticker items (to all users)
+ */
+export const sendNewsTickerNotification = async (
+  title: string,
+  content: string
+): Promise<void> => {
+  try {
+    // Truncate content if too long
+    const truncatedContent = content.length > 100 
+      ? content.substring(0, 100) + '...' 
+      : content;
+
+    // Send to all users by not specifying user_ids or grade_level
+    // The edge function will need to handle this case
+    await sendPushNotification({
+      user_ids: [], // Empty array will trigger "send to all" in edge function
+      title: `📣 ${title}`,
+      body: truncatedContent,
+      data: {
+        type: 'news',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to send news ticker notification:', error);
+  }
+};
+
+/**
+ * Send push notification for document request status update
+ */
+export const sendDocumentStatusNotification = async (
+  userId: string,
+  documentType: string,
+  status: string
+): Promise<void> => {
+  try {
+    const statusMessages: Record<string, string> = {
+      'جاري المعالجة': 'طلبك قيد المعالجة',
+      'جاهز': 'وثيقتك جاهزة للاستلام',
+      'مرفوض': 'تم رفض طلبك',
+    };
+
+    const body = statusMessages[status] || `حالة الطلب: ${status}`;
+
+    await sendPushNotification({
+      user_ids: [userId],
+      title: `📄 تحديث طلب ${documentType}`,
+      body,
+      data: {
+        type: 'document',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to send document status notification:', error);
+  }
+};
