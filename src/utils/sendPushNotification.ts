@@ -166,25 +166,31 @@ export const sendNewsTickerNotification = async (
 };
 
 /**
- * Send push notification for document request status update
+ * Send push notification for document request status update (to parent)
  */
 export const sendDocumentStatusNotification = async (
   userId: string,
   documentType: string,
-  status: string
+  status: string,
+  studentName?: string
 ): Promise<void> => {
   try {
-    const statusMessages: Record<string, string> = {
-      'جاري المعالجة': 'طلبك قيد المعالجة',
-      'جاهز': 'وثيقتك جاهزة للاستلام',
-      'مرفوض': 'تم رفض طلبك',
+    const statusMessages: Record<string, { emoji: string; text: string }> = {
+      'pending': { emoji: '⏳', text: 'قيد الانتظار' },
+      'approved': { emoji: '✅', text: 'تمت الموافقة' },
+      'ready': { emoji: '📄', text: 'جاهزة للاستلام' },
+      'rejected': { emoji: '❌', text: 'تم رفض الطلب' },
     };
 
-    const body = statusMessages[status] || `حالة الطلب: ${status}`;
+    const statusInfo = statusMessages[status] || { emoji: '📋', text: status };
+    let body = `${documentType} - ${statusInfo.text}`;
+    if (studentName) {
+      body = `${studentName}: ${body}`;
+    }
 
     await sendPushNotification({
       user_ids: [userId],
-      title: `📄 تحديث طلب ${documentType}`,
+      title: `${statusInfo.emoji} تحديث طلب وثيقة`,
       body,
       data: {
         type: 'document',
@@ -192,6 +198,41 @@ export const sendDocumentStatusNotification = async (
     });
   } catch (error) {
     console.error('Failed to send document status notification:', error);
+  }
+};
+
+/**
+ * Send push notification for new document request (to admins)
+ */
+export const sendNewDocumentRequestNotification = async (
+  documentType: string,
+  studentName: string,
+  parentName: string
+): Promise<void> => {
+  try {
+    // Get all admin user IDs
+    const { data: adminRoles, error } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
+
+    if (error || !adminRoles || adminRoles.length === 0) {
+      console.log('No admins found to notify');
+      return;
+    }
+
+    const adminIds = adminRoles.map(r => r.user_id);
+
+    await sendPushNotification({
+      user_ids: adminIds,
+      title: '📄 طلب وثيقة جديد',
+      body: `${parentName} طلب ${documentType} للتلميذ ${studentName}`,
+      data: {
+        type: 'document_request',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to send new document request notification:', error);
   }
 };
 

@@ -8,7 +8,7 @@ import { FileText, Clock, CheckCircle, XCircle, Loader2, User, Calendar } from "
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDateTime } from "@/utils/formatters";
-
+import { sendDocumentStatusNotification } from "@/utils/sendPushNotification";
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: "قيد الانتظار", color: "bg-yellow-500", icon: Clock },
   approved: { label: "تمت الموافقة", color: "bg-blue-500", icon: CheckCircle },
@@ -77,12 +77,26 @@ export const DocumentRequestsManager = () => {
   const handleStatusChange = async (requestId: string, newStatus: string) => {
     setUpdatingId(requestId);
     try {
+      // Get request details for notification
+      const request = requests.find(r => r.id === requestId);
+      
       const { error } = await supabase
         .from('document_requests')
         .update({ status: newStatus })
         .eq('id', requestId);
 
       if (error) throw error;
+
+      // Send notification to parent
+      if (request) {
+        await sendDocumentStatusNotification(
+          request.parent_id,
+          request.document_type,
+          newStatus,
+          request.student?.full_name
+        );
+      }
+
       toast.success("تم تحديث حالة الطلب");
       fetchRequests();
     } catch (error: any) {

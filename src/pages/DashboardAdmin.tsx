@@ -21,6 +21,7 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/utils/pushNotifications";
 import { BottomNav, adminNavItems } from "@/components/BottomNav";
+import { FloatingNotificationBadge, NotificationType } from "@/components/FloatingNotificationBadge";
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -533,6 +534,20 @@ const DashboardAdmin = () => {
           )}
         </main>
         
+        <FloatingNotificationBadge 
+          notifications={[
+            { 
+              type: 'document' as NotificationType, 
+              count: stats.pendingDocuments, 
+              onClick: () => handleOpenSection('documentRequests') 
+            },
+            { 
+              type: 'message' as NotificationType, 
+              count: stats.unreadMessages, 
+              onClick: () => handleOpenSection('messages') 
+            },
+          ]}
+        />
         <BottomNav 
           items={adminNavItems} 
           activeSection={activeSection || "home"}
