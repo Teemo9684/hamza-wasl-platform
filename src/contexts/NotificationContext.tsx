@@ -218,16 +218,21 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
               return;
             }
 
-            if (payload.eventType === 'INSERT') {
+            // Handle both INSERT and UPDATE (upsert triggers UPDATE for existing records)
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
               const newAttendance = payload.new as any;
               
-              setCounts(prev => ({ ...prev, attendance: prev.attendance + 1 }));
-              
-              playNotificationSound('attendance');
-              mediumHaptic();
-              toast.info('تم تسجيل الحضور', {
-                description: `حالة اليوم: ${newAttendance.status}`,
-              });
+              // Only notify if this is today's attendance
+              const today = new Date().toISOString().split('T')[0];
+              if (newAttendance.date === today) {
+                setCounts(prev => ({ ...prev, attendance: prev.attendance + 1 }));
+                
+                playNotificationSound('attendance');
+                mediumHaptic();
+                toast.info('تم تسجيل الحضور', {
+                  description: `حالة اليوم: ${newAttendance.status}`,
+                });
+              }
             }
           },
           `student_id=eq.${childId}`
