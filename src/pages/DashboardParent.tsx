@@ -105,6 +105,13 @@ const DashboardParent = () => {
           return updated;
         });
         
+        // Re-show message notifications when new message arrives
+        setDismissedNotifications(prev => {
+          const newSet = new Set(prev);
+          newSet.delete('message');
+          return newSet;
+        });
+        
         // Play notification sound
         playNotificationSound('message');
         sonnerToast.success("رسالة جديدة", {
@@ -305,6 +312,7 @@ const DashboardParent = () => {
 
   const unreadMessagesCount = receivedMessages.filter(m => !m.is_read).length;
   const [pendingDocuments, setPendingDocuments] = useState(0);
+  const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
 
   // Update app icon badge with unread count
   useEffect(() => {
@@ -348,6 +356,12 @@ const DashboardParent = () => {
             sonnerToast.info('تحديث طلب وثيقة', {
               description: `تم تحديث حالة الطلب إلى: ${updated.status === 'ready' ? 'جاهزة للاستلام' : updated.status === 'approved' ? 'تمت الموافقة' : updated.status}`,
             });
+            // Re-show document notifications when new update arrives
+            setDismissedNotifications(prev => {
+              const newSet = new Set(prev);
+              newSet.delete('document');
+              return newSet;
+            });
             fetchPendingDocs();
           }
         }
@@ -372,6 +386,8 @@ const DashboardParent = () => {
     if (messagesSection) {
       messagesSection.scrollIntoView({ behavior: 'smooth' });
     }
+    // Dismiss message notifications when clicked
+    setDismissedNotifications(prev => new Set([...prev, 'message']));
   };
 
   const scrollToDocuments = () => {
@@ -379,6 +395,9 @@ const DashboardParent = () => {
     if (documentsSection) {
       documentsSection.scrollIntoView({ behavior: 'smooth' });
     }
+    // Dismiss document notifications and reset count
+    setDismissedNotifications(prev => new Set([...prev, 'document']));
+    setPendingDocuments(0);
   };
 
   const headerHeight = 56; // h-14 = 56px
@@ -476,8 +495,8 @@ const DashboardParent = () => {
 
       <FloatingNotificationBadge 
         notifications={[
-          { type: 'message' as NotificationType, count: unreadMessagesCount, onClick: scrollToMessages },
-          { type: 'document' as NotificationType, count: pendingDocuments, onClick: scrollToDocuments },
+          { type: 'message' as NotificationType, count: dismissedNotifications.has('message') ? 0 : unreadMessagesCount, onClick: scrollToMessages },
+          { type: 'document' as NotificationType, count: dismissedNotifications.has('document') ? 0 : pendingDocuments, onClick: scrollToDocuments },
         ]}
       />
       <BottomNav 
