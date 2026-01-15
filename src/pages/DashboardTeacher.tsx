@@ -497,6 +497,13 @@ const DashboardTeacher = () => {
     });
   };
 
+  const unreadCount = messages.filter(m => !m.is_read).length;
+
+  // Update app icon badge with unread count - must be before conditional return
+  useEffect(() => {
+    setAppBadge(unreadCount);
+  }, [unreadCount]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -504,13 +511,6 @@ const DashboardTeacher = () => {
       </div>
     );
   }
-
-  const unreadCount = messages.filter(m => !m.is_read).length;
-
-  // Update app icon badge with unread count
-  useEffect(() => {
-    setAppBadge(unreadCount);
-  }, [unreadCount]);
 
   const scrollToMessages = () => {
     const messagesSection = document.getElementById('messages');
