@@ -40,94 +40,103 @@ const DashboardParent = () => {
     fetchParentData();
   }, []);
 
-  // Real-time subscription for messages
+  // Real-time subscription for messages using realtimeManager for better reconnection handling
   useEffect(() => {
     if (!currentUserId) return;
 
-    console.log('Setting up realtime subscription for messages, user:', currentUserId);
+    console.log('Setting up realtime subscription for messages via realtimeManager, user:', currentUserId);
 
-    const channel = supabase
-      .channel(`parent-messages-${currentUserId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `recipient_id=eq.${currentUserId}`
-        },
-        async (payload) => {
-          console.log('New message received via realtime:', payload);
-          // تم استلام رسالة جديدة - إضافتها مباشرة للقائمة
-          const newMessage = payload.new as any;
-          
-          // جلب بيانات المرسل والطالب
-          const { data: senderData } = await supabase
-            .from('profiles')
+    const handleMessageChange = async (payload: any) => {
+      console.log('Message change received:', payload);
+      
+      // Handle REFRESH event (when app comes back to foreground)
+      if (payload.eventType === 'REFRESH') {
+        console.log('Refreshing messages data...');
+        // Re-fetch all messages
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select(`
+            *,
+            sender:profiles!messages_sender_id_fkey(full_name),
+            student:students(full_name)
+          `)
+          .eq('recipient_id', currentUserId)
+          .order('created_at', { ascending: false });
+        
+        if (messagesData) {
+          setReceivedMessages(messagesData);
+          const unreadCount = messagesData.filter(m => !m.is_read).length;
+          setAppBadge(unreadCount);
+        }
+        return;
+      }
+
+      // Handle INSERT event
+      if (payload.eventType === 'INSERT') {
+        const newMessage = payload.new as any;
+        
+        // جلب بيانات المرسل والطالب
+        const { data: senderData } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', newMessage.sender_id)
+          .single();
+        
+        let studentData = null;
+        if (newMessage.student_id) {
+          const { data } = await supabase
+            .from('students')
             .select('full_name')
-            .eq('id', newMessage.sender_id)
+            .eq('id', newMessage.student_id)
             .single();
-          
-          let studentData = null;
-          if (newMessage.student_id) {
-            const { data } = await supabase
-              .from('students')
-              .select('full_name')
-              .eq('id', newMessage.student_id)
-              .single();
-            studentData = data;
-          }
-
-          const enrichedMessage = {
-            ...newMessage,
-            sender: senderData,
-            student: studentData
-          };
-
-          setReceivedMessages(prev => {
-            const updated = [enrichedMessage, ...prev];
-            // Update badge count with new unread count
-            const unreadCount = updated.filter(m => !m.is_read).length;
-            setAppBadge(unreadCount);
-            return updated;
-          });
-          
-          // Play notification sound
-          playNotificationSound('message');
-          sonnerToast.success("رسالة جديدة", {
-            description: senderData?.full_name || 'رسالة جديدة من المعلم',
-          });
+          studentData = data;
         }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-          filter: `recipient_id=eq.${currentUserId}`
-        },
-        (payload) => {
-          console.log('Message updated via realtime:', payload);
-          const updatedMessage = payload.new as any;
-          setReceivedMessages(prev => {
-            const updated = prev.map(msg => 
-              msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
-            );
-            // Update badge count
-            const unreadCount = updated.filter(m => !m.is_read).length;
-            setAppBadge(unreadCount);
-            return updated;
-          });
-        }
-      )
-      .subscribe((status) => {
-        console.log('Realtime subscription status:', status);
-      });
+
+        const enrichedMessage = {
+          ...newMessage,
+          sender: senderData,
+          student: studentData
+        };
+
+        setReceivedMessages(prev => {
+          const updated = [enrichedMessage, ...prev];
+          const unreadCount = updated.filter(m => !m.is_read).length;
+          setAppBadge(unreadCount);
+          return updated;
+        });
+        
+        // Play notification sound
+        playNotificationSound('message');
+        sonnerToast.success("رسالة جديدة", {
+          description: senderData?.full_name || 'رسالة جديدة من المعلم',
+        });
+      }
+
+      // Handle UPDATE event
+      if (payload.eventType === 'UPDATE') {
+        const updatedMessage = payload.new as any;
+        setReceivedMessages(prev => {
+          const updated = prev.map(msg => 
+            msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
+          );
+          const unreadCount = updated.filter(m => !m.is_read).length;
+          setAppBadge(unreadCount);
+          return updated;
+        });
+      }
+    };
+
+    // Use realtimeManager for better connection handling
+    const cleanup = realtimeManager.subscribe(
+      `parent-messages-${currentUserId}`,
+      'messages',
+      handleMessageChange,
+      `recipient_id=eq.${currentUserId}`
+    );
 
     return () => {
       console.log('Cleaning up realtime subscription');
-      supabase.removeChannel(channel);
+      cleanup();
     };
   }, [currentUserId]);
 
