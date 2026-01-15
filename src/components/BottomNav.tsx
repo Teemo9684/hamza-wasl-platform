@@ -83,13 +83,29 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
       const container = scrollContainerRef.current;
       if (!container) return;
       
-      setCanScrollLeft(container.scrollLeft > 10);
-      setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 10);
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      const currentScroll = Math.abs(container.scrollLeft);
       
-      // حساب مؤشر النقطة الحالية
-      const scrollPercentage = container.scrollLeft / (container.scrollWidth - container.clientWidth);
-      const dotIndex = Math.round(scrollPercentage * (totalDots - 1));
-      setCurrentDotIndex(Math.max(0, Math.min(dotIndex, totalDots - 1)));
+      // التعامل مع RTL - scrollLeft يكون سالباً في RTL
+      const isRTL = getComputedStyle(container).direction === 'rtl';
+      
+      if (isRTL) {
+        // في RTL، scrollLeft يبدأ من 0 ويصبح سالباً عند التمرير لليسار
+        setCanScrollRight(currentScroll > 10);
+        setCanScrollLeft(currentScroll < maxScroll - 10);
+      } else {
+        setCanScrollLeft(currentScroll > 10);
+        setCanScrollRight(currentScroll < maxScroll - 10);
+      }
+      
+      // حساب مؤشر النقطة الحالية بناءً على موقع التمرير
+      if (maxScroll > 0) {
+        const scrollPercentage = currentScroll / maxScroll;
+        // في RTL، نعكس النسبة المئوية
+        const adjustedPercentage = isRTL ? 1 - scrollPercentage : scrollPercentage;
+        const dotIndex = Math.round(adjustedPercentage * (totalDots - 1));
+        setCurrentDotIndex(Math.max(0, Math.min(dotIndex, totalDots - 1)));
+      }
     };
 
     const container = scrollContainerRef.current;
@@ -100,6 +116,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
     
     // Check after a short delay to ensure proper calculation
     setTimeout(checkScrollability, 100);
+    setTimeout(checkScrollability, 500);
     
     return () => {
       container.removeEventListener('scroll', checkScrollability);
@@ -136,10 +153,18 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
   };
 
   const scrollToDot = (dotIndex: number) => {
-    if (!scrollContainerRef.current) return;
+    if (!scrollContainerRef.current || totalDots <= 1) return;
     const container = scrollContainerRef.current;
-    const scrollWidth = container.scrollWidth - container.clientWidth;
-    const scrollPosition = (dotIndex / (totalDots - 1)) * scrollWidth;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    const isRTL = getComputedStyle(container).direction === 'rtl';
+    
+    // حساب موقع التمرير المطلوب
+    const targetPercentage = dotIndex / (totalDots - 1);
+    // في RTL، نعكس الاتجاه
+    const scrollPosition = isRTL 
+      ? -maxScroll * (1 - targetPercentage)
+      : maxScroll * targetPercentage;
+    
     container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
   };
 
