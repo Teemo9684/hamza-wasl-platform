@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDateOnly } from "@/utils/formatters";
 import { sendNewDocumentRequestNotification } from "@/utils/sendPushNotification";
+import { realtimeManager } from "@/utils/realtimeManager";
+
 interface ParentDocumentRequestsProps {
   selectedChild: string;
   children: any[];
@@ -36,35 +38,7 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
   const [notes, setNotes] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(selectedChild);
 
-  useEffect(() => {
-    fetchRequests();
-    
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel('document-requests-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'document_requests'
-        },
-        () => {
-          fetchRequests();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  useEffect(() => {
-    setSelectedStudent(selectedChild);
-  }, [selectedChild]);
-
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('document_requests')
@@ -81,7 +55,32 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchRequests();
+    
+    // Subscribe to realtime updates using realtimeManager for instant updates
+    const handleDocumentChange = (payload: any) => {
+      console.log('Document request change received in ParentDocumentRequests:', payload);
+      // Immediately refetch on any change
+      fetchRequests();
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      'parent-document-requests-list',
+      'document_requests',
+      handleDocumentChange
+    );
+
+    return () => {
+      cleanup();
+    };
+  }, [fetchRequests]);
+
+  useEffect(() => {
+    setSelectedStudent(selectedChild);
+  }, [selectedChild]);
 
   const handleSubmit = async () => {
     if (!selectedStudent || !documentType) {
