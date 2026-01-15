@@ -14,6 +14,7 @@ import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { setAppBadge } from "@/utils/appBadge";
 import { playNotificationSound } from "@/utils/pushNotifications";
+import { mediumHaptic } from "@/utils/haptics";
 
 const ParentMessagesPage = () => {
   const navigate = useNavigate();
@@ -85,7 +86,10 @@ const ParentMessagesPage = () => {
           return updated;
         });
         
+        // Play sound + vibration
         playNotificationSound('message');
+        mediumHaptic();
+        
         sonnerToast.success("رسالة جديدة", {
           description: senderData?.full_name || 'رسالة جديدة من المعلم',
         });

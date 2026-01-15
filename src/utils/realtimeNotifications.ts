@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { playNotificationSound } from './pushNotifications';
 import { setAppBadge } from './appBadge';
 import { realtimeManager } from './realtimeManager';
+import { mediumHaptic, warningHaptic } from './haptics';
 
 // App logo URL for notifications
 const APP_ICON_URL = '/icon-192.png';
@@ -38,6 +39,9 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
         // Play notification sound
         playNotificationSound('message');
         
+        // Trigger haptic vibration
+        mediumHaptic();
+        
         // Show notification
         toast.success('رسالة جديدة', {
           description: 'لديك رسالة جديدة',
@@ -67,6 +71,9 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
         if (announcement?.is_active) {
           // Play notification sound
           playNotificationSound('announcement');
+          
+          // Trigger haptic vibration for announcements
+          warningHaptic();
           
           toast.info('إعلان جديد', {
             description: announcement.title,

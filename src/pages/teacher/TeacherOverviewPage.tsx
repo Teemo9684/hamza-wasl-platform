@@ -11,6 +11,7 @@ import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { AnimatePresence } from "framer-motion";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { playNotificationSound } from "@/utils/pushNotifications";
+import { mediumHaptic } from "@/utils/haptics";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { setAppBadge } from "@/utils/appBadge";
@@ -68,7 +69,10 @@ const TeacherOverviewPage = () => {
           return newCount;
         });
         
+        // Play sound + vibration
         playNotificationSound('message');
+        mediumHaptic();
+        
         sonnerToast.success("رسالة جديدة", {
           description: senderData?.full_name || 'رسالة جديدة من ولي أمر',
         });

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { setAppBadge } from "@/utils/appBadge";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { playNotificationSound } from "@/utils/pushNotifications";
+import { mediumHaptic } from "@/utils/haptics";
 
 const ParentOverviewPage = () => {
   const navigate = useNavigate();
@@ -25,7 +26,12 @@ const ParentOverviewPage = () => {
   const [loading, setLoading] = useState(true);
   const [parentName, setParentName] = useState<string>("");
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [pendingHomeworkCount, setPendingHomeworkCount] = useState(0);
+  const [newAttendanceCount, setNewAttendanceCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Child IDs for subscriptions
+  const childIds = useMemo(() => children.map(c => c.id), [children]);
 
   useEffect(() => {
     fetchParentData();
@@ -70,7 +76,10 @@ const ParentOverviewPage = () => {
           return newCount;
         });
         
+        // Play sound + vibration
         playNotificationSound('message');
+        mediumHaptic();
+        
         sonnerToast.success("رسالة جديدة", {
           description: senderData?.full_name || 'رسالة جديدة من المعلم',
         });
@@ -121,7 +130,14 @@ const ParentOverviewPage = () => {
       if (payload.eventType === 'INSERT') {
         const newAttendance = payload.new as any;
         setAttendance(prev => [newAttendance, ...prev]);
+        
+        // Increment new attendance count
+        setNewAttendanceCount(prev => prev + 1);
+        
+        // Play sound + vibration
         playNotificationSound('attendance');
+        mediumHaptic();
+        
         sonnerToast.info('تم تسجيل الحضور', {
           description: `حالة اليوم: ${newAttendance.status}`,
         });
@@ -149,6 +165,67 @@ const ParentOverviewPage = () => {
 
     return () => cleanup();
   }, [selectedChild]);
+
+  // Real-time subscription for homework
+  useEffect(() => {
+    if (children.length === 0) return;
+
+    const handleHomeworkChange = async (payload: any) => {
+      if (payload.eventType === 'REFRESH') {
+        await fetchHomeworkCount();
+        return;
+      }
+
+      if (payload.eventType === 'INSERT') {
+        const newHomework = payload.new as any;
+        
+        // Check if homework is for one of the children's grade levels
+        const childGrades = children.map(c => c.grade_level);
+        if (childGrades.includes(newHomework.grade_level)) {
+          setPendingHomeworkCount(prev => prev + 1);
+          
+          // Play sound + vibration
+          playNotificationSound('homework');
+          mediumHaptic();
+          
+          sonnerToast.info('واجب جديد', {
+            description: newHomework.title || 'تم إضافة واجب جديد',
+          });
+        }
+      }
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      `parent-overview-homework-${currentUserId}`,
+      'homework',
+      handleHomeworkChange
+    );
+
+    return () => cleanup();
+  }, [children, currentUserId]);
+
+  const fetchHomeworkCount = async () => {
+    if (children.length === 0) return;
+    
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      
+      const childGrades = [...new Set(children.map(c => c.grade_level))];
+      
+      const { data: homeworkData } = await supabase
+        .from('homework')
+        .select('id')
+        .in('grade_level', childGrades)
+        .gte('due_date', today)
+        .lte('due_date', nextWeek.toISOString().split('T')[0]);
+      
+      setPendingHomeworkCount(homeworkData?.length || 0);
+    } catch (error) {
+      console.error('Error fetching homework count:', error);
+    }
+  };
 
   const fetchParentData = async () => {
     try {
@@ -204,6 +281,13 @@ const ParentOverviewPage = () => {
     }
   };
 
+  // Fetch homework count when children are loaded
+  useEffect(() => {
+    if (children.length > 0) {
+      fetchHomeworkCount();
+    }
+  }, [children]);
+
   const fetchChildDetails = async (childId: string) => {
     try {
       const { data: attendanceData, error: attendanceError } = await supabase
@@ -237,6 +321,13 @@ const ParentOverviewPage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
+    // Clear badge when navigating to section
+    if (sectionId === 'attendance') {
+      setNewAttendanceCount(0);
+    } else if (sectionId === 'homework') {
+      setPendingHomeworkCount(0);
+    }
+    
     if (sectionId === 'overview') {
       return;
     }
@@ -311,6 +402,8 @@ const ParentOverviewPage = () => {
         useHashNavigation={false}
         notifications={{
           messages: unreadMessagesCount,
+          attendance: newAttendanceCount,
+          homework: pendingHomeworkCount,
         }}
       />
     </div>
