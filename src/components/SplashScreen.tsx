@@ -10,15 +10,15 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   const { version: appVersion } = useAppVersion();
 
   useEffect(() => {
-    // Fade out after 2.5s
+    // Fade out after 4.5s
     const fadeTimer = setTimeout(() => {
       setFadeOut(true);
-    }, 2500);
+    }, 4500);
 
-    // Finish after 3s
+    // Finish after 5s
     const finishTimer = setTimeout(() => {
       onFinish();
-    }, 3000);
+    }, 5000);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -42,8 +42,11 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
       <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-6 max-w-2xl mx-auto">
         {/* Welcome Message */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20 animate-fade-in">
+          <h1 className="text-3xl md:text-4xl font-bold text-white font-cairo mb-2 text-center">
+            أهلاً بكم
+          </h1>
           <h2 className="text-2xl md:text-3xl font-bold text-white font-cairo mb-4 text-center">
-            مرحباً بك في منصة المدرسة
+            في منصة العربي التبسي
           </h2>
           <p className="text-lg md:text-xl text-white/90 font-cairo text-center leading-relaxed">
             هذا التطبيق مخصص فقط لمتابعة والاستفسار عن أبنائكم في المدرسة. 

@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'همزة وصل - المدرسة الابتدائية العربي التبسي',
+        name: 'العربي التبسي',
         short_name: 'العربي التبسي',
         description: 'جسر التواصل بين المدرسة والبيت - منصة تعليمية شاملة للمدرسة الابتدائية العربي التبسي',
         theme_color: '#1e40af',
