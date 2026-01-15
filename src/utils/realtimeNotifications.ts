@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { playNotificationSound } from './pushNotifications';
 import { setAppBadge } from './appBadge';
+import { realtimeManager } from './realtimeManager';
 
 // App logo URL for notifications
 const APP_ICON_URL = '/icon-192.png';
@@ -10,32 +11,30 @@ const APP_ICON_URL = '/icon-192.png';
 export const setupRealtimeNotifications = async (userId: string, userRole: 'admin' | 'teacher' | 'parent') => {
   console.log('Setting up realtime notifications for user:', userId, 'role:', userRole);
   
-  // Listen for new messages
-  const messagesChannel = supabase
-    .channel(`global-messages-${userId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `recipient_id=eq.${userId}`
-      },
-      async (payload) => {
-        console.log('Global: New message received via realtime:', payload);
-        
-        // Get current unread count to update badge
-        const { count } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('recipient_id', userId)
-          .eq('is_read', false);
-        
-        // Update app badge
-        if (count !== null) {
-          setAppBadge(count);
-        }
-        
+  // Listen for new messages using realtimeManager
+  const messageCleanup = realtimeManager.subscribe(
+    `global-messages-${userId}`,
+    'messages',
+    async (payload) => {
+      // Skip REFRESH events
+      if (payload.eventType === 'REFRESH') return;
+      
+      console.log('Global: Message update received via realtimeManager:', payload);
+      
+      // Get current unread count to update badge
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('recipient_id', userId)
+        .eq('is_read', false);
+      
+      // Update app badge
+      if (count !== null) {
+        setAppBadge(count);
+      }
+      
+      // Only show notification for INSERT events
+      if (payload.eventType === 'INSERT') {
         // Play notification sound
         playNotificationSound('message');
         
@@ -48,51 +47,26 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
         // Show browser notification if supported
         showBrowserNotification('رسالة جديدة', 'لديك رسالة جديدة');
       }
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'messages',
-        filter: `recipient_id=eq.${userId}`
-      },
-      async (payload) => {
-        console.log('Global: Message updated via realtime:', payload);
-        
-        // Update badge when message is marked as read
-        const { count } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('recipient_id', userId)
-          .eq('is_read', false);
-        
-        if (count !== null) {
-          setAppBadge(count);
-        }
-      }
-    )
-    .subscribe((status) => {
-      console.log('Global messages subscription status:', status);
-    });
+    },
+    `recipient_id=eq.${userId}`
+  );
 
-  // Listen for new announcements (for all users)
-  const announcementsChannel = supabase
-    .channel('global-announcements')
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'news_ticker'
-      },
-      (payload) => {
-        console.log('Global: New announcement received:', payload);
-        
+  // Listen for new announcements (for all users) using realtimeManager
+  const announcementCleanup = realtimeManager.subscribe(
+    `global-announcements-${userId}`,
+    'news_ticker',
+    (payload) => {
+      // Skip REFRESH events
+      if (payload.eventType === 'REFRESH') return;
+      
+      console.log('Global: Announcement update received via realtimeManager:', payload);
+      
+      // Only handle INSERT events
+      if (payload.eventType === 'INSERT') {
         const announcement = payload.new as any;
-        if (announcement.is_active) {
+        if (announcement?.is_active) {
           // Play notification sound
-          playNotificationSound('default');
+          playNotificationSound('announcement');
           
           toast.info('إعلان جديد', {
             description: announcement.title,
@@ -103,16 +77,14 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
           showBrowserNotification('إعلان جديد', announcement.title);
         }
       }
-    )
-    .subscribe((status) => {
-      console.log('Global announcements subscription status:', status);
-    });
+    }
+  );
 
   // Return cleanup function
   return () => {
     console.log('Cleaning up global realtime subscriptions');
-    supabase.removeChannel(messagesChannel);
-    supabase.removeChannel(announcementsChannel);
+    messageCleanup();
+    announcementCleanup();
   };
 };
 

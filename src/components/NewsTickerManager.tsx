@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Plus, Edit, Trash2, Save, X, MoveUp, MoveDown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { newsTickerSchema } from "@/lib/validations";
 import { sendNewsTickerNotification } from "@/utils/sendPushNotification";
+import { realtimeManager } from "@/utils/realtimeManager";
 import {
   Select,
   SelectContent,
@@ -53,31 +54,7 @@ export const NewsTickerManager = () => {
   });
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchNewsItems();
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('news-ticker-manager-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'news_ticker',
-        },
-        () => {
-          fetchNewsItems();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchNewsItems = async () => {
+  const fetchNewsItems = useCallback(async () => {
     const { data, error } = await supabase
       .from("news_ticker")
       .select("*")
@@ -85,15 +62,35 @@ export const NewsTickerManager = () => {
 
     if (error) {
       toast({
-        title: "خطأ",
-        description: "فشل تحميل الأخبار",
         variant: "destructive",
+        title: "خطأ",
+        description: "فشل في تحميل الأخبار",
       });
-      return;
+    } else {
+      setNewsItems(data || []);
     }
+  }, [toast]);
 
-    setNewsItems(data || []);
-  };
+  useEffect(() => {
+    fetchNewsItems();
+
+    // Subscribe to real-time updates using realtimeManager
+    const handleNewsChange = (payload: any) => {
+      console.log('NewsTickerManager: Update received', payload);
+      fetchNewsItems();
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      'admin-news-ticker-manager',
+      'news_ticker',
+      handleNewsChange
+    );
+
+    return () => {
+      cleanup();
+    };
+  }, [fetchNewsItems]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

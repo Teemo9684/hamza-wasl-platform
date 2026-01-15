@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Plus, Trash2, ArrowUp, ArrowDown, Image, X, Loader2 } from 'lucide-react';
 import { formatDateOnly } from '@/utils/formatters';
+import { realtimeManager } from '@/utils/realtimeManager';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,23 +56,20 @@ export const PostersManager = () => {
   useEffect(() => {
     fetchPosters();
 
-    const channel = supabase
-      .channel('admin-posters-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'school_posters',
-        },
-        () => {
-          fetchPosters();
-        }
-      )
-      .subscribe();
+    // Subscribe to realtime updates using realtimeManager
+    const handlePostersChange = (payload: any) => {
+      console.log('PostersManager: Update received', payload);
+      fetchPosters();
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      'admin-posters-manager',
+      'school_posters',
+      handlePostersChange
+    );
 
     return () => {
-      supabase.removeChannel(channel);
+      cleanup();
     };
   }, [fetchPosters]);
 
