@@ -4,7 +4,7 @@ import { realtimeManager } from '@/utils/realtimeManager';
 import { setAppBadge } from '@/utils/appBadge';
 import { playNotificationSound } from '@/utils/pushNotifications';
 import { mediumHaptic } from '@/utils/haptics';
-import { toast } from 'sonner';
+import { IntelligentNotificationBanner, NotificationData } from '@/components/IntelligentNotificationBanner';
 
 interface NotificationCounts {
   messages: number;
@@ -24,6 +24,7 @@ interface NotificationContextType {
   setChildIds: (ids: string[]) => void;
   userRole: UserRole | null;
   setUserRole: (role: UserRole | null) => void;
+  showNotification: (notification: Omit<NotificationData, 'id' | 'timestamp'>) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -47,6 +48,22 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [lastSeenAttendance, setLastSeenAttendance] = useState<string | null>(null);
   const [lastSeenHomework, setLastSeenHomework] = useState<string | null>(null);
+  const [currentNotification, setCurrentNotification] = useState<NotificationData | null>(null);
+
+  const showNotification = useCallback((notification: Omit<NotificationData, 'id' | 'timestamp'>) => {
+    const fullNotification: NotificationData = {
+      ...notification,
+      id: crypto.randomUUID(),
+      timestamp: new Date(),
+    };
+    setCurrentNotification(fullNotification);
+    playNotificationSound(notification.type);
+    mediumHaptic();
+  }, []);
+
+  const dismissNotification = useCallback(() => {
+    setCurrentNotification(null);
+  }, []);
 
   // Load last seen timestamps from localStorage
   useEffect(() => {
@@ -177,7 +194,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             .from('profiles')
             .select('full_name')
             .eq('id', newMessage.sender_id)
-            .single();
+            .maybeSingle();
           
           setCounts(prev => {
             const newCount = prev.messages + 1;
@@ -185,15 +202,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             return { ...prev, messages: newCount };
           });
           
-          playNotificationSound('message');
-          mediumHaptic();
-          
+          const senderName = senderData?.full_name || 'مستخدم';
           const senderDescription = userRole === 'teacher' 
-            ? senderData?.full_name || 'رسالة جديدة من ولي أمر'
-            : senderData?.full_name || 'رسالة جديدة من المعلم';
+            ? `رسالة من ولي الأمر: ${senderName}`
+            : `رسالة من المعلم: ${senderName}`;
           
-          toast.success('رسالة جديدة', {
+          showNotification({
+            type: 'message',
+            title: 'رسالة جديدة',
             description: senderDescription,
+            details: {
+              teacherName: userRole === 'parent' ? senderName : undefined,
+              subject: newMessage.subject,
+            },
           });
         }
 
@@ -212,7 +233,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const attendanceCleanup = realtimeManager.subscribe(
           `notification-context-attendance-${childId}`,
           'attendance',
-          (payload) => {
+          async (payload) => {
             if (payload.eventType === 'REFRESH') {
               refreshCounts();
               return;
@@ -225,12 +246,37 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
               // Only notify if this is today's attendance
               const today = new Date().toISOString().split('T')[0];
               if (newAttendance.date === today) {
+                // Fetch student name
+                const { data: studentData } = await supabase
+                  .from('students')
+                  .select('full_name')
+                  .eq('id', newAttendance.student_id)
+                  .maybeSingle();
+                
+                // Fetch teacher name
+                let teacherName = 'المعلم';
+                if (newAttendance.recorded_by) {
+                  const { data: teacherData } = await supabase
+                    .from('profiles')
+                    .select('full_name')
+                    .eq('id', newAttendance.recorded_by)
+                    .maybeSingle();
+                  teacherName = teacherData?.full_name || 'المعلم';
+                }
+                
+                const studentName = studentData?.full_name || 'الطالب';
+                
                 setCounts(prev => ({ ...prev, attendance: prev.attendance + 1 }));
                 
-                playNotificationSound('attendance');
-                mediumHaptic();
-                toast.info('تم تسجيل الحضور', {
-                  description: `حالة اليوم: ${newAttendance.status}`,
+                showNotification({
+                  type: 'attendance',
+                  title: 'تسجيل الحضور',
+                  description: `تم تسجيل حالة ${studentName} اليوم`,
+                  details: {
+                    studentName,
+                    teacherName,
+                    status: newAttendance.status,
+                  },
                 });
               }
             }
@@ -244,7 +290,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const homeworkCleanup = realtimeManager.subscribe(
         `notification-context-homework-${userId}`,
         'homework',
-        (payload) => {
+        async (payload) => {
           if (payload.eventType === 'REFRESH') {
             refreshCounts();
             return;
@@ -253,12 +299,27 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           if (payload.eventType === 'INSERT') {
             const newHomework = payload.new as any;
             
+            // Fetch teacher name
+            let teacherName = 'المعلم';
+            if (newHomework.teacher_id) {
+              const { data: teacherData } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', newHomework.teacher_id)
+                .maybeSingle();
+              teacherName = teacherData?.full_name || 'المعلم';
+            }
+            
             setCounts(prev => ({ ...prev, homework: prev.homework + 1 }));
             
-            playNotificationSound('homework');
-            mediumHaptic();
-            toast.info('واجب جديد', {
+            showNotification({
+              type: 'homework',
+              title: 'واجب جديد',
               description: newHomework.title || 'تم إضافة واجب جديد',
+              details: {
+                teacherName,
+                subject: newHomework.subject,
+              },
             });
           }
         }
@@ -285,8 +346,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setChildIds,
       userRole,
       setUserRole,
+      showNotification,
     }}>
       {children}
+      <IntelligentNotificationBanner
+        notification={currentNotification}
+        onDismiss={dismissNotification}
+      />
     </NotificationContext.Provider>
   );
 };
