@@ -17,7 +17,7 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 import { FloatingMessageBadge } from "@/components/FloatingMessageBadge";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { messageSchema, attendanceNotesSchema } from "@/lib/validations";
-import { sendMessageNotification } from "@/utils/sendPushNotification";
+import { sendMessageNotification, sendAttendanceNotification } from "@/utils/sendPushNotification";
 import { setAppBadge } from "@/utils/appBadge";
 import { playNotificationSound } from "@/utils/pushNotifications";
 
@@ -365,9 +365,31 @@ const DashboardTeacher = () => {
 
       if (error) throw error;
 
+      // Get student info and parent ID for notification
+      const student = students.find(s => s.id === studentId);
+      if (student) {
+        // Get parent ID from parent_students table
+        const { data: parentData } = await supabase
+          .from('parent_students')
+          .select('parent_id')
+          .eq('student_id', studentId);
+        
+        if (parentData && parentData.length > 0) {
+          // Send notification to all parents of this student
+          for (const parent of parentData) {
+            await sendAttendanceNotification(
+              parent.parent_id,
+              student.full_name,
+              status,
+              notes
+            );
+          }
+        }
+      }
+
       toast({
         title: "تم بنجاح",
-        description: "تم تسجيل الحضور بنجاح",
+        description: "تم تسجيل الحضور وإرسال الإشعار لولي الأمر",
       });
     } catch (error: any) {
       toast({

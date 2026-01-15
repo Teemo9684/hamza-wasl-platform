@@ -194,3 +194,43 @@ export const sendDocumentStatusNotification = async (
     console.error('Failed to send document status notification:', error);
   }
 };
+
+/**
+ * Send push notification for attendance update
+ */
+export const sendAttendanceNotification = async (
+  parentId: string,
+  studentName: string,
+  status: string,
+  notes?: string
+): Promise<void> => {
+  try {
+    const statusMessages: Record<string, { emoji: string; text: string }> = {
+      'حاضر': { emoji: '✅', text: 'حاضر' },
+      'present': { emoji: '✅', text: 'حاضر' },
+      'غائب': { emoji: '❌', text: 'غائب' },
+      'absent': { emoji: '❌', text: 'غائب' },
+      'متأخر': { emoji: '⏰', text: 'متأخر' },
+      'late': { emoji: '⏰', text: 'متأخر' },
+      'معذور': { emoji: '📝', text: 'غياب بعذر' },
+      'excused': { emoji: '📝', text: 'غياب بعذر' },
+    };
+
+    const statusInfo = statusMessages[status] || { emoji: '📋', text: status };
+    let body = `${studentName}: ${statusInfo.text}`;
+    if (notes) {
+      body += ` - ${notes}`;
+    }
+
+    await sendPushNotification({
+      user_ids: [parentId],
+      title: `${statusInfo.emoji} تسجيل حضور`,
+      body,
+      data: {
+        type: 'attendance',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to send attendance notification:', error);
+  }
+};
