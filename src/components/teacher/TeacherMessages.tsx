@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageSquare, Mail, MailOpen, Reply } from "lucide-react";
 import { useState } from "react";
 
@@ -25,6 +26,15 @@ export const TeacherMessages = ({
     originalSubject: "",
     studentId: "",
     content: "",
+  });
+  const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read">("all");
+
+  // Filter messages based on status
+  const filteredMessages = messages.filter((message) => {
+    if (filterStatus === "all") return true;
+    if (filterStatus === "unread") return !message.is_read;
+    if (filterStatus === "read") return message.is_read;
+    return true;
   });
 
   const handleOpenReply = (message: any) => {
@@ -60,14 +70,26 @@ export const TeacherMessages = ({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold mb-2">الرسائل والاستفسارات</h2>
-        <p className="text-muted-foreground">تواصل مع أولياء الأمور</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-3xl font-bold mb-2">الرسائل والاستفسارات</h2>
+          <p className="text-muted-foreground">تواصل مع أولياء الأمور</p>
+        </div>
+        <Select value={filterStatus} onValueChange={(value: "all" | "unread" | "read") => setFilterStatus(value)}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="تصفية" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">الكل ({messages.length})</SelectItem>
+            <SelectItem value="unread">جديد ({messages.filter(m => !m.is_read).length})</SelectItem>
+            <SelectItem value="read">مقروءة ({messages.filter(m => m.is_read).length})</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {messages.length > 0 ? (
+      {filteredMessages.length > 0 ? (
         <div className="space-y-4">
-          {messages.map((message) => {
+          {filteredMessages.map((message) => {
             const isReply = message.subject?.startsWith('رد:');
             
             return (

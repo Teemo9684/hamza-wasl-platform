@@ -38,6 +38,15 @@ export const ParentMessages = ({
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read">("all");
+
+  // Filter messages based on status
+  const filteredMessages = receivedMessages.filter((message) => {
+    if (filterStatus === "all") return true;
+    if (filterStatus === "unread") return !message.is_read;
+    if (filterStatus === "read") return message.is_read;
+    return true;
+  });
 
   const handleSendMessage = async () => {
     if (!newMessage.recipient_id) {
@@ -150,19 +159,30 @@ export const ParentMessages = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-3xl font-bold mb-2">المراسلة</h2>
           <p className="text-muted-foreground">التواصل مع المعلمين</p>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Send className="h-4 w-4" />
-              رسالة جديدة
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[525px]">
+        <div className="flex items-center gap-2">
+          <Select value={filterStatus} onValueChange={(value: "all" | "unread" | "read") => setFilterStatus(value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="تصفية" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل ({receivedMessages.length})</SelectItem>
+              <SelectItem value="unread">جديد ({receivedMessages.filter(m => !m.is_read).length})</SelectItem>
+              <SelectItem value="read">مقروءة ({receivedMessages.filter(m => m.is_read).length})</SelectItem>
+            </SelectContent>
+          </Select>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Send className="h-4 w-4" />
+                رسالة جديدة
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[525px]">
             <DialogHeader>
               <DialogTitle>إرسال رسالة جديدة</DialogTitle>
             </DialogHeader>
@@ -243,6 +263,7 @@ export const ParentMessages = ({
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -253,9 +274,9 @@ export const ParentMessages = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {receivedMessages.length > 0 ? (
+          {filteredMessages.length > 0 ? (
             <div className="space-y-3">
-              {receivedMessages.map((message) => {
+              {filteredMessages.map((message) => {
                 const isReply = message.subject?.startsWith('رد:');
                 
                 return (
