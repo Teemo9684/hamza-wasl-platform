@@ -12,6 +12,8 @@ interface NotificationCounts {
   homework: number;
 }
 
+type UserRole = 'parent' | 'teacher' | 'admin';
+
 interface NotificationContextType {
   counts: NotificationCounts;
   clearSection: (section: 'messages' | 'attendance' | 'homework') => void;
@@ -20,6 +22,8 @@ interface NotificationContextType {
   setUserId: (id: string | null) => void;
   childIds: string[];
   setChildIds: (ids: string[]) => void;
+  userRole: UserRole | null;
+  setUserRole: (role: UserRole | null) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -40,6 +44,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   });
   const [userId, setUserId] = useState<string | null>(null);
   const [childIds, setChildIds] = useState<string[]>([]);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [lastSeenAttendance, setLastSeenAttendance] = useState<string | null>(null);
   const [lastSeenHomework, setLastSeenHomework] = useState<string | null>(null);
 
@@ -74,7 +79,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!userId) return;
 
     try {
-      // Get unread messages count
+      // Get unread messages count (works for both parent and teacher)
       const { data: messagesData } = await supabase
         .from('messages')
         .select('id')
@@ -89,7 +94,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       let newAttendance = 0;
       let homeworkCount = 0;
       
-      if (childIds.length > 0) {
+      // Parent-specific counts (attendance and homework for their children)
+      if (userRole === 'parent' && childIds.length > 0) {
         // Check for new attendance today
         let attendanceQuery = supabase
           .from('attendance')
@@ -146,15 +152,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } catch (error) {
       console.error('Error fetching notification counts:', error);
     }
-  }, [userId, childIds, lastSeenAttendance, lastSeenHomework]);
+  }, [userId, userRole, childIds, lastSeenAttendance, lastSeenHomework]);
 
   // Subscribe to real-time updates
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !userRole) return;
 
     const cleanupFunctions: (() => void)[] = [];
 
-    // Messages subscription
+    // Messages subscription (for both parent and teacher)
     const messageCleanup = realtimeManager.subscribe(
       `notification-context-messages-${userId}`,
       'messages',
@@ -181,8 +187,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           
           playNotificationSound('message');
           mediumHaptic();
+          
+          const senderDescription = userRole === 'teacher' 
+            ? senderData?.full_name || 'رسالة جديدة من ولي أمر'
+            : senderData?.full_name || 'رسالة جديدة من المعلم';
+          
           toast.success('رسالة جديدة', {
-            description: senderData?.full_name || 'لديك رسالة جديدة',
+            description: senderDescription,
           });
         }
 
@@ -194,8 +205,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     );
     cleanupFunctions.push(messageCleanup);
 
-    // Attendance subscription for each child
-    if (childIds.length > 0) {
+    // Parent-specific subscriptions (attendance and homework)
+    if (userRole === 'parent' && childIds.length > 0) {
+      // Attendance subscription for each child
       childIds.forEach(childId => {
         const attendanceCleanup = realtimeManager.subscribe(
           `notification-context-attendance-${childId}`,
@@ -255,7 +267,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => {
       cleanupFunctions.forEach(cleanup => cleanup());
     };
-  }, [userId, childIds, refreshCounts]);
+  }, [userId, userRole, childIds, refreshCounts]);
 
   return (
     <NotificationContext.Provider value={{
@@ -266,6 +278,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setUserId,
       childIds,
       setChildIds,
+      userRole,
+      setUserRole,
     }}>
       {children}
     </NotificationContext.Provider>

@@ -18,7 +18,7 @@ const ParentHomeworkPage = () => {
   const { hasNews, tickerHeight } = useNewsTicker();
   const [loading, setLoading] = useState(true);
   
-  const { counts, clearSection, setUserId, setChildIds } = useNotifications();
+  const { counts, clearSection, setUserId, setChildIds, setUserRole } = useNotifications();
 
   // Clear homework badge when entering this page
   useEffect(() => {

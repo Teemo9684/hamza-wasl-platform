@@ -21,7 +21,7 @@ const ParentSchedulePage = () => {
   const [selectedChild, setSelectedChild] = useState<string>("");
   const [loading, setLoading] = useState(true);
   
-  const { counts, clearSection, setUserId, setChildIds } = useNotifications();
+  const { counts, clearSection, setUserId, setChildIds, setUserRole } = useNotifications();
 
   useEffect(() => {
     fetchParentData();

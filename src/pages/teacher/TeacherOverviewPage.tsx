@@ -4,17 +4,13 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { toast as sonnerToast } from "sonner";
 import { TeacherOverview } from "@/components/teacher/TeacherOverview";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { AnimatePresence } from "framer-motion";
-import { realtimeManager } from "@/utils/realtimeManager";
-import { playNotificationSound } from "@/utils/pushNotifications";
-import { mediumHaptic } from "@/utils/haptics";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
-import { setAppBadge } from "@/utils/appBadge";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 interface StudentsByGrade {
   [gradeLevel: string]: any[];
@@ -26,80 +22,15 @@ const TeacherOverviewPage = () => {
   const { hasNews, tickerHeight } = useNewsTicker();
   const [students, setStudents] = useState<any[]>([]);
   const [studentsByGrade, setStudentsByGrade] = useState<StudentsByGrade>({});
-  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
   const [isLanguageTeacher, setIsLanguageTeacher] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  const { counts, setUserId, setUserRole, clearSection } = useNotifications();
 
   useEffect(() => {
     fetchTeacherData();
   }, []);
-
-  // Real-time subscription for messages
-  useEffect(() => {
-    if (!currentUserId) return;
-
-    const handleMessageChange = async (payload: any) => {
-      if (payload.eventType === 'REFRESH') {
-        const { data: messagesData } = await supabase
-          .from('messages')
-          .select('id, is_read')
-          .eq('recipient_id', currentUserId)
-          .eq('is_read', false);
-        
-        const unread = messagesData?.length || 0;
-        setUnreadCount(unread);
-        setAppBadge(unread);
-        return;
-      }
-
-      if (payload.eventType === 'INSERT') {
-        const newMessage = payload.new as any;
-        
-        const { data: senderData } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', newMessage.sender_id)
-          .single();
-
-        setUnreadCount(prev => {
-          const newCount = prev + 1;
-          setAppBadge(newCount);
-          return newCount;
-        });
-        
-        // Play sound + vibration
-        playNotificationSound('message');
-        mediumHaptic();
-        
-        sonnerToast.success("رسالة جديدة", {
-          description: senderData?.full_name || 'رسالة جديدة من ولي أمر',
-        });
-      }
-
-      if (payload.eventType === 'UPDATE') {
-        const { data: messagesData } = await supabase
-          .from('messages')
-          .select('id, is_read')
-          .eq('recipient_id', currentUserId)
-          .eq('is_read', false);
-        
-        const unread = messagesData?.length || 0;
-        setUnreadCount(unread);
-        setAppBadge(unread);
-      }
-    };
-
-    const cleanup = realtimeManager.subscribe(
-      `teacher-overview-messages-${currentUserId}`,
-      'messages',
-      handleMessageChange,
-      `recipient_id=eq.${currentUserId}`
-    );
-
-    return () => cleanup();
-  }, [currentUserId]);
 
   const fetchTeacherData = async () => {
     try {
@@ -109,7 +40,9 @@ const TeacherOverviewPage = () => {
         return;
       }
 
-      setCurrentUserId(user.id);
+      // Set up notification context
+      setUserId(user.id);
+      setUserRole('teacher');
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -177,17 +110,6 @@ const TeacherOverviewPage = () => {
       }
 
       setStudents(studentsData);
-
-      // Get unread messages count
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('id, is_read')
-        .eq('recipient_id', user.id)
-        .eq('is_read', false);
-
-      const unread = messagesData?.length || 0;
-      setUnreadCount(unread);
-      setAppBadge(unread);
     } catch (error: any) {
       toast({
         title: "خطأ",
@@ -267,7 +189,7 @@ const TeacherOverviewPage = () => {
               <TeacherOverview
                 teacherInfo={teacherInfo}
                 studentsCount={students.length}
-                unreadMessagesCount={unreadCount}
+                unreadMessagesCount={counts.messages}
                 students={students}
                 studentsByGrade={studentsByGrade}
                 isLanguageTeacher={isLanguageTeacher}
@@ -283,7 +205,7 @@ const TeacherOverviewPage = () => {
         onNavigate={handleNavigate}
         useHashNavigation={false}
         notifications={{
-          messages: unreadCount,
+          messages: counts.messages,
         }}
       />
     </div>

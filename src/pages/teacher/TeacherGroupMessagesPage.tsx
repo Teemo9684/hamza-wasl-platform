@@ -10,12 +10,15 @@ import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const TeacherGroupMessagesPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hasNews, tickerHeight } = useNewsTicker();
   const [loading, setLoading] = useState(true);
+  
+  const { counts, setUserId, setUserRole } = useNotifications();
 
   useEffect(() => {
     checkAuth();
@@ -28,6 +31,10 @@ const TeacherGroupMessagesPage = () => {
         navigate("/login/teacher");
         return;
       }
+      
+      // Set up notification context
+      setUserId(user.id);
+      setUserRole('teacher');
     } catch (error: any) {
       toast({
         title: "خطأ",
@@ -105,6 +112,9 @@ const TeacherGroupMessagesPage = () => {
         activeSection="groupMessages"
         onNavigate={handleNavigate}
         useHashNavigation={false}
+        notifications={{
+          messages: counts.messages,
+        }}
       />
     </div>
   );
