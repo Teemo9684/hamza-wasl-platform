@@ -6,6 +6,7 @@ import { MessageSquare, User, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDateTime } from "@/utils/formatters";
 
 interface Message {
@@ -28,6 +29,7 @@ interface TeacherMessages {
 export const MessagesView = () => {
   const [messagesByTeacher, setMessagesByTeacher] = useState<TeacherMessages[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read">("all");
 
   const handleMessagesChange = useCallback(() => {
     fetchAllMessages();
@@ -143,17 +145,45 @@ export const MessagesView = () => {
     );
   }
 
+  // Calculate total messages for filter counts
+  const allMessages = messagesByTeacher.flatMap(t => t.messages);
+  const unreadMessages = allMessages.filter(m => !m.is_read);
+  const readMessages = allMessages.filter(m => m.is_read);
+
+  // Filter messages in each teacher group
+  const filteredTeachers = messagesByTeacher.map(teacher => ({
+    ...teacher,
+    messages: teacher.messages.filter(message => {
+      if (filterStatus === "all") return true;
+      if (filterStatus === "unread") return !message.is_read;
+      if (filterStatus === "read") return message.is_read;
+      return true;
+    })
+  })).filter(teacher => teacher.messages.length > 0);
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <MessageSquare className="w-8 h-8 text-primary" />
-        <div>
-          <h2 className="text-2xl font-bold font-cairo">إدارة الرسائل والاستفسارات</h2>
-          <p className="text-muted-foreground font-cairo">عرض جميع الرسائل بين الأولياء والأساتذة</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <MessageSquare className="w-8 h-8 text-primary" />
+          <div>
+            <h2 className="text-2xl font-bold font-cairo">إدارة الرسائل والاستفسارات</h2>
+            <p className="text-muted-foreground font-cairo">عرض جميع الرسائل بين الأولياء والأساتذة</p>
+          </div>
         </div>
+        <Select value={filterStatus} onValueChange={(value: "all" | "unread" | "read") => setFilterStatus(value)}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="تصفية" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">الكل ({allMessages.length})</SelectItem>
+            <SelectItem value="unread">جديد ({unreadMessages.length})</SelectItem>
+            <SelectItem value="read">مقروءة ({readMessages.length})</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {messagesByTeacher.length === 0 ? (
+      {filteredTeachers.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
@@ -162,7 +192,7 @@ export const MessagesView = () => {
         </Card>
       ) : (
         <Accordion type="single" collapsible className="space-y-4">
-          {messagesByTeacher.map((teacher) => (
+          {filteredTeachers.map((teacher) => (
             <AccordionItem key={teacher.teacher_id} value={teacher.teacher_id} className="border-none">
               <Card>
                 <AccordionTrigger className="hover:no-underline px-6 py-4">
