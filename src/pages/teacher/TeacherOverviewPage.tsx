@@ -1,13 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { TeacherOverview } from "@/components/teacher/TeacherOverview";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { AnimatePresence } from "framer-motion";
+import { realtimeManager } from "@/utils/realtimeManager";
+import { playNotificationSound } from "@/utils/pushNotifications";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { setAppBadge } from "@/utils/appBadge";
@@ -26,10 +29,73 @@ const TeacherOverviewPage = () => {
   const [loading, setLoading] = useState(true);
   const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
   const [isLanguageTeacher, setIsLanguageTeacher] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTeacherData();
   }, []);
+
+  // Real-time subscription for messages
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const handleMessageChange = async (payload: any) => {
+      if (payload.eventType === 'REFRESH') {
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select('id, is_read')
+          .eq('recipient_id', currentUserId)
+          .eq('is_read', false);
+        
+        const unread = messagesData?.length || 0;
+        setUnreadCount(unread);
+        setAppBadge(unread);
+        return;
+      }
+
+      if (payload.eventType === 'INSERT') {
+        const newMessage = payload.new as any;
+        
+        const { data: senderData } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', newMessage.sender_id)
+          .single();
+
+        setUnreadCount(prev => {
+          const newCount = prev + 1;
+          setAppBadge(newCount);
+          return newCount;
+        });
+        
+        playNotificationSound('message');
+        sonnerToast.success("رسالة جديدة", {
+          description: senderData?.full_name || 'رسالة جديدة من ولي أمر',
+        });
+      }
+
+      if (payload.eventType === 'UPDATE') {
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select('id, is_read')
+          .eq('recipient_id', currentUserId)
+          .eq('is_read', false);
+        
+        const unread = messagesData?.length || 0;
+        setUnreadCount(unread);
+        setAppBadge(unread);
+      }
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      `teacher-overview-messages-${currentUserId}`,
+      'messages',
+      handleMessageChange,
+      `recipient_id=eq.${currentUserId}`
+    );
+
+    return () => cleanup();
+  }, [currentUserId]);
 
   const fetchTeacherData = async () => {
     try {
@@ -38,6 +104,8 @@ const TeacherOverviewPage = () => {
         navigate("/login/teacher");
         return;
       }
+
+      setCurrentUserId(user.id);
 
       const { data: profileData } = await supabase
         .from('profiles')
