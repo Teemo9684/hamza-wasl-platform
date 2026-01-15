@@ -67,8 +67,11 @@ export const TeacherMessages = ({
 
       {messages.length > 0 ? (
         <div className="space-y-4">
-          {messages.map((message) => (
-            <Card key={message.id} className={`hover:shadow-md transition-shadow ${!message.is_read ? 'border-primary/30' : ''}`}>
+          {messages.map((message) => {
+            const isReply = message.subject?.startsWith('رد:');
+            
+            return (
+            <Card key={message.id} className={`hover:shadow-md transition-shadow ${!message.is_read ? 'border-primary/30 bg-primary/5' : ''}`}>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
@@ -84,9 +87,13 @@ export const TeacherMessages = ({
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {!message.is_read && (
-                      <Badge variant="default">جديد</Badge>
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    {!message.is_read ? (
+                      <Badge variant="default" className="bg-green-500 hover:bg-green-600">جديد</Badge>
+                    ) : isReply ? (
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">رد</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground">مقروءة</Badge>
                     )}
                     <Badge variant="outline">
                       {new Date(message.created_at).toLocaleDateString('ar-u-nu-latn')}
@@ -125,7 +132,8 @@ export const TeacherMessages = ({
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <Card>
