@@ -15,6 +15,7 @@ import { realtimeManager } from "@/utils/realtimeManager";
 import { setAppBadge } from "@/utils/appBadge";
 import { playNotificationSound } from "@/utils/pushNotifications";
 import { mediumHaptic } from "@/utils/haptics";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const ParentMessagesPage = () => {
   const navigate = useNavigate();
@@ -25,6 +26,8 @@ const ParentMessagesPage = () => {
   const [receivedMessages, setReceivedMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  const { counts, clearSection, setUserId, setChildIds, refreshCounts } = useNotifications();
 
   useEffect(() => {
     fetchParentData();
@@ -86,13 +89,13 @@ const ParentMessagesPage = () => {
           return updated;
         });
         
-        // Play sound + vibration
         playNotificationSound('message');
         mediumHaptic();
-        
         sonnerToast.success("رسالة جديدة", {
           description: senderData?.full_name || 'رسالة جديدة من المعلم',
         });
+        
+        refreshCounts();
       }
 
       if (payload.eventType === 'UPDATE') {
@@ -105,6 +108,7 @@ const ParentMessagesPage = () => {
           setAppBadge(unreadCount);
           return updated;
         });
+        refreshCounts();
       }
     };
 
@@ -116,7 +120,7 @@ const ParentMessagesPage = () => {
     );
 
     return () => cleanup();
-  }, [currentUserId]);
+  }, [currentUserId, refreshCounts]);
 
   const fetchParentData = async () => {
     try {
@@ -127,6 +131,7 @@ const ParentMessagesPage = () => {
       }
 
       setCurrentUserId(user.id);
+      setUserId(user.id);
 
       const { data: childrenData, error: childrenError } = await supabase
         .from('students')
@@ -138,6 +143,10 @@ const ParentMessagesPage = () => {
 
       if (childrenError) throw childrenError;
       setChildren(childrenData || []);
+      
+      if (childrenData && childrenData.length > 0) {
+        setChildIds(childrenData.map(c => c.id));
+      }
 
       const { data: teachersData, error: teachersError } = await supabase
         .from('teacher_students')
@@ -175,6 +184,14 @@ const ParentMessagesPage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
+    if (sectionId === 'messages') {
+      return; // Already here
+    }
+    if (sectionId === 'attendance') {
+      clearSection('attendance');
+    } else if (sectionId === 'homework') {
+      clearSection('homework');
+    }
     if (sectionId === 'overview') {
       navigate('/dashboard/parent');
     } else {
@@ -249,6 +266,8 @@ const ParentMessagesPage = () => {
         useHashNavigation={false}
         notifications={{
           messages: unreadMessagesCount,
+          attendance: counts.attendance,
+          homework: counts.homework,
         }}
       />
     </div>

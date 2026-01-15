@@ -1,20 +1,17 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { toast as sonnerToast } from "sonner";
 import { ParentOverview } from "@/components/parent/ParentOverview";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
-import { setAppBadge } from "@/utils/appBadge";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { realtimeManager } from "@/utils/realtimeManager";
-import { playNotificationSound } from "@/utils/pushNotifications";
-import { mediumHaptic } from "@/utils/haptics";
 
 const ParentOverviewPage = () => {
   const navigate = useNavigate();
@@ -25,13 +22,8 @@ const ParentOverviewPage = () => {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [parentName, setParentName] = useState<string>("");
-  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
-  const [pendingHomeworkCount, setPendingHomeworkCount] = useState(0);
-  const [newAttendanceCount, setNewAttendanceCount] = useState(0);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  // Child IDs for subscriptions
-  const childIds = useMemo(() => children.map(c => c.id), [children]);
+  
+  const { counts, clearSection, setUserId, setChildIds } = useNotifications();
 
   useEffect(() => {
     fetchParentData();
@@ -42,72 +34,6 @@ const ParentOverviewPage = () => {
       fetchChildDetails(selectedChild);
     }
   }, [selectedChild]);
-
-  // Real-time subscription for messages
-  useEffect(() => {
-    if (!currentUserId) return;
-
-    const handleMessageChange = async (payload: any) => {
-      if (payload.eventType === 'REFRESH') {
-        const { data: messagesData } = await supabase
-          .from('messages')
-          .select('id, is_read')
-          .eq('recipient_id', currentUserId)
-          .eq('is_read', false);
-        
-        const unreadCount = messagesData?.length || 0;
-        setUnreadMessagesCount(unreadCount);
-        setAppBadge(unreadCount);
-        return;
-      }
-
-      if (payload.eventType === 'INSERT') {
-        const newMessage = payload.new as any;
-        
-        const { data: senderData } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', newMessage.sender_id)
-          .single();
-
-        setUnreadMessagesCount(prev => {
-          const newCount = prev + 1;
-          setAppBadge(newCount);
-          return newCount;
-        });
-        
-        // Play sound + vibration
-        playNotificationSound('message');
-        mediumHaptic();
-        
-        sonnerToast.success("رسالة جديدة", {
-          description: senderData?.full_name || 'رسالة جديدة من المعلم',
-        });
-      }
-
-      if (payload.eventType === 'UPDATE') {
-        // Refetch unread count on update
-        const { data: messagesData } = await supabase
-          .from('messages')
-          .select('id, is_read')
-          .eq('recipient_id', currentUserId)
-          .eq('is_read', false);
-        
-        const unreadCount = messagesData?.length || 0;
-        setUnreadMessagesCount(unreadCount);
-        setAppBadge(unreadCount);
-      }
-    };
-
-    const cleanup = realtimeManager.subscribe(
-      `parent-overview-messages-${currentUserId}`,
-      'messages',
-      handleMessageChange,
-      `recipient_id=eq.${currentUserId}`
-    );
-
-    return () => cleanup();
-  }, [currentUserId]);
 
   // Real-time subscription for attendance
   useEffect(() => {
@@ -130,17 +56,6 @@ const ParentOverviewPage = () => {
       if (payload.eventType === 'INSERT') {
         const newAttendance = payload.new as any;
         setAttendance(prev => [newAttendance, ...prev]);
-        
-        // Increment new attendance count
-        setNewAttendanceCount(prev => prev + 1);
-        
-        // Play sound + vibration
-        playNotificationSound('attendance');
-        mediumHaptic();
-        
-        sonnerToast.info('تم تسجيل الحضور', {
-          description: `حالة اليوم: ${newAttendance.status}`,
-        });
       }
 
       if (payload.eventType === 'UPDATE') {
@@ -166,67 +81,6 @@ const ParentOverviewPage = () => {
     return () => cleanup();
   }, [selectedChild]);
 
-  // Real-time subscription for homework
-  useEffect(() => {
-    if (children.length === 0) return;
-
-    const handleHomeworkChange = async (payload: any) => {
-      if (payload.eventType === 'REFRESH') {
-        await fetchHomeworkCount();
-        return;
-      }
-
-      if (payload.eventType === 'INSERT') {
-        const newHomework = payload.new as any;
-        
-        // Check if homework is for one of the children's grade levels
-        const childGrades = children.map(c => c.grade_level);
-        if (childGrades.includes(newHomework.grade_level)) {
-          setPendingHomeworkCount(prev => prev + 1);
-          
-          // Play sound + vibration
-          playNotificationSound('homework');
-          mediumHaptic();
-          
-          sonnerToast.info('واجب جديد', {
-            description: newHomework.title || 'تم إضافة واجب جديد',
-          });
-        }
-      }
-    };
-
-    const cleanup = realtimeManager.subscribe(
-      `parent-overview-homework-${currentUserId}`,
-      'homework',
-      handleHomeworkChange
-    );
-
-    return () => cleanup();
-  }, [children, currentUserId]);
-
-  const fetchHomeworkCount = async () => {
-    if (children.length === 0) return;
-    
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 7);
-      
-      const childGrades = [...new Set(children.map(c => c.grade_level))];
-      
-      const { data: homeworkData } = await supabase
-        .from('homework')
-        .select('id')
-        .in('grade_level', childGrades)
-        .gte('due_date', today)
-        .lte('due_date', nextWeek.toISOString().split('T')[0]);
-      
-      setPendingHomeworkCount(homeworkData?.length || 0);
-    } catch (error) {
-      console.error('Error fetching homework count:', error);
-    }
-  };
-
   const fetchParentData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -235,7 +89,8 @@ const ParentOverviewPage = () => {
         return;
       }
 
-      setCurrentUserId(user.id);
+      // Set user ID in notification context
+      setUserId(user.id);
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -255,21 +110,12 @@ const ParentOverviewPage = () => {
 
       if (childrenError) throw childrenError;
       setChildren(childrenData || []);
-
+      
+      // Set child IDs in notification context
       if (childrenData && childrenData.length > 0) {
+        setChildIds(childrenData.map(c => c.id));
         setSelectedChild(childrenData[0].id);
       }
-
-      // Get unread messages count
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('id, is_read')
-        .eq('recipient_id', user.id)
-        .eq('is_read', false);
-
-      const unreadCount = messagesData?.length || 0;
-      setUnreadMessagesCount(unreadCount);
-      setAppBadge(unreadCount);
     } catch (error: any) {
       toast({
         title: "خطأ",
@@ -280,13 +126,6 @@ const ParentOverviewPage = () => {
       setLoading(false);
     }
   };
-
-  // Fetch homework count when children are loaded
-  useEffect(() => {
-    if (children.length > 0) {
-      fetchHomeworkCount();
-    }
-  }, [children]);
 
   const fetchChildDetails = async (childId: string) => {
     try {
@@ -321,11 +160,13 @@ const ParentOverviewPage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
-    // Clear badge when navigating to section
+    // Clear the section's badge when navigating to it
     if (sectionId === 'attendance') {
-      setNewAttendanceCount(0);
+      clearSection('attendance');
     } else if (sectionId === 'homework') {
-      setPendingHomeworkCount(0);
+      clearSection('homework');
+    } else if (sectionId === 'messages') {
+      // Messages are marked as read individually, not cleared here
     }
     
     if (sectionId === 'overview') {
@@ -401,9 +242,9 @@ const ParentOverviewPage = () => {
         onNavigate={handleNavigate}
         useHashNavigation={false}
         notifications={{
-          messages: unreadMessagesCount,
-          attendance: newAttendanceCount,
-          homework: pendingHomeworkCount,
+          messages: counts.messages,
+          attendance: counts.attendance,
+          homework: counts.homework,
         }}
       />
     </div>
