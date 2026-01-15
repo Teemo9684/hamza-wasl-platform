@@ -75,6 +75,9 @@ async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
   return data.access_token;
 }
 
+// FCM error codes that indicate the token should be removed
+const INVALID_TOKEN_ERRORS = ['UNREGISTERED', 'INVALID_ARGUMENT', 'SENDER_ID_MISMATCH'];
+
 // Send notification via FCM v1 API
 async function sendFCMNotification(
   accessToken: string,
@@ -83,39 +86,63 @@ async function sendFCMNotification(
   title: string,
   body: string,
   data?: Record<string, string>
-): Promise<{ success: boolean; error?: string }> {
-  const response = await fetch(
-    `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: {
-          token,
-          notification: { title, body },
-          android: {
-            priority: "high",
-            notification: {
-              sound: "default",
-              default_vibrate_timings: true,
-              default_light_settings: true,
-            },
-          },
-          data: data || {},
+): Promise<{ success: boolean; error?: string; errorCode?: string; token: string }> {
+  try {
+    const response = await fetch(
+      `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
-      }),
-    }
-  );
+        body: JSON.stringify({
+          message: {
+            token,
+            notification: { title, body },
+            android: {
+              priority: "high",
+              notification: {
+                sound: "default",
+                default_vibrate_timings: true,
+                default_light_settings: true,
+                channel_id: "default",
+              },
+            },
+            data: data || {},
+          },
+        }),
+      }
+    );
 
-  if (!response.ok) {
-    const error = await response.json();
-    console.error(`FCM error for token ${token.substring(0, 20)}...:`, error);
-    return { success: false, error: JSON.stringify(error) };
+    if (!response.ok) {
+      const error = await response.json();
+      const errorCode = error?.error?.details?.[0]?.errorCode || '';
+      console.error(`FCM error for token ${token.substring(0, 20)}...:`, error);
+      return { success: false, error: JSON.stringify(error), errorCode, token };
+    }
+    return { success: true, token };
+  } catch (err) {
+    console.error(`Exception sending to token ${token.substring(0, 20)}...:`, err);
+    return { success: false, error: String(err), token };
   }
-  return { success: true };
+}
+
+// Remove invalid tokens from database
+async function removeInvalidTokens(supabase: any, tokens: string[]) {
+  if (tokens.length === 0) return;
+  
+  console.log(`Removing ${tokens.length} invalid tokens from database`);
+  const { error } = await supabase
+    .from('push_tokens')
+    .delete()
+    .in('token', tokens);
+    
+  if (error) {
+    console.error('Error removing invalid tokens:', error);
+  } else {
+    console.log('Successfully removed invalid tokens');
+  }
 }
 
 serve(async (req) => {
@@ -236,7 +263,21 @@ serve(async (req) => {
         tokens.map(token => sendFCMNotification(accessToken, serviceAccount.project_id, token, title, body, data))
       );
 
-      const successCount = results.filter(r => r.status === 'fulfilled' && (r.value as any).success).length;
+      // Collect tokens to remove (invalid/unregistered)
+      const tokensToRemove: string[] = [];
+      
+      const successCount = results.filter(r => {
+        if (r.status === 'fulfilled') {
+          const val = r.value as any;
+          // Check if token should be removed
+          if (!val.success && val.errorCode && INVALID_TOKEN_ERRORS.includes(val.errorCode)) {
+            tokensToRemove.push(val.token);
+          }
+          return val.success;
+        }
+        return false;
+      }).length;
+      
       const failCount = tokens.length - successCount;
 
       console.log(`Sent ${successCount} notifications, ${failCount} failed`);
@@ -250,12 +291,19 @@ serve(async (req) => {
         }
       });
 
+      // Remove invalid tokens in background
+      if (tokensToRemove.length > 0) {
+        console.log(`Found ${tokensToRemove.length} invalid tokens to remove`);
+        await removeInvalidTokens(supabase, tokensToRemove);
+      }
+
       return new Response(
         JSON.stringify({ 
           success: true, 
           sent: successCount, 
           failed: failCount,
-          total_tokens: tokens.length 
+          total_tokens: tokens.length,
+          removed_tokens: tokensToRemove.length
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
