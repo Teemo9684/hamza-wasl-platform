@@ -182,16 +182,29 @@ export const MessagesView = () => {
                 <AccordionContent>
                   <ScrollArea className="h-[500px] px-6 pb-4">
                     <div className="space-y-3">
-                      {teacher.messages.map((message) => (
-                        <Card key={message.id} className={!message.is_read ? "border-primary/50" : ""}>
+                      {teacher.messages.map((message) => {
+                        const isReply = message.subject?.startsWith('رد:');
+                        
+                        return (
+                        <Card key={message.id} className={!message.is_read ? "border-primary/50 bg-primary/5" : ""}>
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between gap-2">
                               <CardTitle className="text-base font-cairo">{message.subject}</CardTitle>
-                              {!message.is_read && (
-                                <Badge variant="destructive" className="text-xs">
-                                  جديد
-                                </Badge>
-                              )}
+                              <div className="flex items-center gap-1">
+                                {!message.is_read ? (
+                                  <Badge variant="destructive" className="text-xs bg-green-500 hover:bg-green-600">
+                                    جديد
+                                  </Badge>
+                                ) : isReply ? (
+                                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                    رد
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs text-muted-foreground">
+                                    مقروءة
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                             <div className="flex flex-wrap gap-2 text-sm text-muted-foreground font-cairo">
                               <span>من: {message.sender_name}</span>
@@ -213,7 +226,8 @@ export const MessagesView = () => {
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
+                        );
+                      })}
                     </div>
                   </ScrollArea>
                 </AccordionContent>

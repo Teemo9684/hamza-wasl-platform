@@ -255,18 +255,25 @@ export const ParentMessages = ({
         <CardContent>
           {receivedMessages.length > 0 ? (
             <div className="space-y-3">
-              {receivedMessages.map((message) => (
+              {receivedMessages.map((message) => {
+                const isReply = message.subject?.startsWith('رد:');
+                
+                return (
                 <div
                   key={message.id}
-                  className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                  className={`p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors ${!message.is_read ? 'border-primary/30 bg-primary/5' : ''}`}
                   onClick={() => handleViewMessage(message)}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <MessageSquare className="h-4 w-4 text-primary" />
                       <span className="font-semibold">{message.subject}</span>
-                      {!message.is_read && (
-                        <Badge variant="default" className="text-xs">جديد</Badge>
+                      {!message.is_read ? (
+                        <Badge variant="default" className="text-xs bg-green-500 hover:bg-green-600">جديد</Badge>
+                      ) : isReply ? (
+                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">رد</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs text-muted-foreground">مقروءة</Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -313,7 +320,8 @@ export const ParentMessages = ({
                     </p>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="py-12 text-center">

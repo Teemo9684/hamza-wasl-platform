@@ -243,28 +243,41 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
               {requests.map((request) => {
                 const status = statusConfig[request.status] || statusConfig.pending;
                 const StatusIcon = status.icon;
+                const hasAdminResponse = request.admin_notes && request.admin_notes.trim();
                 
                 return (
                   <div
                     key={request.id}
-                    className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/30 transition-colors gap-3"
+                    className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/30 transition-colors gap-3 ${request.status === 'pending' ? 'border-primary/30 bg-primary/5' : ''}`}
                   >
                     <div className="flex items-start gap-3">
                       <div className="p-2 rounded-full bg-primary/10">
                         <FileText className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium">{request.document_type}</p>
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <p className="font-medium">{request.document_type}</p>
+                          {request.status === 'pending' && (
+                            <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs">
+                              في الانتظار
+                            </Badge>
+                          )}
+                          {hasAdminResponse && (
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs">
+                              تم الرد
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {request.student?.full_name}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(request.created_at).toLocaleDateString("ar-u-nu-latn", { year: "numeric", month: "long", day: "numeric" })}
                         </p>
-                        {request.admin_notes && (
-                          <p className="text-sm text-primary mt-1">
-                            رد الإدارة: {request.admin_notes}
-                          </p>
+                        {hasAdminResponse && (
+                          <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/30 rounded text-sm text-blue-700 dark:text-blue-300">
+                            <span className="font-medium">رد الإدارة:</span> {request.admin_notes}
+                          </div>
                         )}
                       </div>
                     </div>

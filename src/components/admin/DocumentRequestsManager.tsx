@@ -183,7 +183,7 @@ export const DocumentRequestsManager = () => {
             const StatusIcon = status.icon;
 
             return (
-              <Card key={request.id} className="hover:shadow-md transition-shadow">
+              <Card key={request.id} className={`hover:shadow-md transition-shadow ${request.status === 'pending' ? 'border-primary/30 bg-primary/5' : ''}`}>
                 <CardContent className="p-4">
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                     <div className="flex-1 space-y-3">
@@ -198,6 +198,16 @@ export const DocumentRequestsManager = () => {
                               <StatusIcon className="h-3 w-3" />
                               {status.label}
                             </Badge>
+                            {request.status === 'pending' && (
+                              <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-white text-xs">
+                                جديد
+                              </Badge>
+                            )}
+                            {request.admin_notes && request.status !== 'pending' && (
+                              <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs">
+                                تم الرد
+                              </Badge>
+                            )}
                           </div>
                           
                           <div className="mt-2 space-y-1 text-sm text-muted-foreground">
