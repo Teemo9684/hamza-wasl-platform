@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -505,39 +506,41 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Admin Card */}
-          <div 
-            onClick={() => handleCardClick("admin")}
-            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
-              selectedUserType === "admin" 
-                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
-                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
-            }`}
-            style={{ animationDelay: "0.3s" }}
-          >
-            <div className="flex flex-col items-center text-center space-y-6">
-              {/* Icon Container */}
-              <div className="relative icon-float" style={{ animationDelay: "1s" }}>
-                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
-                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
-                  <Shield className="w-16 h-16 text-white" strokeWidth={1.5} />
+          {/* Admin Card - Hidden on native app, only visible on web */}
+          {!Capacitor.isNativePlatform() && (
+            <div 
+              onClick={() => handleCardClick("admin")}
+              className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
+                selectedUserType === "admin" 
+                  ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                  : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
+              }`}
+              style={{ animationDelay: "0.3s" }}
+            >
+              <div className="flex flex-col items-center text-center space-y-6">
+                {/* Icon Container */}
+                <div className="relative icon-float" style={{ animationDelay: "1s" }}>
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
+                  <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                    <Shield className="w-16 h-16 text-white" strokeWidth={1.5} />
+                  </div>
+                </div>
+                
+                {/* Text */}
+                <div>
+                  <h2 className="text-3xl font-bold text-white mb-2 font-cairo">الإدارة</h2>
+                  <p className="text-white/80 font-cairo">لوحة التحكم الإدارية</p>
+                </div>
+
+                {/* Arrow Icon */}
+                <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </div>
               </div>
-              
-              {/* Text */}
-              <div>
-                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">الإدارة</h2>
-                <p className="text-white/80 font-cairo">لوحة التحكم الإدارية</p>
-              </div>
-
-              {/* Arrow Icon */}
-              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </div>
             </div>
-          </div>
+          )}
         </div>
 
 
