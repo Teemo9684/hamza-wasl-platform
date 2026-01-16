@@ -66,11 +66,11 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
                 ease: "easeInOut"
               }}
             >
-              <img 
-                src={splashLogo} 
-                alt="شعار التطبيق" 
-                className="w-32 h-32 object-contain drop-shadow-2xl"
-              />
+            <img 
+              src={splashLogo} 
+              alt="شعار التطبيق" 
+              className="w-56 h-56 object-contain drop-shadow-2xl"
+            />
               
               {/* Glow effect */}
               <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full -z-10 scale-150" />
@@ -130,7 +130,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
             <img 
               src={splashLogo} 
               alt="شعار التطبيق" 
-              className="w-32 h-32 object-contain"
+              className="w-56 h-56 object-contain"
             />
             <h1 className="text-2xl font-bold text-foreground">
               العربي التبسي
