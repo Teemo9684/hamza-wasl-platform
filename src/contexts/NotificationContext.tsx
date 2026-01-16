@@ -10,13 +10,14 @@ interface NotificationCounts {
   messages: number;
   attendance: number;
   homework: number;
+  documents: number;
 }
 
 type UserRole = 'parent' | 'teacher' | 'admin';
 
 interface NotificationContextType {
   counts: NotificationCounts;
-  clearSection: (section: 'messages' | 'attendance' | 'homework') => void;
+  clearSection: (section: 'messages' | 'attendance' | 'homework' | 'documents') => void;
   refreshCounts: () => Promise<void>;
   userId: string | null;
   setUserId: (id: string | null) => void;
@@ -42,12 +43,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     messages: 0,
     attendance: 0,
     homework: 0,
+    documents: 0,
   });
   const [userId, setUserId] = useState<string | null>(null);
   const [childIds, setChildIds] = useState<string[]>([]);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [lastSeenAttendance, setLastSeenAttendance] = useState<string | null>(null);
   const [lastSeenHomework, setLastSeenHomework] = useState<string | null>(null);
+  const [lastSeenDocuments, setLastSeenDocuments] = useState<string | null>(null);
   const [currentNotification, setCurrentNotification] = useState<NotificationData | null>(null);
 
   const showNotification = useCallback((notification: Omit<NotificationData, 'id' | 'timestamp'>) => {
@@ -70,12 +73,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (userId) {
       const savedAttendance = localStorage.getItem(`lastSeenAttendance_${userId}`);
       const savedHomework = localStorage.getItem(`lastSeenHomework_${userId}`);
+      const savedDocuments = localStorage.getItem(`lastSeenDocuments_${userId}`);
       setLastSeenAttendance(savedAttendance);
       setLastSeenHomework(savedHomework);
+      setLastSeenDocuments(savedDocuments);
     }
   }, [userId]);
 
-  const clearSection = useCallback((section: 'messages' | 'attendance' | 'homework') => {
+  const clearSection = useCallback((section: 'messages' | 'attendance' | 'homework' | 'documents') => {
     const now = new Date().toISOString();
     
     if (section === 'attendance' && userId) {
@@ -84,6 +89,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } else if (section === 'homework' && userId) {
       localStorage.setItem(`lastSeenHomework_${userId}`, now);
       setLastSeenHomework(now);
+    } else if (section === 'documents' && userId) {
+      localStorage.setItem(`lastSeenDocuments_${userId}`, now);
+      setLastSeenDocuments(now);
     }
     
     setCounts(prev => ({
@@ -110,8 +118,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       let newAttendance = 0;
       let homeworkCount = 0;
+      let documentsCount = 0;
       
-      // Parent-specific counts (attendance and homework for their children)
+      // Parent-specific counts (attendance, homework, and documents for their children)
       if (userRole === 'parent' && childIds.length > 0) {
         // Check for new attendance today
         let attendanceQuery = supabase
@@ -156,12 +165,27 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const { data: homeworkData } = await homeworkQuery;
           homeworkCount = homeworkData?.length || 0;
         }
+
+        // Get document requests with status updates after last seen
+        let documentsQuery = supabase
+          .from('document_requests')
+          .select('id, updated_at')
+          .eq('parent_id', userId)
+          .neq('status', 'pending');
+        
+        if (lastSeenDocuments) {
+          documentsQuery = documentsQuery.gt('updated_at', lastSeenDocuments);
+        }
+        
+        const { data: documentsData } = await documentsQuery;
+        documentsCount = documentsData?.length || 0;
       }
       
       setCounts({
         messages: unreadMessages,
         attendance: newAttendance,
         homework: homeworkCount,
+        documents: documentsCount,
       });
       
       // Update app badge with messages only
@@ -169,7 +193,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } catch (error) {
       console.error('Error fetching notification counts:', error);
     }
-  }, [userId, userRole, childIds, lastSeenAttendance, lastSeenHomework]);
+  }, [userId, userRole, childIds, lastSeenAttendance, lastSeenHomework, lastSeenDocuments]);
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -325,6 +349,53 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       );
       cleanupFunctions.push(homeworkCleanup);
+
+      // Document requests subscription for parent
+      const documentsCleanup = realtimeManager.subscribe(
+        `notification-context-documents-${userId}`,
+        'document_requests',
+        async (payload) => {
+          if (payload.eventType === 'REFRESH') {
+            refreshCounts();
+            return;
+          }
+
+          if (payload.eventType === 'UPDATE') {
+            const updatedRequest = payload.new as any;
+            
+            // Only notify if status changed (not pending anymore)
+            if (updatedRequest.status !== 'pending') {
+              // Get student name
+              const { data: studentData } = await supabase
+                .from('students')
+                .select('full_name')
+                .eq('id', updatedRequest.student_id)
+                .maybeSingle();
+              
+              const studentName = studentData?.full_name || 'الطالب';
+              const statusText = updatedRequest.status === 'ready' 
+                ? 'جاهزة للاستلام' 
+                : updatedRequest.status === 'rejected' 
+                  ? 'مرفوضة' 
+                  : 'قيد المعالجة';
+              
+              setCounts(prev => ({ ...prev, documents: prev.documents + 1 }));
+              
+              showNotification({
+                type: 'document',
+                title: 'تحديث طلب الوثيقة',
+                description: `طلب وثيقة ${studentName} أصبح ${statusText}`,
+                details: {
+                  studentName,
+                  status: updatedRequest.status,
+                },
+              });
+            }
+          }
+        },
+        `parent_id=eq.${userId}`
+      );
+      cleanupFunctions.push(documentsCleanup);
     }
 
     // Initial fetch

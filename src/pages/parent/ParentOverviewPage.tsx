@@ -166,6 +166,8 @@ const ParentOverviewPage = () => {
       clearSection('attendance');
     } else if (sectionId === 'homework') {
       clearSection('homework');
+    } else if (sectionId === 'documents') {
+      clearSection('documents');
     } else if (sectionId === 'messages') {
       // Messages are marked as read individually, not cleared here
     }
@@ -246,6 +248,7 @@ const ParentOverviewPage = () => {
           messages: counts.messages,
           attendance: counts.attendance,
           homework: counts.homework,
+          documents: counts.documents,
         }}
       />
     </div>
