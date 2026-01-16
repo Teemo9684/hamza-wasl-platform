@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home, Send, Calendar, FileText, Image } from "lucide-react";
+import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home, Calendar, FileText, Image } from "lucide-react";
 import { NewsTickerManager } from "@/components/NewsTickerManager";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { StudentManagement } from "@/components/admin/StudentManagement";
@@ -10,7 +10,7 @@ import { AnnouncementsManager } from "@/components/admin/AnnouncementsManager";
 import { ReportsView } from "@/components/admin/ReportsView";
 import { SettingsManager } from "@/components/admin/SettingsManager";
 import { MessagesView } from "@/components/admin/MessagesView";
-import { GroupMessaging } from "@/components/admin/GroupMessaging";
+
 import { ScheduleManager } from "@/components/admin/ScheduleManager";
 import { DocumentRequestsManager } from "@/components/admin/DocumentRequestsManager";
 import { PostersManager } from "@/components/admin/PostersManager";
@@ -329,7 +329,7 @@ const DashboardAdmin = () => {
                   {activeSection === "reports" && <ReportsView />}
                   {activeSection === "settings" && <SettingsManager />}
                   {activeSection === "messages" && <MessagesView />}
-                  {activeSection === "groupMessages" && <GroupMessaging />}
+                  
                   {activeSection === "schedule" && <ScheduleManager />}
                   {activeSection === "documentRequests" && <DocumentRequestsManager />}
                   {activeSection === "posters" && <PostersManager />}
@@ -457,9 +457,9 @@ const DashboardAdmin = () => {
                   <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
                     <Bell className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2 font-cairo">الإعلانات</h3>
+                  <h3 className="text-xl font-bold mb-2 font-cairo">الإعلانات والرسائل الجماعية</h3>
                   <p className="text-sm text-muted-foreground font-tajawal mb-4">
-                    نشر إعلانات للمعلمين وأولياء الأمور
+                    إرسال إعلانات ورسائل للمعلمين وأولياء الأمور
                   </p>
                   <Button className="w-full bg-accent text-white font-cairo">
                     إدارة
@@ -519,22 +519,6 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("groupMessages")}>
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mb-4">
-                    <Send className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 font-cairo">رسائل جماعية</h3>
-                  <p className="text-sm text-muted-foreground font-cairo mb-4">
-                    إرسال رسالة واحدة لمجموعة من أولياء الأمور
-                  </p>
-                  <Button className="w-full bg-gradient-secondary text-white font-cairo">
-                    إرسال
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
 
             <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("schedule")}>
               <CardContent className="p-6">
