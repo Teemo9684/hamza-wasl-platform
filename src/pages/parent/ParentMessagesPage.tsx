@@ -268,6 +268,7 @@ const ParentMessagesPage = () => {
           messages: unreadMessagesCount,
           attendance: counts.attendance,
           homework: counts.homework,
+          documents: counts.documents,
         }}
       />
     </div>

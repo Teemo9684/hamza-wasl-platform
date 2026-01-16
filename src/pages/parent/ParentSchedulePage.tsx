@@ -158,6 +158,7 @@ const ParentSchedulePage = () => {
           messages: counts.messages,
           attendance: counts.attendance,
           homework: counts.homework,
+          documents: counts.documents,
         }}
       />
     </div>

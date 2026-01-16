@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, BookOpen, UserCheck, MessageSquare, Clock } from 'lucide-react';
+import { X, Bell, BookOpen, UserCheck, MessageSquare, Clock, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface NotificationData {
   id: string;
-  type: 'attendance' | 'message' | 'homework' | 'announcement';
+  type: 'attendance' | 'message' | 'homework' | 'announcement' | 'document';
   title: string;
   description: string;
   details?: {
@@ -35,6 +35,8 @@ const getNotificationIcon = (type: NotificationData['type']) => {
       return BookOpen;
     case 'announcement':
       return Bell;
+    case 'document':
+      return FileText;
     default:
       return Bell;
   }
@@ -61,6 +63,8 @@ const getNotificationColor = (type: NotificationData['type'], status?: string) =
       return 'from-purple-500 to-violet-600';
     case 'announcement':
       return 'from-amber-500 to-orange-600';
+    case 'document':
+      return 'from-teal-500 to-cyan-600';
     default:
       return 'from-blue-500 to-indigo-600';
   }
