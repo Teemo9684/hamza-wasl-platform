@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { useEffect, useState, useRef, useCallback } from "react";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,60 @@ import { realtimeManager } from "@/utils/realtimeManager";
 import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
 import { useAppVersion } from "@/hooks/useAppVersion";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 12
+    }
+  }
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 50, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 15
+    }
+  }
+};
+
+const logoVariants = {
+  hidden: { opacity: 0, scale: 0.5, rotate: -10 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    rotate: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 150,
+      damping: 12,
+      delay: 0.1
+    }
+  }
+};
 
 interface NewsItem {
   id: string;
@@ -340,11 +395,21 @@ const Index = () => {
   return (
     <div className="min-h-screen w-full relative overflow-hidden pt-[env(safe-area-inset-top)]">
       {/* Animated Gradient Background */}
-      <div className="absolute inset-0 animated-gradient-bg" />
+      <motion.div 
+        className="absolute inset-0 animated-gradient-bg"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      />
 
       {/* News Ticker */}
       {newsItems.length > 0 && (
-        <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
+        <motion.div 
+          className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden"
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.3 }}
+        >
           <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
             {/* Repeat items 3 times for seamless scrolling */}
             {[...Array(3)].map((_, repeatIndex) => (
@@ -379,11 +444,16 @@ const Index = () => {
               ))
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Date and Time Display - Below News Ticker */}
-      <div className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2">
+      <motion.div 
+        className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.4 }}
+      >
         <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
           {/* Date */}
           <div className="font-medium">
@@ -398,17 +468,27 @@ const Index = () => {
             {format(currentTime, "HH:mm:ss")}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Update Notification Banner - Below Date/Time */}
-      <div className="absolute top-[6.5rem] left-0 right-0 z-20">
+      <motion.div 
+        className="absolute top-[6.5rem] left-0 right-0 z-20"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5 }}
+      >
         <UpdateNotificationBanner />
-      </div>
+      </motion.div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32">
+      <motion.div 
+        className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Logo and Title */}
-        <div className="text-center mb-8 animate-fade-in">
+        <motion.div className="text-center mb-8" variants={logoVariants}>
           <div className="relative h-48 mb-6">
             {/* همزة وصل */}
             <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
@@ -427,7 +507,7 @@ const Index = () => {
             </div>
           </div>
           
-          <div>
+          <motion.div variants={itemVariants}>
             <p className="text-2xl text-white/90 font-cairo mb-2">
               جسر التواصل بين المدرسة والبيت
             </p>
@@ -437,23 +517,30 @@ const Index = () => {
             <p className="text-lg text-white/70 font-ruqaa">
               المدرسة الابتدائية العربي التبسي
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Posters Carousel */}
-        <PostersCarousel />
+        <motion.div variants={itemVariants}>
+          <PostersCarousel />
+        </motion.div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl"
+          variants={containerVariants}
+        >
           {/* Parent Card */}
-          <div 
+          <motion.div 
             onClick={() => handleCardClick("parent")}
-            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
               selectedUserType === "parent" 
                 ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
                 : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
             }`}
-            style={{ animationDelay: "0.1s" }}
+            variants={cardVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
           >
             <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
@@ -477,17 +564,19 @@ const Index = () => {
                 </svg>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Teacher Card */}
-          <div 
+          <motion.div 
             onClick={() => handleCardClick("teacher")}
-            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
               selectedUserType === "teacher" 
                 ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
                 : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
             }`}
-            style={{ animationDelay: "0.2s" }}
+            variants={cardVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
           >
             <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
@@ -511,18 +600,20 @@ const Index = () => {
                 </svg>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Admin Card - Hidden on native app, only visible on web */}
           {!Capacitor.isNativePlatform() && (
-            <div 
+            <motion.div 
               onClick={() => handleCardClick("admin")}
-              className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
+              className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
                 selectedUserType === "admin" 
                   ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
                   : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
               }`}
-              style={{ animationDelay: "0.3s" }}
+              variants={cardVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
             >
               <div className="flex flex-col items-center text-center space-y-6">
                 {/* Icon Container */}
@@ -546,25 +637,25 @@ const Index = () => {
                   </svg>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
 
         {/* Footer */}
-        <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
+        <motion.div className="mt-8 text-center" variants={itemVariants}>
           <p className="text-white/70 font-cairo text-lg">
             اختر نوع الحساب للدخول إلى المنصة
           </p>
-        </div>
+        </motion.div>
 
         {/* Copyright */}
-        <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
+        <motion.div className="mt-8 text-center" variants={itemVariants}>
           <p className="text-white/60 font-cairo text-sm">
             جميع الحقوق محفوظة-العربي التبسي 2026©
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Login Section */}
       {selectedUserType && (
