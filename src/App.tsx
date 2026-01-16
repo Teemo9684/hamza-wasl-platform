@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -42,6 +43,13 @@ import TeacherGroupMessagesPage from "./pages/teacher/TeacherGroupMessagesPage";
 const queryClient = new QueryClient();
 
 const App = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Trigger entrance animation after mount
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleUserInteraction = () => {
@@ -114,52 +122,67 @@ const App = () => {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <BackButtonHandler />
-              <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/register/parent" element={<RegisterParent />} />
-                <Route path="/register/teacher" element={<RegisterTeacher />} />
-                <Route path="/login/parent" element={<LoginParent />} />
-                <Route path="/login/teacher" element={<LoginTeacher />} />
-                <Route path="/login/admin" element={<LoginAdmin />} />
-                
-                {/* Parent Dashboard Routes */}
-                <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentOverviewPage /></ProtectedRoute>} />
-                <Route path="/dashboard/parent/overview" element={<ProtectedRoute requiredRole="parent"><ParentOverviewPage /></ProtectedRoute>} />
-                <Route path="/dashboard/parent/attendance" element={<ProtectedRoute requiredRole="parent"><ParentAttendancePage /></ProtectedRoute>} />
-                <Route path="/dashboard/parent/homework" element={<ProtectedRoute requiredRole="parent"><ParentHomeworkPage /></ProtectedRoute>} />
-                <Route path="/dashboard/parent/schedule" element={<ProtectedRoute requiredRole="parent"><ParentSchedulePage /></ProtectedRoute>} />
-                <Route path="/dashboard/parent/messages" element={<ProtectedRoute requiredRole="parent"><ParentMessagesPage /></ProtectedRoute>} />
-                <Route path="/dashboard/parent/settings" element={<ProtectedRoute requiredRole="parent"><ParentSettingsPage /></ProtectedRoute>} />
-                
-                {/* Teacher Dashboard Routes */}
-                <Route path="/dashboard/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherOverviewPage /></ProtectedRoute>} />
-                <Route path="/dashboard/teacher/overview" element={<ProtectedRoute requiredRole="teacher"><TeacherOverviewPage /></ProtectedRoute>} />
-                <Route path="/dashboard/teacher/attendance" element={<ProtectedRoute requiredRole="teacher"><TeacherAttendancePage /></ProtectedRoute>} />
-                <Route path="/dashboard/teacher/homework" element={<ProtectedRoute requiredRole="teacher"><TeacherHomeworkPage /></ProtectedRoute>} />
-                <Route path="/dashboard/teacher/messages" element={<ProtectedRoute requiredRole="teacher"><TeacherMessagesPage /></ProtectedRoute>} />
-                <Route path="/dashboard/teacher/groupMessages" element={<ProtectedRoute requiredRole="teacher"><TeacherGroupMessagesPage /></ProtectedRoute>} />
-                
-                {/* Admin Dashboard */}
-                <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><DashboardAdmin /></ProtectedRoute>} />
-                
-                <Route path="/install" element={<InstallApp />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </NotificationProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ 
+          opacity: isLoaded ? 1 : 0, 
+          scale: isLoaded ? 1 : 0.98 
+        }}
+        transition={{ 
+          duration: 0.5, 
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}
+        className="min-h-screen"
+      >
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <NotificationProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <BackButtonHandler />
+                  <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/register/parent" element={<RegisterParent />} />
+                    <Route path="/register/teacher" element={<RegisterTeacher />} />
+                    <Route path="/login/parent" element={<LoginParent />} />
+                    <Route path="/login/teacher" element={<LoginTeacher />} />
+                    <Route path="/login/admin" element={<LoginAdmin />} />
+                    
+                    {/* Parent Dashboard Routes */}
+                    <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentOverviewPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/parent/overview" element={<ProtectedRoute requiredRole="parent"><ParentOverviewPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/parent/attendance" element={<ProtectedRoute requiredRole="parent"><ParentAttendancePage /></ProtectedRoute>} />
+                    <Route path="/dashboard/parent/homework" element={<ProtectedRoute requiredRole="parent"><ParentHomeworkPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/parent/schedule" element={<ProtectedRoute requiredRole="parent"><ParentSchedulePage /></ProtectedRoute>} />
+                    <Route path="/dashboard/parent/messages" element={<ProtectedRoute requiredRole="parent"><ParentMessagesPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/parent/settings" element={<ProtectedRoute requiredRole="parent"><ParentSettingsPage /></ProtectedRoute>} />
+                    
+                    {/* Teacher Dashboard Routes */}
+                    <Route path="/dashboard/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherOverviewPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/teacher/overview" element={<ProtectedRoute requiredRole="teacher"><TeacherOverviewPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/teacher/attendance" element={<ProtectedRoute requiredRole="teacher"><TeacherAttendancePage /></ProtectedRoute>} />
+                    <Route path="/dashboard/teacher/homework" element={<ProtectedRoute requiredRole="teacher"><TeacherHomeworkPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/teacher/messages" element={<ProtectedRoute requiredRole="teacher"><TeacherMessagesPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/teacher/groupMessages" element={<ProtectedRoute requiredRole="teacher"><TeacherGroupMessagesPage /></ProtectedRoute>} />
+                    
+                    {/* Admin Dashboard */}
+                    <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><DashboardAdmin /></ProtectedRoute>} />
+                    
+                    <Route path="/install" element={<InstallApp />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </TooltipProvider>
+            </NotificationProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
