@@ -115,20 +115,37 @@ const Index = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
 
   const fetchNewsItems = useCallback(async () => {
-    const { data } = await supabase
-      .from("news_ticker")
-      .select("*")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from("news_ticker")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
 
-    if (data) {
-      console.log('Index: Fetched', data.length, 'news items');
-      setNewsItems(data);
+      if (error) {
+        console.warn('Index: Error fetching news items:', error.message);
+        return;
+      }
+
+      if (data) {
+        console.log('Index: Fetched', data.length, 'news items');
+        setNewsItems(data);
+      }
+    } catch (error) {
+      console.warn('Index: Network error fetching news:', error);
     }
   }, []);
 
   useEffect(() => {
+    // Fetch news items immediately
     fetchNewsItems();
+    
+    // Re-fetch when app comes back online
+    const handleBackOnline = () => {
+      console.log('Index: App back online, refetching data...');
+      fetchNewsItems();
+    };
+    window.addEventListener('app-back-online', handleBackOnline);
     
     // Re-fetch news items when auth state changes (e.g., after logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
@@ -136,6 +153,7 @@ const Index = () => {
     });
 
     // Subscribe using realtimeManager for better reconnection handling
+    // Realtime is optional - data still loads from initial fetch
     const cleanup = realtimeManager.subscribe(
       'index-news-ticker',
       'news_ticker',
@@ -148,6 +166,7 @@ const Index = () => {
     return () => {
       subscription.unsubscribe();
       cleanup();
+      window.removeEventListener('app-back-online', handleBackOnline);
     };
   }, [fetchNewsItems]);
 
@@ -207,6 +226,17 @@ const Index = () => {
       toast.error("لا يوجد اتصال بالإنترنت. الرجاء التحقق من اتصالك والمحاولة مرة أخرى.");
       return;
     }
+
+    // Helper function to add timeout to auth promises
+    const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+      return Promise.race([
+        promise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('انتهت مهلة الاتصال. الرجاء المحاولة مرة أخرى.')), timeoutMs)
+        )
+      ]);
+    };
+
     if (selectedUserType === "admin") {
       // For admin login, use a fixed email
       const ADMIN_EMAIL = "admin@arbit.local";
@@ -219,10 +249,13 @@ const Index = () => {
       setIsLoading(true);
 
       try {
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email: ADMIN_EMAIL,
-          password: password.trim(),
-        });
+        const { data: authData, error: authError } = await withTimeout(
+          supabase.auth.signInWithPassword({
+            email: ADMIN_EMAIL,
+            password: password.trim(),
+          }),
+          15000 // 15 second timeout
+        );
 
         if (authError) {
           toast.error("كلمة المرور غير صحيحة");
@@ -250,7 +283,11 @@ const Index = () => {
         }
       } catch (error: any) {
         console.error("Admin login error:", error);
-        toast.error("حدث خطأ في تسجيل الدخول");
+        if (error.message?.includes('انتهت مهلة')) {
+          toast.error(error.message);
+        } else {
+          toast.error("حدث خطأ في تسجيل الدخول. تحقق من اتصالك بالإنترنت.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -268,10 +305,13 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail.trim(),
-        password: password.trim(),
-      });
+      const { data, error } = await withTimeout(
+        supabase.auth.signInWithPassword({
+          email: loginEmail.trim(),
+          password: password.trim(),
+        }),
+        15000 // 15 second timeout
+      );
 
       if (error) throw error;
 
@@ -330,8 +370,10 @@ const Index = () => {
         toast.error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
       } else if (error.message?.includes("Email not confirmed")) {
         toast.error("الرجاء تأكيد بريدك الإلكتروني أولاً");
+      } else if (error.message?.includes('انتهت مهلة')) {
+        toast.error(error.message);
       } else {
-        toast.error(error.message || "خطأ في تسجيل الدخول");
+        toast.error("حدث خطأ في تسجيل الدخول. تحقق من اتصالك بالإنترنت.");
       }
     } finally {
       setIsLoading(false);
