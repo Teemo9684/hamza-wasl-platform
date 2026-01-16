@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.hamzawasl.app',
-  appName: 'العربي التبسي-همزة وصل',
+  appName: 'العربي التبسي',
   webDir: 'dist',
   ios: {
     contentInset: 'always'
