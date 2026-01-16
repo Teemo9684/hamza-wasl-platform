@@ -83,8 +83,9 @@ public class MainActivity extends BridgeActivity {
         if (webView != null) {
             WebSettings webSettings = webView.getSettings();
             
-            // Set WebView background to match splash screen (light color)
-            webView.setBackgroundColor(Color.parseColor("#f5f8ff"));
+            // Set WebView background to match the status bar color (blue)
+            // This prevents any white gap from showing on overscroll
+            webView.setBackgroundColor(Color.parseColor("#1e40af"));
             
             // Disable overscroll completely - no bounce/glow effect
             webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
@@ -99,8 +100,8 @@ public class MainActivity extends BridgeActivity {
             webView.setInitialScale(0);
         }
         
-        // Set window background to match splash screen
-        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#f5f8ff"));
+        // Also set the window background color to match status bar
+        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#1e40af"));
     }
     
     @Override

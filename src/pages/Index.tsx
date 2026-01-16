@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,62 +16,6 @@ import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
 import { useAppVersion } from "@/hooks/useAppVersion";
-import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import InstallPromptBanner from "@/components/InstallPromptBanner";
-
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring" as const,
-      stiffness: 100,
-      damping: 12
-    }
-  }
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 50, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: "spring" as const,
-      stiffness: 100,
-      damping: 15
-    }
-  }
-};
-
-const logoVariants = {
-  hidden: { opacity: 0, scale: 0.5, rotate: -10 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    rotate: 0,
-    transition: {
-      type: "spring" as const,
-      stiffness: 150,
-      damping: 12,
-      delay: 0.1
-    }
-  }
-};
 
 interface NewsItem {
   id: string;
@@ -88,7 +31,6 @@ type UserType = "parent" | "teacher" | "admin" | null;
 const Index = () => {
   const navigate = useNavigate();
   const { version: appVersion } = useAppVersion();
-  const { isOnline } = useOnlineStatus();
   const [isInstalled, setIsInstalled] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
   const [email, setEmail] = useState("");
@@ -115,37 +57,20 @@ const Index = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
 
   const fetchNewsItems = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from("news_ticker")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
+    const { data } = await supabase
+      .from("news_ticker")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
 
-      if (error) {
-        console.warn('Index: Error fetching news items:', error.message);
-        return;
-      }
-
-      if (data) {
-        console.log('Index: Fetched', data.length, 'news items');
-        setNewsItems(data);
-      }
-    } catch (error) {
-      console.warn('Index: Network error fetching news:', error);
+    if (data) {
+      console.log('Index: Fetched', data.length, 'news items');
+      setNewsItems(data);
     }
   }, []);
 
   useEffect(() => {
-    // Fetch news items immediately
     fetchNewsItems();
-    
-    // Re-fetch when app comes back online
-    const handleBackOnline = () => {
-      console.log('Index: App back online, refetching data...');
-      fetchNewsItems();
-    };
-    window.addEventListener('app-back-online', handleBackOnline);
     
     // Re-fetch news items when auth state changes (e.g., after logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
@@ -153,7 +78,6 @@ const Index = () => {
     });
 
     // Subscribe using realtimeManager for better reconnection handling
-    // Realtime is optional - data still loads from initial fetch
     const cleanup = realtimeManager.subscribe(
       'index-news-ticker',
       'news_ticker',
@@ -166,7 +90,6 @@ const Index = () => {
     return () => {
       subscription.unsubscribe();
       cleanup();
-      window.removeEventListener('app-back-online', handleBackOnline);
     };
   }, [fetchNewsItems]);
 
@@ -221,22 +144,6 @@ const Index = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check internet connection first
-    if (!isOnline) {
-      toast.error("لا يوجد اتصال بالإنترنت. الرجاء التحقق من اتصالك والمحاولة مرة أخرى.");
-      return;
-    }
-
-    // Helper function to add timeout to auth promises
-    const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
-      return Promise.race([
-        promise,
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('انتهت مهلة الاتصال. الرجاء المحاولة مرة أخرى.')), timeoutMs)
-        )
-      ]);
-    };
-
     if (selectedUserType === "admin") {
       // For admin login, use a fixed email
       const ADMIN_EMAIL = "admin@arbit.local";
@@ -249,13 +156,10 @@ const Index = () => {
       setIsLoading(true);
 
       try {
-        const { data: authData, error: authError } = await withTimeout(
-          supabase.auth.signInWithPassword({
-            email: ADMIN_EMAIL,
-            password: password.trim(),
-          }),
-          15000 // 15 second timeout
-        );
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: ADMIN_EMAIL,
+          password: password.trim(),
+        });
 
         if (authError) {
           toast.error("كلمة المرور غير صحيحة");
@@ -283,11 +187,7 @@ const Index = () => {
         }
       } catch (error: any) {
         console.error("Admin login error:", error);
-        if (error.message?.includes('انتهت مهلة')) {
-          toast.error(error.message);
-        } else {
-          toast.error("حدث خطأ في تسجيل الدخول. تحقق من اتصالك بالإنترنت.");
-        }
+        toast.error("حدث خطأ في تسجيل الدخول");
       } finally {
         setIsLoading(false);
       }
@@ -305,13 +205,10 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await withTimeout(
-        supabase.auth.signInWithPassword({
-          email: loginEmail.trim(),
-          password: password.trim(),
-        }),
-        15000 // 15 second timeout
-      );
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail.trim(),
+        password: password.trim(),
+      });
 
       if (error) throw error;
 
@@ -370,10 +267,8 @@ const Index = () => {
         toast.error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
       } else if (error.message?.includes("Email not confirmed")) {
         toast.error("الرجاء تأكيد بريدك الإلكتروني أولاً");
-      } else if (error.message?.includes('انتهت مهلة')) {
-        toast.error(error.message);
       } else {
-        toast.error("حدث خطأ في تسجيل الدخول. تحقق من اتصالك بالإنترنت.");
+        toast.error(error.message || "خطأ في تسجيل الدخول");
       }
     } finally {
       setIsLoading(false);
@@ -438,21 +333,11 @@ const Index = () => {
   return (
     <div className="min-h-screen w-full relative overflow-hidden pt-[env(safe-area-inset-top)]">
       {/* Animated Gradient Background */}
-      <motion.div 
-        className="absolute inset-0 animated-gradient-bg"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-      />
+      <div className="absolute inset-0 animated-gradient-bg" />
 
       {/* News Ticker */}
       {newsItems.length > 0 && (
-        <motion.div 
-          className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden"
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.3 }}
-        >
+        <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
           <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
             {/* Repeat items 3 times for seamless scrolling */}
             {[...Array(3)].map((_, repeatIndex) => (
@@ -487,16 +372,11 @@ const Index = () => {
               ))
             ))}
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Date and Time Display - Below News Ticker */}
-      <motion.div 
-        className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.4 }}
-      >
+      <div className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2">
         <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
           {/* Date */}
           <div className="font-medium">
@@ -511,27 +391,17 @@ const Index = () => {
             {format(currentTime, "HH:mm:ss")}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Update Notification Banner - Below Date/Time */}
-      <motion.div 
-        className="absolute top-[6.5rem] left-0 right-0 z-20"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5 }}
-      >
+      <div className="absolute top-[6.5rem] left-0 right-0 z-20">
         <UpdateNotificationBanner />
-      </motion.div>
+      </div>
 
       {/* Main Content */}
-      <motion.div 
-        className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32">
         {/* Logo and Title */}
-        <motion.div className="text-center mb-8" variants={logoVariants}>
+        <div className="text-center mb-8 animate-fade-in">
           <div className="relative h-48 mb-6">
             {/* همزة وصل */}
             <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
@@ -550,7 +420,7 @@ const Index = () => {
             </div>
           </div>
           
-          <motion.div variants={itemVariants}>
+          <div>
             <p className="text-2xl text-white/90 font-cairo mb-2">
               جسر التواصل بين المدرسة والبيت
             </p>
@@ -560,30 +430,23 @@ const Index = () => {
             <p className="text-lg text-white/70 font-ruqaa">
               المدرسة الابتدائية العربي التبسي
             </p>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Posters Carousel */}
-        <motion.div variants={itemVariants}>
-          <PostersCarousel />
-        </motion.div>
+        <PostersCarousel />
 
         {/* Cards Grid */}
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl"
-          variants={containerVariants}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
           {/* Parent Card */}
-          <motion.div 
+          <div 
             onClick={() => handleCardClick("parent")}
-            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
               selectedUserType === "parent" 
                 ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
                 : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
             }`}
-            variants={cardVariants}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
+            style={{ animationDelay: "0.1s" }}
           >
             <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
@@ -607,19 +470,17 @@ const Index = () => {
                 </svg>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Teacher Card */}
-          <motion.div 
+          <div 
             onClick={() => handleCardClick("teacher")}
-            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
               selectedUserType === "teacher" 
                 ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
                 : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
             }`}
-            variants={cardVariants}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
+            style={{ animationDelay: "0.2s" }}
           >
             <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
@@ -643,20 +504,18 @@ const Index = () => {
                 </svg>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Admin Card - Hidden on native app, only visible on web */}
           {!Capacitor.isNativePlatform() && (
-            <motion.div 
+            <div 
               onClick={() => handleCardClick("admin")}
-              className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
+              className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border animate-fade-in ${
                 selectedUserType === "admin" 
                   ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
                   : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
               }`}
-              variants={cardVariants}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
+              style={{ animationDelay: "0.3s" }}
             >
               <div className="flex flex-col items-center text-center space-y-6">
                 {/* Icon Container */}
@@ -680,25 +539,25 @@ const Index = () => {
                   </svg>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </motion.div>
+        </div>
 
 
         {/* Footer */}
-        <motion.div className="mt-8 text-center" variants={itemVariants}>
+        <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <p className="text-white/70 font-cairo text-lg">
             اختر نوع الحساب للدخول إلى المنصة
           </p>
-        </motion.div>
+        </div>
 
         {/* Copyright */}
-        <motion.div className="mt-8 text-center" variants={itemVariants}>
+        <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
           <p className="text-white/60 font-cairo text-sm">
             جميع الحقوق محفوظة-العربي التبسي 2026©
           </p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* Login Section */}
       {selectedUserType && (
@@ -848,9 +707,6 @@ const Index = () => {
       <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
         v{appVersion}
       </div>
-      
-      {/* Install Prompt Banner */}
-      <InstallPromptBanner />
     </div>
   );
 };

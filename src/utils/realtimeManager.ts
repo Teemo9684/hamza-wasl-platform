@@ -151,29 +151,22 @@ class RealtimeManager {
       config.filter = subscription.filter;
     }
 
-    try {
-      const channel = supabase
-        .channel(subscription.channelName)
-        .on('postgres_changes', config, (payload) => {
-          console.log(`RealtimeManager: Update received for ${subscription.table}`, payload);
-          subscription.callback(payload);
-        })
-        .subscribe((status) => {
-          console.log(`RealtimeManager: ${subscription.channelName} status:`, status);
-          
-          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            // Don't block the app - just log and schedule reconnection
-            console.warn(`RealtimeManager: ${subscription.channelName} had error, will retry...`);
-            this.scheduleReconnect(subscription);
-          }
-        });
+    const channel = supabase
+      .channel(subscription.channelName)
+      .on('postgres_changes', config, (payload) => {
+        console.log(`RealtimeManager: Update received for ${subscription.table}`, payload);
+        subscription.callback(payload);
+      })
+      .subscribe((status) => {
+        console.log(`RealtimeManager: ${subscription.channelName} status:`, status);
+        
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          // Schedule reconnection
+          this.scheduleReconnect(subscription);
+        }
+      });
 
-      subscription.channel = channel;
-    } catch (error) {
-      console.warn(`RealtimeManager: Failed to create channel ${subscription.channelName}:`, error);
-      // Schedule retry even if creation fails
-      this.scheduleReconnect(subscription);
-    }
+    subscription.channel = channel;
   }
 
   private scheduleReconnect(subscription: ChannelSubscription) {

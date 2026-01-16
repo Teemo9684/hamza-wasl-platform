@@ -36,18 +36,16 @@ export const PostersCarousel = () => {
         .order('display_order', { ascending: true });
 
       if (error) {
-        console.warn('PostersCarousel: Error fetching posters:', error.message);
-        // Don't clear posters on error - keep showing cached data
-        setLoading(false);
-        return;
+        console.error('Error fetching posters:', error);
+        setPosters([]);
+      } else {
+        const newPosters = data || [];
+        console.log('Posters fetched:', newPosters.length);
+        setPosters(newPosters);
       }
-      
-      const newPosters = data || [];
-      console.log('PostersCarousel: Fetched', newPosters.length, 'posters');
-      setPosters(newPosters);
     } catch (err) {
-      console.warn('PostersCarousel: Network error:', err);
-      // Don't clear posters on network error
+      console.error('Fetch error:', err);
+      setPosters([]);
     }
     setLoading(false);
   }, []);
@@ -122,17 +120,8 @@ export const PostersCarousel = () => {
 
   // Setup realtime subscription using realtimeManager for better reconnection
   useEffect(() => {
-    // Fetch immediately - don't wait for realtime
     fetchPosters();
 
-    // Re-fetch when app comes back online
-    const handleBackOnline = () => {
-      console.log('PostersCarousel: App back online, refetching...');
-      fetchPosters();
-    };
-    window.addEventListener('app-back-online', handleBackOnline);
-
-    // Realtime is optional - data still loads from initial fetch
     const cleanup = realtimeManager.subscribe(
       'posters-carousel-global',
       'school_posters',
@@ -142,10 +131,7 @@ export const PostersCarousel = () => {
       }
     );
 
-    return () => {
-      cleanup();
-      window.removeEventListener('app-back-online', handleBackOnline);
-    };
+    return cleanup;
   }, [fetchPosters]);
 
   // Reset current index if it exceeds posters length

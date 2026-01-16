@@ -15,7 +15,6 @@ import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifica
 import { supabase } from "@/integrations/supabase/client";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { LiveUpdateChecker } from "@/components/LiveUpdateChecker";
-import { OfflineIndicator } from "@/components/OfflineIndicator";
 import SplashScreen from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
@@ -197,7 +196,6 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
-                  <OfflineIndicator />
                   <BackButtonHandler />
                   <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
                   <AnimatedRoutes />
