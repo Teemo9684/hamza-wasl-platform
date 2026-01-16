@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Megaphone, Plus, Trash2, X, Send, Users, Loader2 } from "lucide-react";
+import { Megaphone, Plus, Trash2, X, Send, Users, Loader2, Search, Calendar, Filter } from "lucide-react";
 import { formatDateOnly } from "@/utils/formatters";
 import { sendAnnouncementNotification } from "@/utils/sendPushNotification";
 import {
@@ -41,6 +41,8 @@ interface GradeLevel {
   count: number;
 }
 
+type DateFilter = "all" | "today" | "week" | "month";
+
 export const AnnouncementsManager = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isAddingAnnouncement, setIsAddingAnnouncement] = useState(false);
@@ -55,6 +57,11 @@ export const AnnouncementsManager = () => {
   const [recipientCount, setRecipientCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
+  
   const { toast } = useToast();
 
   const handleAnnouncementsChange = useCallback(() => {
@@ -361,6 +368,38 @@ export const AnnouncementsManager = () => {
     return "ولي أمر";
   };
 
+  // Filter announcements based on search and date
+  const filteredAnnouncements = useMemo(() => {
+    return announcements.filter(announcement => {
+      // Search filter
+      const matchesSearch = searchQuery === "" || 
+        announcement.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        announcement.content.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Date filter
+      let matchesDate = true;
+      const announcementDate = new Date(announcement.created_at);
+      const now = new Date();
+      
+      if (dateFilter === "today") {
+        matchesDate = announcementDate.toDateString() === now.toDateString();
+      } else if (dateFilter === "week") {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        matchesDate = announcementDate >= weekAgo;
+      } else if (dateFilter === "month") {
+        matchesDate = announcementDate.getMonth() === now.getMonth() && 
+                      announcementDate.getFullYear() === now.getFullYear();
+      }
+      
+      return matchesSearch && matchesDate;
+    });
+  }, [announcements, searchQuery, dateFilter]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setDateFilter("all");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -522,7 +561,53 @@ export const AnnouncementsManager = () => {
 
       {/* Announcements List */}
       <div className="space-y-4">
-        <h3 className="text-xl font-bold font-cairo">الإعلانات السابقة</h3>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h3 className="text-xl font-bold font-cairo">الإعلانات السابقة</h3>
+          
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1 sm:min-w-[200px]">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="البحث في الإعلانات..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-10 font-cairo"
+              />
+            </div>
+            
+            <Select value={dateFilter} onValueChange={(value: DateFilter) => setDateFilter(value)}>
+              <SelectTrigger className="w-full sm:w-[160px] font-cairo">
+                <Calendar className="ml-2 h-4 w-4" />
+                <SelectValue placeholder="فلترة حسب التاريخ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="font-cairo">كل الإعلانات</SelectItem>
+                <SelectItem value="today" className="font-cairo">اليوم</SelectItem>
+                <SelectItem value="week" className="font-cairo">هذا الأسبوع</SelectItem>
+                <SelectItem value="month" className="font-cairo">هذا الشهر</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {(searchQuery || dateFilter !== "all") && (
+              <Button variant="ghost" onClick={clearFilters} className="font-cairo">
+                <X className="ml-2 h-4 w-4" />
+                مسح الفلاتر
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Results count */}
+        {!loading && announcements.length > 0 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
+            <Filter className="h-4 w-4" />
+            <span>
+              عرض {filteredAnnouncements.length} من {announcements.length} إعلان
+            </span>
+          </div>
+        )}
+
         {loading ? (
           <Card className="glass-card">
             <CardContent className="py-8">
@@ -539,8 +624,16 @@ export const AnnouncementsManager = () => {
               </div>
             </CardContent>
           </Card>
+        ) : filteredAnnouncements.length === 0 ? (
+          <Card className="glass-card">
+            <CardContent className="py-8">
+              <div className="text-center text-muted-foreground font-cairo">
+                لا توجد إعلانات مطابقة للفلاتر المحددة
+              </div>
+            </CardContent>
+          </Card>
         ) : (
-          announcements.map((announcement) => (
+          filteredAnnouncements.map((announcement) => (
             <Card key={announcement.id} className="glass-card">
               <CardHeader>
                 <div className="flex items-start justify-between">
