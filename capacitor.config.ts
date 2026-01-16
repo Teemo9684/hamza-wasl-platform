@@ -32,11 +32,8 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: true,
-      launchFadeOutDuration: 0,
-      backgroundColor: "#f5f8ff",
-      showSpinner: false,
-      splashImmersive: true,
-      splashFullScreen: true
+      backgroundColor: "#ffffff",
+      showSpinner: false
     },
     StatusBar: {
       style: "DARK",

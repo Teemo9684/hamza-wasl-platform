@@ -128,11 +128,6 @@
     padding-right: env(safe-area-inset-right);
   }
 
-  /* Android Capacitor: Remove safe-area padding since status bar is not in overlay mode */
-  .capacitor-android body {
-    padding-top: 0 !important;
-  }
-
   /* Global overflow fix */
   #root {
     /* Use clip instead of hidden to preserve sticky positioning */

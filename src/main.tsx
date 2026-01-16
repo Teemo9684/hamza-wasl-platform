@@ -26,10 +26,10 @@ const configureStatusBar = async () => {
   }
 };
 
-// Hide native splash screen immediately - we use our own custom splash
+// Hide native splash screen immediately when app starts
 const hideNativeSplash = () => {
   if (Capacitor.isNativePlatform()) {
-    CapacitorSplashScreen.hide({ fadeOutDuration: 0 }).catch((e) => {
+    CapacitorSplashScreen.hide().catch((e) => {
       console.log('Splash screen hide error:', e);
     });
   }

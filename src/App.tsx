@@ -170,41 +170,42 @@ const App = () => {
     };
   }, []);
 
+  // Show splash screen first
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            {showSplash ? (
-              <SplashScreen onFinish={() => setShowSplash(false)} />
-            ) : (
-              <AnimatePresence>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ 
-                    opacity: isLoaded ? 1 : 0, 
-                    scale: isLoaded ? 1 : 0.98 
-                  }}
-                  transition={{ 
-                    duration: 0.5, 
-                    ease: [0.25, 0.46, 0.45, 0.94]
-                  }}
-                  className="min-h-screen"
-                >
-                  <BrowserRouter>
-                    <BackButtonHandler />
-                    <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
-                    <AnimatedRoutes />
-                  </BrowserRouter>
-                </motion.div>
-              </AnimatePresence>
-            )}
-          </TooltipProvider>
-        </NotificationProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ 
+          opacity: isLoaded ? 1 : 0, 
+          scale: isLoaded ? 1 : 0.98 
+        }}
+        transition={{ 
+          duration: 0.5, 
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}
+        className="min-h-screen"
+      >
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <NotificationProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <BackButtonHandler />
+                  <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
+                  <AnimatedRoutes />
+                </BrowserRouter>
+              </TooltipProvider>
+            </NotificationProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

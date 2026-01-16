@@ -10,15 +10,15 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   const [phase, setPhase] = useState<'logo' | 'exit'>('logo');
 
   useEffect(() => {
-    // Show logo for 5 seconds, then start exit animation
+    // Show logo for 2 seconds, then start exit animation
     const logoTimer = setTimeout(() => {
       setPhase('exit');
-    }, 5000);
+    }, 2000);
 
     // Finish after exit animation completes
     const finishTimer = setTimeout(() => {
       onFinish();
-    }, 5800);
+    }, 2800);
 
     return () => {
       clearTimeout(logoTimer);
@@ -69,27 +69,22 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               <img 
                 src={splashLogo} 
                 alt="شعار التطبيق" 
-                className="w-48 h-48 object-contain drop-shadow-2xl"
+                className="w-32 h-32 object-contain drop-shadow-2xl"
               />
               
               {/* Glow effect */}
               <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full -z-10 scale-150" />
             </motion.div>
 
-            {/* Welcome Text */}
-            <motion.div
-              className="text-center max-w-xs px-4"
+            {/* App Name */}
+            <motion.h1
+              className="text-2xl font-bold text-foreground text-center"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              <h1 className="text-2xl font-bold text-foreground mb-3">
-                أهلاً وسهلاً بكم
-              </h1>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                تطبيق همزة وصل يربطكم بالمدرسة لمتابعة أبنائكم. استخدموه بمسؤولية للتواصل البنّاء مع المعلمين والإدارة.
-              </p>
-            </motion.div>
+              العربي التبسي
+            </motion.h1>
 
             {/* Loading Indicator */}
             <motion.div
@@ -135,16 +130,11 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
             <img 
               src={splashLogo} 
               alt="شعار التطبيق" 
-              className="w-48 h-48 object-contain"
+              className="w-32 h-32 object-contain"
             />
-            <div className="text-center max-w-xs px-4">
-              <h1 className="text-2xl font-bold text-foreground mb-3">
-                أهلاً وسهلاً بكم
-              </h1>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                تطبيق همزة وصل يربطكم بالمدرسة لمتابعة أبنائكم. استخدموه بمسؤولية للتواصل البنّاء مع المعلمين والإدارة.
-              </p>
-            </div>
+            <h1 className="text-2xl font-bold text-foreground">
+              العربي التبسي
+            </h1>
           </motion.div>
         </motion.div>
       )}

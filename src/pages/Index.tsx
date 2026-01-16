@@ -43,54 +43,6 @@ const Index = () => {
   const [isExiting, setIsExiting] = useState(false);
   const loginSectionRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
-
-  // Check for existing session and redirect to dashboard
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          // Get user role
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          
-          if (roleData?.role) {
-            // Check if user is approved (for parent/teacher)
-            if (roleData.role === 'admin') {
-              // Admin doesn't need approval check, but block on native
-              if (!Capacitor.isNativePlatform()) {
-                navigate("/dashboard/admin", { replace: true });
-                return;
-              }
-            } else {
-              // Check approval for parent/teacher
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('is_approved')
-                .eq('id', session.user.id)
-                .single();
-              
-              if (profileData?.is_approved) {
-                navigate(`/dashboard/${roleData.role}`, { replace: true });
-                return;
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Session check error:', error);
-      } finally {
-        setIsCheckingSession(false);
-      }
-    };
-
-    checkSession();
-  }, [navigate]);
 
   useEffect(() => {
     // Check if app is installed (running in standalone mode)
@@ -377,15 +329,6 @@ const Index = () => {
         return null;
     }
   };
-
-  // Show loading while checking session
-  if (isCheckingSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden pt-[env(safe-area-inset-top)]">
