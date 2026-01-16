@@ -86,6 +86,21 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               العربي التبسي
             </motion.h1>
 
+            {/* Welcome Text */}
+            <motion.div
+              className="text-center space-y-2 max-w-xs"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+            >
+              <p className="text-lg text-muted-foreground">
+                مرحباً بكم في تطبيقنا
+              </p>
+              <p className="text-sm text-muted-foreground/80 leading-relaxed">
+                نرجو منكم الاستخدام الأمثل للتطبيق والحفاظ على أخلاقيات التواصل مع الإدارة والمعلمين
+              </p>
+            </motion.div>
+
             {/* Loading Indicator */}
             <motion.div
               className="flex gap-1.5"
