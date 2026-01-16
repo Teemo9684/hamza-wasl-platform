@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -392,25 +392,14 @@ const Index = () => {
     }
   };
 
-  // Parallax effect
-  const { scrollY } = useScroll();
-  const backgroundY = useTransform(scrollY, [0, 500], [0, 150]);
-  const backgroundScale = useTransform(scrollY, [0, 500], [1, 1.1]);
-  const backgroundOpacity = useTransform(scrollY, [0, 300], [1, 0.7]);
-
   return (
     <div className="min-h-screen w-full relative overflow-hidden pt-[env(safe-area-inset-top)]">
-      {/* Animated Gradient Background with Parallax */}
+      {/* Animated Gradient Background */}
       <motion.div 
         className="absolute inset-0 animated-gradient-bg"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        style={{
-          y: backgroundY,
-          scale: backgroundScale,
-          opacity: backgroundOpacity,
-        }}
       />
 
       {/* News Ticker */}
