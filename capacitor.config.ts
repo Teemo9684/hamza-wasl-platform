@@ -36,13 +36,13 @@ const config: CapacitorConfig = {
       showSpinner: false
     },
     StatusBar: {
-      style: "LIGHT",
-      backgroundColor: "#1e40af",
+      style: "DARK",
+      backgroundColor: "#ffffff",
       overlaysWebView: false
     },
     NavigationBar: {
-      backgroundColor: "#1e40af",
-      style: "DARK"
+      backgroundColor: "#ffffff",
+      style: "LIGHT"
     },
     LiveUpdate: {
       enabled: true,
