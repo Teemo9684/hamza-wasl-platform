@@ -6,7 +6,7 @@ import {
   getCurrentVersion,
   createInitialState,
 } from "@/utils/liveUpdate";
-
+import { toast } from "@/hooks/use-toast";
 interface UpdateInfo {
   hasUpdate: boolean;
   version?: string;
@@ -67,6 +67,13 @@ const performSilentUpdate = async (bundleUrl: string, version: string): Promise<
   silentUpdateInProgress = true;
   console.log(`Starting silent update to version ${version}...`);
 
+  // Show notification to user
+  toast({
+    title: "🔄 جاري تحديث التطبيق",
+    description: `يتم تحميل الإصدار ${version} في الخلفية...`,
+    duration: 5000,
+  });
+
   try {
     // Save the version BEFORE applying to prevent re-download after reload
     setAppliedVersion(version);
@@ -75,6 +82,11 @@ const performSilentUpdate = async (bundleUrl: string, version: string): Promise<
 
     if (success) {
       console.log("Silent update applied successfully, app will reload");
+      toast({
+        title: "✅ تم التحديث بنجاح",
+        description: "سيتم إعادة تشغيل التطبيق الآن...",
+        duration: 2000,
+      });
       // The downloadAndApplyUpdate function already calls reload
       return true;
     } else {
