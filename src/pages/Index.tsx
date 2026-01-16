@@ -16,6 +16,10 @@ import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
 import { useAppVersion } from "@/hooks/useAppVersion";
+import { BirthdaysWidget } from "@/components/home/BirthdaysWidget";
+import { DailyTipWidget } from "@/components/home/DailyTipWidget";
+import { WeatherWidget } from "@/components/home/WeatherWidget";
+import { HonorWallWidget } from "@/components/home/HonorWallWidget";
 
 interface NewsItem {
   id: string;
@@ -435,6 +439,14 @@ const Index = () => {
 
         {/* Posters Carousel */}
         <PostersCarousel />
+
+        {/* Interactive Widgets Section */}
+        <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <BirthdaysWidget />
+          <DailyTipWidget />
+          <WeatherWidget />
+          <HonorWallWidget />
+        </div>
 
         {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
