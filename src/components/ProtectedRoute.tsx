@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Capacitor } from "@capacitor/core";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,10 +13,18 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const location = useLocation();
+  
+  // Check if admin access is blocked on native app
+  const isAdminBlockedOnNative = requiredRole === "admin" && Capacitor.isNativePlatform();
 
   useEffect(() => {
+    // Skip auth check if admin is blocked on native
+    if (isAdminBlockedOnNative) {
+      setIsLoading(false);
+      return;
+    }
     checkAuth();
-  }, [requiredRole]);
+  }, [requiredRole, isAdminBlockedOnNative]);
 
   const checkAuth = async () => {
     try {
@@ -56,6 +65,11 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
       setIsLoading(false);
     }
   };
+
+  // Block admin access on native app - redirect to home
+  if (isAdminBlockedOnNative) {
+    return <Navigate to="/" replace />;
+  }
 
   if (isLoading) {
     return (
