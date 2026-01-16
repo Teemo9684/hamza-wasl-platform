@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,7 +11,6 @@ import { initializePushNotifications, isPushNotificationsAvailable, unlockAudio,
 import { setupRealtimeNotifications, requestBrowserNotificationPermission } from "@/utils/realtimeNotifications";
 import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifications";
 import { supabase } from "@/integrations/supabase/client";
-import SplashScreen from "@/components/SplashScreen";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { LiveUpdateChecker } from "@/components/LiveUpdateChecker";
 import Index from "./pages/Index";
@@ -43,7 +42,6 @@ import TeacherGroupMessagesPage from "./pages/teacher/TeacherGroupMessagesPage";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const handleUserInteraction = () => {
@@ -114,10 +112,6 @@ const App = () => {
       cleanupScheduleNotifications();
     };
   }, []);
-
-  if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} />;
-  }
 
   return (
     <QueryClientProvider client={queryClient}>
