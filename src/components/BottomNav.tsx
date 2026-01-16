@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Home, Calendar, BookOpen, MessageSquare, Send, FileText, Clock, Users, GraduationCap, Megaphone, Settings, BarChart3, Shield, Image, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Calendar, BookOpen, MessageSquare, Send, FileText, Clock, Users, GraduationCap, Megaphone, Settings, BarChart3, Image, ChevronLeft, ChevronRight, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { lightHaptic } from "@/utils/haptics";
@@ -336,9 +336,8 @@ export const adminNavItems: NavItem[] = [
   { id: "users", icon: Users, label: "المستخدمين" },
   { id: "students", icon: GraduationCap, label: "التلاميذ" },
   { id: "news", icon: Megaphone, label: "الأخبار" },
-  { id: "announcements", icon: Megaphone, label: "الإعلانات" },
+  { id: "announcements", icon: Bell, label: "الإعلانات" },
   { id: "messages", icon: MessageSquare, label: "الرسائل" },
-  { id: "groupMessages", icon: Send, label: "جماعية" },
   { id: "schedule", icon: Calendar, label: "الجدول" },
   { id: "documentRequests", icon: FileText, label: "الوثائق" },
   { id: "posters", icon: Image, label: "الملصقات" },
