@@ -15,6 +15,7 @@ import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifica
 import { supabase } from "@/integrations/supabase/client";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { LiveUpdateChecker } from "@/components/LiveUpdateChecker";
+import SplashScreen from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import RegisterParent from "./pages/RegisterParent";
@@ -88,13 +89,16 @@ const AnimatedRoutes = () => {
 };
 
 const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Trigger entrance animation after mount
-    const timer = setTimeout(() => setIsLoaded(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    // Trigger entrance animation after splash finishes
+    if (!showSplash) {
+      const timer = setTimeout(() => setIsLoaded(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash]);
 
   useEffect(() => {
     const handleUserInteraction = () => {
@@ -165,6 +169,11 @@ const App = () => {
       cleanupScheduleNotifications();
     };
   }, []);
+
+  // Show splash screen first
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
 
   return (
     <AnimatePresence>
