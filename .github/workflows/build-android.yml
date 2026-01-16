@@ -189,11 +189,17 @@ jobs:
               height=$(echo $dims | cut -d'x' -f2)
               mkdir -p "$RES_DIR/$folder"
               
-              # Use the full image as splash (crop/resize to fit)
-              convert "$SPLASH_SOURCE" \
-                -resize "${dims}^" \
-                -gravity center \
-                -extent "$dims" \
+              # Calculate logo size (40% of the smaller dimension)
+              if [ $width -lt $height ]; then
+                logo_size=$((width * 40 / 100))
+              else
+                logo_size=$((height * 40 / 100))
+              fi
+              
+              # Create white background with centered logo
+              convert -size "$dims" xc:"#ffffff" \
+                \( "$SPLASH_SOURCE" -resize "${logo_size}x${logo_size}" \) \
+                -gravity center -composite \
                 -quality 100 \
                 "$RES_DIR/$folder/splash.png"
               echo "✅ Created splash screen in $folder ($dims)"
@@ -201,10 +207,9 @@ jobs:
             
             # Create fallback drawable
             mkdir -p "$RES_DIR/drawable"
-            convert "$SPLASH_SOURCE" \
-              -resize "1280x1920^" \
-              -gravity center \
-              -extent "1280x1920" \
+            convert -size "1280x1920" xc:"#ffffff" \
+              \( "$SPLASH_SOURCE" -resize "512x512" \) \
+              -gravity center -composite \
               -quality 100 \
               "$RES_DIR/drawable/splash.png"
             echo "✅ Created fallback splash screen"
