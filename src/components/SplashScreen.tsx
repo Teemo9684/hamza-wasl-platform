@@ -10,15 +10,15 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   const [phase, setPhase] = useState<'logo' | 'exit'>('logo');
 
   useEffect(() => {
-    // Show logo for 2 seconds, then start exit animation
+    // Show logo for 5 seconds, then start exit animation
     const logoTimer = setTimeout(() => {
       setPhase('exit');
-    }, 2000);
+    }, 5000);
 
     // Finish after exit animation completes
     const finishTimer = setTimeout(() => {
       onFinish();
-    }, 2800);
+    }, 5800);
 
     return () => {
       clearTimeout(logoTimer);
