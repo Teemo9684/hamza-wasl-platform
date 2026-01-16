@@ -26,15 +26,12 @@ const configureStatusBar = async () => {
   }
 };
 
-// Hide native splash screen after a short delay to allow React to render
+// Hide native splash screen immediately - we use our own custom splash
 const hideNativeSplash = () => {
   if (Capacitor.isNativePlatform()) {
-    // Wait for React to mount and render the custom splash screen
-    setTimeout(() => {
-      CapacitorSplashScreen.hide().catch((e) => {
-        console.log('Splash screen hide error:', e);
-      });
-    }, 100);
+    CapacitorSplashScreen.hide({ fadeOutDuration: 0 }).catch((e) => {
+      console.log('Splash screen hide error:', e);
+    });
   }
 };
 
