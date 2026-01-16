@@ -18,6 +18,7 @@ import { realtimeManager } from "@/utils/realtimeManager";
 import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
 import { useAppVersion } from "@/hooks/useAppVersion";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import InstallPromptBanner from "@/components/InstallPromptBanner";
 
 // Animation variants
 const containerVariants = {
@@ -805,6 +806,9 @@ const Index = () => {
       <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
         v{appVersion}
       </div>
+      
+      {/* Install Prompt Banner */}
+      <InstallPromptBanner />
     </div>
   );
 };
