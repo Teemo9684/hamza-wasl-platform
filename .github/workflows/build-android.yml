@@ -154,7 +154,8 @@ jobs:
       - name: Setup Splash Screen
         run: |
           RES_DIR="android/app/src/main/res"
-          SOURCE_SPLASH="src/assets/splash-logo.png"
+          SOURCE_SPLASH="src/assets/splash-screen.png"
+          FALLBACK_SPLASH="src/assets/splash-logo.png"
           
           declare -A splash_sizes=(
             ["drawable-mdpi"]="320x480"
@@ -162,43 +163,53 @@ jobs:
             ["drawable-xhdpi"]="720x1280"
             ["drawable-xxhdpi"]="960x1600"
             ["drawable-xxxhdpi"]="1280x1920"
+            ["drawable-land-mdpi"]="480x320"
+            ["drawable-land-hdpi"]="800x480"
+            ["drawable-land-xhdpi"]="1280x720"
+            ["drawable-land-xxhdpi"]="1600x960"
+            ["drawable-land-xxxhdpi"]="1920x1280"
           )
           
+          # Check which source to use
           if [ -f "$SOURCE_SPLASH" ]; then
+            SPLASH_SOURCE="$SOURCE_SPLASH"
+            echo "✅ Using high-quality splash screen: $SOURCE_SPLASH"
+          elif [ -f "$FALLBACK_SPLASH" ]; then
+            SPLASH_SOURCE="$FALLBACK_SPLASH"
+            echo "⚠️ Using fallback splash: $FALLBACK_SPLASH"
+          else
+            SPLASH_SOURCE="public/icon-512.png"
+            echo "⚠️ Using icon as splash fallback"
+          fi
+          
+          if [ -f "$SPLASH_SOURCE" ]; then
             for folder in "${!splash_sizes[@]}"; do
               dims=${splash_sizes[$folder]}
+              width=$(echo $dims | cut -d'x' -f1)
+              height=$(echo $dims | cut -d'x' -f2)
               mkdir -p "$RES_DIR/$folder"
-              convert -size $dims xc:"#1a1a2e" \
-                \( "$SOURCE_SPLASH" -resize 40% \) \
-                -gravity center -composite \
+              
+              # Use the full image as splash (crop/resize to fit)
+              convert "$SPLASH_SOURCE" \
+                -resize "${dims}^" \
+                -gravity center \
+                -extent "$dims" \
+                -quality 100 \
                 "$RES_DIR/$folder/splash.png"
               echo "✅ Created splash screen in $folder ($dims)"
             done
             
+            # Create fallback drawable
             mkdir -p "$RES_DIR/drawable"
-            convert -size 1280x1920 xc:"#1a1a2e" \
-              \( "$SOURCE_SPLASH" -resize 40% \) \
-              -gravity center -composite \
+            convert "$SPLASH_SOURCE" \
+              -resize "1280x1920^" \
+              -gravity center \
+              -extent "1280x1920" \
+              -quality 100 \
               "$RES_DIR/drawable/splash.png"
             echo "✅ Created fallback splash screen"
           else
-            echo "⚠️ Source splash not found at $SOURCE_SPLASH, using icon instead"
-            SOURCE_ICON="public/icon-512.png"
-            if [ -f "$SOURCE_ICON" ]; then
-              for folder in "${!splash_sizes[@]}"; do
-                dims=${splash_sizes[$folder]}
-                mkdir -p "$RES_DIR/$folder"
-                convert -size $dims xc:"#1a1a2e" \
-                  \( "$SOURCE_ICON" -resize 30% \) \
-                  -gravity center -composite \
-                  "$RES_DIR/$folder/splash.png"
-              done
-              mkdir -p "$RES_DIR/drawable"
-              convert -size 1280x1920 xc:"#1a1a2e" \
-                \( "$SOURCE_ICON" -resize 30% \) \
-                -gravity center -composite \
-                "$RES_DIR/drawable/splash.png"
-            fi
+            echo "❌ No splash source found!"
           fi
 
       - name: Make gradlew executable
