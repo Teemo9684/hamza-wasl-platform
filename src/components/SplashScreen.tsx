@@ -10,15 +10,15 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   const [phase, setPhase] = useState<'logo' | 'exit'>('logo');
 
   useEffect(() => {
-    // Show logo for 2 seconds, then start exit animation
+    // Show logo for 4 seconds, then start exit animation
     const logoTimer = setTimeout(() => {
       setPhase('exit');
-    }, 2000);
+    }, 4000);
 
     // Finish after exit animation completes
     const finishTimer = setTimeout(() => {
       onFinish();
-    }, 2800);
+    }, 4800);
 
     return () => {
       clearTimeout(logoTimer);
@@ -76,28 +76,18 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full -z-10 scale-150" />
             </motion.div>
 
-            {/* App Name */}
-            <motion.h1
-              className="text-2xl font-bold text-foreground text-center"
+            {/* Welcome Text */}
+            <motion.div
+              className="text-center space-y-3 max-w-xs px-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              العربي التبسي
-            </motion.h1>
-
-            {/* Welcome Text */}
-            <motion.div
-              className="text-center space-y-2 max-w-xs"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
-            >
-              <p className="text-lg text-muted-foreground">
-                مرحباً بكم في تطبيقنا
+              <p className="text-xl font-semibold text-foreground">
+                مرحباً بكم
               </p>
-              <p className="text-sm text-muted-foreground/80 leading-relaxed">
-                نرجو منكم الاستخدام الأمثل للتطبيق والحفاظ على أخلاقيات التواصل مع الإدارة والمعلمين
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                يرجى استخدام التطبيق بشكل مسؤول والتواصل باحترام مع الإدارة والمعلمين لضمان تجربة تعليمية ناجحة لأبنائنا
               </p>
             </motion.div>
 
@@ -147,9 +137,6 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               alt="شعار التطبيق" 
               className="w-56 h-56 object-contain"
             />
-            <h1 className="text-2xl font-bold text-foreground">
-              العربي التبسي
-            </h1>
           </motion.div>
         </motion.div>
       )}
