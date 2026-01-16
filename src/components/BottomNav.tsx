@@ -262,7 +262,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
           )}
         </div>
       ) : (
-        <div className="flex items-center justify-around h-[72px] px-1 max-w-lg mx-auto">
+        <div className="flex items-center justify-evenly h-[68px] px-2 w-full">
           {items.map((item) => {
             const Icon = item.icon;
             const isActive = currentSection === item.id;
@@ -273,7 +273,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
                 key={item.id}
                 onClick={() => handleClick(item.id)}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-1.5 px-2 py-2 rounded-2xl transition-all duration-200 min-w-[56px] min-h-[56px] active:scale-95 touch-feedback",
+                  "relative flex flex-col items-center justify-center gap-1 px-1.5 py-1.5 rounded-xl transition-all duration-200 min-w-[44px] min-h-[48px] flex-1 max-w-[60px] active:scale-95 touch-feedback",
                   isActive 
                     ? "bg-primary/15 text-primary shadow-sm" 
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted/70"
@@ -281,25 +281,25 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
               >
                 <div className="relative">
                   <Icon className={cn(
-                    "h-6 w-6 transition-transform duration-200",
+                    "h-5 w-5 transition-transform duration-200",
                     isActive && "scale-110"
                   )} />
                   {notificationCount > 0 && (
                     <Badge 
-                      className="absolute -top-2.5 -right-2.5 h-5 min-w-5 px-1.5 flex items-center justify-center bg-red-500 text-white text-[11px] font-bold animate-pulse border-2 border-background shadow-md"
+                      className="absolute -top-2 -right-2 h-4 min-w-4 px-1 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold animate-pulse border-2 border-background shadow-md"
                     >
                       {notificationCount > 99 ? "99+" : notificationCount}
                     </Badge>
                   )}
                 </div>
                 <span className={cn(
-                  "text-[11px] font-semibold font-cairo truncate max-w-[56px] transition-colors",
+                  "text-[9px] font-semibold font-cairo truncate w-full text-center transition-colors",
                   isActive && "text-primary"
                 )}>
                   {item.label}
                 </span>
                 {isActive && (
-                  <div className="absolute bottom-1 w-5 h-1 rounded-full bg-primary/60" />
+                  <div className="absolute bottom-0.5 w-4 h-0.5 rounded-full bg-primary/60" />
                 )}
               </button>
             );
