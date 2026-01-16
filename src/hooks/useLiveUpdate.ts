@@ -27,30 +27,66 @@ interface LiveUpdateState {
 let globalState: LiveUpdateState = createInitialState();
 let globalUpdateCheckInProgress = false;
 let hasPerformedInitialCheck = false;
+let silentUpdateInProgress = false;
 const listeners = new Set<(state: LiveUpdateState) => void>();
 
-// Storage key for tracking the last notified version
-const NOTIFIED_VERSION_KEY = "ota_notified_version";
+// Storage key for tracking the last applied version
+const APPLIED_VERSION_KEY = "ota_applied_version";
 
-const getNotifiedVersion = (): string | null => {
+const getAppliedVersion = (): string | null => {
   try {
-    return localStorage.getItem(NOTIFIED_VERSION_KEY);
+    return localStorage.getItem(APPLIED_VERSION_KEY);
   } catch {
     return null;
   }
 };
 
-const setNotifiedVersion = (version: string): void => {
+const setAppliedVersion = (version: string): void => {
   try {
-    localStorage.setItem(NOTIFIED_VERSION_KEY, version);
+    localStorage.setItem(APPLIED_VERSION_KEY, version);
   } catch (error) {
-    console.error("Error saving notified version:", error);
+    console.error("Error saving applied version:", error);
   }
 };
 
 const notifyListeners = (newState: LiveUpdateState) => {
   globalState = newState;
   listeners.forEach((listener) => listener(newState));
+};
+
+/**
+ * Performs a silent background update without user interaction
+ * Downloads and applies the update automatically, then reloads the app
+ */
+const performSilentUpdate = async (bundleUrl: string, version: string): Promise<boolean> => {
+  if (silentUpdateInProgress) {
+    console.log("Silent update already in progress");
+    return false;
+  }
+
+  silentUpdateInProgress = true;
+  console.log(`Starting silent update to version ${version}...`);
+
+  try {
+    // Save the version BEFORE applying to prevent re-download after reload
+    setAppliedVersion(version);
+
+    const success = await downloadAndApplyUpdate(bundleUrl);
+
+    if (success) {
+      console.log("Silent update applied successfully, app will reload");
+      // The downloadAndApplyUpdate function already calls reload
+      return true;
+    } else {
+      console.error("Silent update failed");
+      silentUpdateInProgress = false;
+      return false;
+    }
+  } catch (error) {
+    console.error("Silent update error:", error);
+    silentUpdateInProgress = false;
+    return false;
+  }
 };
 
 export const useLiveUpdate = (autoCheck: boolean = true) => {
@@ -71,7 +107,7 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     };
   }, []);
 
-  // Check for updates
+  // Check for updates and apply silently in background
   const checkUpdate = useCallback(async () => {
     if (!isNative) {
       console.log("Not a native app, skipping update check");
@@ -79,8 +115,8 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     }
 
     // Prevent multiple simultaneous checks
-    if (globalUpdateCheckInProgress) {
-      console.log("Update check already in progress, skipping");
+    if (globalUpdateCheckInProgress || silentUpdateInProgress) {
+      console.log("Update check or silent update already in progress, skipping");
       return;
     }
 
@@ -90,10 +126,10 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     try {
       const updateInfo = await checkForUpdate();
       
-      // Check if we already notified about this version
-      const notifiedVersion = getNotifiedVersion();
-      if (updateInfo.hasUpdate && updateInfo.version === notifiedVersion) {
-        console.log("Already notified about this version, skipping notification");
+      // Check if we already applied this version
+      const appliedVersion = getAppliedVersion();
+      if (updateInfo.hasUpdate && updateInfo.version === appliedVersion) {
+        console.log("Already applied this version, skipping");
         notifyListeners({ ...globalState, isChecking: false, updateInfo: null });
         globalUpdateCheckInProgress = false;
         return { hasUpdate: false };
@@ -101,6 +137,12 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
 
       notifyListeners({ ...globalState, isChecking: false, updateInfo });
       globalUpdateCheckInProgress = false;
+
+      // If update is available, apply it silently in background
+      if (updateInfo.hasUpdate && updateInfo.bundleUrl && updateInfo.version) {
+        console.log(`Update available: ${updateInfo.version}, applying silently...`);
+        performSilentUpdate(updateInfo.bundleUrl, updateInfo.version);
+      }
 
       return updateInfo;
     } catch (error) {
@@ -112,16 +154,17 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     }
   }, [isNative]);
 
-  // Apply the update
+  // Manual apply update (kept for compatibility, but auto-update is default now)
   const applyUpdate = useCallback(async () => {
     if (!globalState.updateInfo?.bundleUrl) {
       return false;
     }
 
-    // IMPORTANT: Save the version BEFORE starting download/apply
-    // This prevents re-notification after app reloads
-    if (globalState.updateInfo.version) {
-      setNotifiedVersion(globalState.updateInfo.version);
+    const version = globalState.updateInfo.version || "";
+    
+    // Save the version BEFORE starting download/apply
+    if (version) {
+      setAppliedVersion(version);
     }
 
     notifyListeners({ ...globalState, isDownloading: true, downloadProgress: 0 });
@@ -159,9 +202,10 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     if (autoCheck && isNative && !hasCheckedRef.current && !hasPerformedInitialCheck) {
       hasCheckedRef.current = true;
       hasPerformedInitialCheck = true;
+      // Check for updates after app fully loads
       const timer = setTimeout(() => {
         checkUpdate();
-      }, 3000);
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
