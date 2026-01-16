@@ -185,6 +185,11 @@ const DashboardAdmin = () => {
     };
   }, []);
 
+  // التمرير للأعلى عند الدخول للصفحة
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useLayoutEffect(() => {
     if (activeSection === null && scrollPositionRef.current > 0) {
       // Restore scroll position immediately
