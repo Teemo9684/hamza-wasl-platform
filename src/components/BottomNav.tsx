@@ -325,6 +325,7 @@ export const parentNavItems: NavItem[] = [
   { id: "attendance", icon: Calendar, label: "الحضور" },
   { id: "homework", icon: BookOpen, label: "الواجبات" },
   { id: "schedule", icon: Clock, label: "الجدول" },
+  { id: "documents", icon: FileText, label: "الوثائق" },
   { id: "messages", icon: MessageSquare, label: "الرسائل" },
   { id: "settings", icon: Settings, label: "الإعدادات" },
 ];

@@ -1,22 +1,23 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ParentSettings } from "@/components/parent/ParentSettings";
-import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
-import { AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/AnimatedSection";
+import { NewsTicker } from "@/components/NewsTicker";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
+import { AnimatedSection } from "@/components/AnimatedSection";
+import { AnimatePresence } from "framer-motion";
+import { ParentDocumentRequests } from "@/components/parent/ParentDocumentRequests";
 import { useNotifications } from "@/contexts/NotificationContext";
 
-const ParentSettingsPage = () => {
+const ParentDocumentRequestsPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hasNews, tickerHeight } = useNewsTicker();
   const [children, setChildren] = useState<any[]>([]);
+  const [selectedChild, setSelectedChild] = useState<string>("");
   const [loading, setLoading] = useState(true);
   
   const { counts, clearSection, setUserId, setChildIds } = useNotifications();
@@ -48,6 +49,7 @@ const ParentSettingsPage = () => {
 
       if (childrenData && childrenData.length > 0) {
         setChildIds(childrenData.map(c => c.id));
+        setSelectedChild(childrenData[0].id);
       }
     } catch (error: any) {
       toast({
@@ -61,7 +63,7 @@ const ParentSettingsPage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
-    if (sectionId === 'settings') {
+    if (sectionId === 'documents') {
       return; // Already here
     }
     if (sectionId === 'attendance') {
@@ -110,7 +112,10 @@ const ParentSettingsPage = () => {
               رجوع
             </Button>
             <div className="min-w-0 flex-1 text-center">
-              <h1 className="text-sm md:text-lg font-bold truncate leading-tight">الإعدادات</h1>
+              <h1 className="text-sm md:text-lg font-bold truncate leading-tight flex items-center justify-center gap-2">
+                <FileText className="h-5 w-5" />
+                طلب الوثائق الإدارية
+              </h1>
             </div>
             <div className="w-20"></div>
           </div>
@@ -120,13 +125,12 @@ const ParentSettingsPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-
         <AnimatePresence mode="wait">
-          <AnimatedSection key="parent-settings">
+          <AnimatedSection key="parent-documents">
             <div className="max-w-6xl mx-auto w-full">
-              <ParentSettings
-                children={children}
-                onChildRemoved={fetchParentData}
+              <ParentDocumentRequests 
+                selectedChild={selectedChild} 
+                children={children} 
               />
             </div>
           </AnimatedSection>
@@ -135,7 +139,7 @@ const ParentSettingsPage = () => {
 
       <BottomNav 
         items={parentNavItems} 
-        activeSection="settings"
+        activeSection="documents"
         onNavigate={handleNavigate}
         useHashNavigation={false}
         notifications={{
@@ -148,4 +152,4 @@ const ParentSettingsPage = () => {
   );
 };
 
-export default ParentSettingsPage;
+export default ParentDocumentRequestsPage;

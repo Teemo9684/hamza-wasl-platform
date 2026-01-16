@@ -33,6 +33,7 @@ import ParentHomeworkPage from "./pages/parent/ParentHomeworkPage";
 import ParentSchedulePage from "./pages/parent/ParentSchedulePage";
 import ParentMessagesPage from "./pages/parent/ParentMessagesPage";
 import ParentSettingsPage from "./pages/parent/ParentSettingsPage";
+import ParentDocumentRequestsPage from "./pages/parent/ParentDocumentRequestsPage";
 
 // Teacher pages
 import TeacherOverviewPage from "./pages/teacher/TeacherOverviewPage";
@@ -65,6 +66,7 @@ const AnimatedRoutes = () => {
         <Route path="/dashboard/parent/homework" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentHomeworkPage /></PageTransition></ProtectedRoute>} />
         <Route path="/dashboard/parent/schedule" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentSchedulePage /></PageTransition></ProtectedRoute>} />
         <Route path="/dashboard/parent/messages" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentMessagesPage /></PageTransition></ProtectedRoute>} />
+        <Route path="/dashboard/parent/documents" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentDocumentRequestsPage /></PageTransition></ProtectedRoute>} />
         <Route path="/dashboard/parent/settings" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentSettingsPage /></PageTransition></ProtectedRoute>} />
         
         {/* Teacher Dashboard Routes */}
