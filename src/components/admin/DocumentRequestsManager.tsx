@@ -4,12 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Clock, CheckCircle, XCircle, Loader2, User, Calendar } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, Loader2, User, Calendar, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDateTime } from "@/utils/formatters";
 import { sendDocumentStatusNotification } from "@/utils/sendPushNotification";
 import { realtimeManager } from "@/utils/realtimeManager";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: "قيد الانتظار", color: "bg-yellow-500", icon: Clock },
@@ -118,6 +129,21 @@ export const DocumentRequestsManager = () => {
       toast.success("تم حفظ الملاحظات");
     } catch (error: any) {
       toast.error("خطأ في حفظ الملاحظات");
+    }
+  };
+
+  const handleDeleteRequest = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from('document_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) throw error;
+      toast.success("تم حذف الطلب بنجاح");
+      fetchRequests();
+    } catch (error: any) {
+      toast.error("خطأ في حذف الطلب");
     }
   };
 
@@ -277,6 +303,38 @@ export const DocumentRequestsManager = () => {
                           }}
                         />
                       </div>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="w-full gap-2"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            حذف الطلب
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>تأكيد حذف الطلب</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              هل أنت متأكد من حذف طلب الوثيقة "{request.document_type}" للتلميذ {request.student?.full_name}؟
+                              <br />
+                              هذا الإجراء لا يمكن التراجع عنه.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className="gap-2">
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteRequest(request.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              حذف
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </CardContent>
