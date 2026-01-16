@@ -235,6 +235,33 @@ export type Database = {
           },
         ]
       }
+      educational_tips: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          target_grade_level: string | null
+          tip_date: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          target_grade_level?: string | null
+          tip_date?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          target_grade_level?: string | null
+          tip_date?: string
+        }
+        Relationships: []
+      }
       grades: {
         Row: {
           created_at: string | null
@@ -622,6 +649,57 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      student_achievements: {
+        Row: {
+          achieved_at: string
+          achievement_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_featured: boolean | null
+          student_id: string
+          title: string
+        }
+        Insert: {
+          achieved_at?: string
+          achievement_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          student_id: string
+          title: string
+        }
+        Update: {
+          achieved_at?: string
+          achievement_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          student_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_achievements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_achievements_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       students: {
         Row: {
