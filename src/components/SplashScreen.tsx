@@ -69,7 +69,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               <img 
                 src={splashLogo} 
                 alt="شعار التطبيق" 
-                className="w-32 h-32 object-contain drop-shadow-2xl"
+                className="w-48 h-48 object-contain drop-shadow-2xl"
               />
               
               {/* Glow effect */}
@@ -130,7 +130,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
             <img 
               src={splashLogo} 
               alt="شعار التطبيق" 
-              className="w-32 h-32 object-contain"
+              className="w-48 h-48 object-contain"
             />
             <h1 className="text-2xl font-bold text-foreground">
               العربي التبسي
