@@ -76,15 +76,20 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full -z-10 scale-150" />
             </motion.div>
 
-            {/* App Name */}
-            <motion.h1
-              className="text-2xl font-bold text-foreground text-center"
+            {/* Welcome Text */}
+            <motion.div
+              className="text-center"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              العربي التبسي
-            </motion.h1>
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                مرحباً بكم
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                منصة التواصل بين المدرسة والأولياء
+              </p>
+            </motion.div>
 
             {/* Loading Indicator */}
             <motion.div
@@ -132,9 +137,14 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               alt="شعار التطبيق" 
               className="w-48 h-48 object-contain"
             />
-            <h1 className="text-2xl font-bold text-foreground">
-              العربي التبسي
-            </h1>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                مرحباً بكم
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                منصة التواصل بين المدرسة والأولياء
+              </p>
+            </div>
           </motion.div>
         </motion.div>
       )}
