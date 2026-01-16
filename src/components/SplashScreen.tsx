@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import splashLogo from "@/assets/splash-logo.png";
+import splashLogo from "@/assets/splash-logo.svg";
 
 interface SplashScreenProps {
   onFinish: () => void;
