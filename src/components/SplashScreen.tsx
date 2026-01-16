@@ -78,16 +78,16 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
             {/* Welcome Text */}
             <motion.div
-              className="text-center"
+              className="text-center max-w-xs px-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              <h1 className="text-2xl font-bold text-foreground mb-2">
-                مرحباً بكم
+              <h1 className="text-2xl font-bold text-foreground mb-3">
+                أهلاً وسهلاً بكم
               </h1>
-              <p className="text-muted-foreground text-sm">
-                منصة التواصل بين المدرسة والأولياء
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                تطبيق همزة وصل يربطكم بالمدرسة لمتابعة أبنائكم. استخدموه بمسؤولية للتواصل البنّاء مع المعلمين والإدارة.
               </p>
             </motion.div>
 
@@ -137,12 +137,12 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
               alt="شعار التطبيق" 
               className="w-48 h-48 object-contain"
             />
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-foreground mb-2">
-                مرحباً بكم
+            <div className="text-center max-w-xs px-4">
+              <h1 className="text-2xl font-bold text-foreground mb-3">
+                أهلاً وسهلاً بكم
               </h1>
-              <p className="text-muted-foreground text-sm">
-                منصة التواصل بين المدرسة والأولياء
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                تطبيق همزة وصل يربطكم بالمدرسة لمتابعة أبنائكم. استخدموه بمسؤولية للتواصل البنّاء مع المعلمين والإدارة.
               </p>
             </div>
           </motion.div>
