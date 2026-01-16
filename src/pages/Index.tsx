@@ -16,6 +16,7 @@ import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
 import { useAppVersion } from "@/hooks/useAppVersion";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 interface NewsItem {
   id: string;
@@ -31,6 +32,7 @@ type UserType = "parent" | "teacher" | "admin" | null;
 const Index = () => {
   const navigate = useNavigate();
   const { version: appVersion } = useAppVersion();
+  const { isOnline } = useOnlineStatus();
   const [isInstalled, setIsInstalled] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
   const [email, setEmail] = useState("");
@@ -144,6 +146,11 @@ const Index = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check internet connection first
+    if (!isOnline) {
+      toast.error("لا يوجد اتصال بالإنترنت. الرجاء التحقق من اتصالك والمحاولة مرة أخرى.");
+      return;
+    }
     if (selectedUserType === "admin") {
       // For admin login, use a fixed email
       const ADMIN_EMAIL = "admin@arbit.local";
