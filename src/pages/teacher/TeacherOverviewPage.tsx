@@ -7,10 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { TeacherOverview } from "@/components/teacher/TeacherOverview";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
-import { AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
+import ContentTransition from "@/components/ContentTransition";
 
 interface StudentsByGrade {
   [gradeLevel: string]: any[];
@@ -177,21 +176,19 @@ const TeacherOverviewPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <AnimatePresence mode="wait">
-          <AnimatedSection key="teacher-overview">
-            <div className="max-w-6xl mx-auto w-full">
-              <TeacherOverview
-                teacherInfo={teacherInfo}
-                studentsCount={students.length}
-                unreadMessagesCount={counts.messages}
-                students={students}
-                studentsByGrade={studentsByGrade}
-                isLanguageTeacher={isLanguageTeacher}
-                onSendMessage={handleSendMessageToParent}
-              />
-            </div>
-          </AnimatedSection>
-        </AnimatePresence>
+        <ContentTransition>
+          <div className="max-w-6xl mx-auto w-full">
+            <TeacherOverview
+              teacherInfo={teacherInfo}
+              studentsCount={students.length}
+              unreadMessagesCount={counts.messages}
+              students={students}
+              studentsByGrade={studentsByGrade}
+              isLanguageTeacher={isLanguageTeacher}
+              onSendMessage={handleSendMessageToParent}
+            />
+          </div>
+        </ContentTransition>
       </main>
 
       <BottomNav 

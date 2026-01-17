@@ -7,8 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ParentAttendance } from "@/components/parent/ParentAttendance";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
-import { AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { playNotificationSound } from "@/utils/pushNotifications";
@@ -16,6 +14,7 @@ import { mediumHaptic } from "@/utils/haptics";
 import { toast as sonnerToast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNotifications } from "@/contexts/NotificationContext";
+import ContentTransition from "@/components/ContentTransition";
 
 const ParentAttendancePage = () => {
   const navigate = useNavigate();
@@ -219,13 +218,11 @@ const ParentAttendancePage = () => {
           </div>
         )}
 
-        <AnimatePresence mode="wait">
-          <AnimatedSection key="parent-attendance">
-            <div className="max-w-6xl mx-auto w-full">
-              <ParentAttendance attendance={attendance} selectedChild={selectedChild} />
-            </div>
-          </AnimatedSection>
-        </AnimatePresence>
+        <ContentTransition>
+          <div className="max-w-6xl mx-auto w-full">
+            <ParentAttendance attendance={attendance} selectedChild={selectedChild} />
+          </div>
+        </ContentTransition>
       </main>
 
       <BottomNav 

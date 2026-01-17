@@ -7,10 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { ParentHomework } from "@/components/parent/ParentHomework";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
-import { AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
+import ContentTransition from "@/components/ContentTransition";
 
 const ParentHomeworkPage = () => {
   const navigate = useNavigate();
@@ -111,13 +110,11 @@ const ParentHomeworkPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <AnimatePresence mode="wait">
-          <AnimatedSection key="parent-homework">
-            <div className="max-w-6xl mx-auto w-full">
-              <ParentHomework />
-            </div>
-          </AnimatedSection>
-        </AnimatePresence>
+        <ContentTransition>
+          <div className="max-w-6xl mx-auto w-full">
+            <ParentHomework />
+          </div>
+        </ContentTransition>
       </main>
 
       <BottomNav 
