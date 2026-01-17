@@ -1,5 +1,48 @@
 # إعداد تطبيق Android
 
+## 🎨 إصلاح الصفحة الزرقاء عند بدء التطبيق
+
+### المشكلة
+عند فتح التطبيق، تظهر صفحة زرقاء لفترة قصيرة قبل ظهور Splash Screen. هذا اللون يأتي من theme الافتراضي لـ Android.
+
+### الحل
+
+#### الخطوة 1: تعديل ملف styles.xml
+بعد تشغيل `npx cap add android`، افتح الملف:
+```
+android/app/src/main/res/values/styles.xml
+```
+
+#### الخطوة 2: تغيير windowBackground
+أضف أو عدّل السطر التالي داخل `<style>`:
+```xml
+<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <item name="android:windowBackground">#FFFFFF</item>
+    <!-- باقي الإعدادات -->
+</style>
+```
+
+#### الخطوة 3: (اختياري) إنشاء ملف colors.xml
+إذا لم يكن موجوداً، أنشئ الملف:
+```
+android/app/src/main/res/values/colors.xml
+```
+
+بالمحتوى:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="splashBackground">#FFFFFF</color>
+</resources>
+```
+
+ثم استخدمه في styles.xml:
+```xml
+<item name="android:windowBackground">@color/splashBackground</item>
+```
+
+---
+
 ## 🔔 إعداد الإشعارات الفورية (Push Notifications)
 
 ### المتطلبات:
