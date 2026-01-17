@@ -3,7 +3,6 @@ import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Capacitor } from "@capacitor/core";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,7 +16,6 @@ const CACHE_DURATION = 30000; // 30 seconds
 export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [showContent, setShowContent] = useState(false);
   const location = useLocation();
   const hasChecked = useRef(false);
   
@@ -54,10 +52,6 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
       if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         setIsAuthorized(cached.isAuthorized);
         setIsLoading(false);
-        if (cached.isAuthorized) {
-          // Show content immediately for cached auth
-          requestAnimationFrame(() => setShowContent(true));
-        }
         return;
       }
 
@@ -93,8 +87,6 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
       setIsAuthorized(false);
     } finally {
       setIsLoading(false);
-      // Delay showing content for smooth transition
-      requestAnimationFrame(() => setShowContent(true));
     }
   };
 
@@ -103,27 +95,9 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/" replace />;
   }
 
-  // Show minimal skeleton instead of spinner for faster perceived loading
+  // No loading indicator - render nothing briefly for smooth transition
   if (isLoading) {
-    return (
-      <motion.div 
-        className="min-h-screen bg-background"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.15 }}
-      >
-        {/* Minimal skeleton that matches dashboard layout */}
-        <div className="flex h-screen">
-          {/* Sidebar skeleton */}
-          <div className="hidden md:block w-64 bg-muted/30 animate-pulse" />
-          {/* Main content skeleton */}
-          <div className="flex-1 p-4 space-y-4">
-            <div className="h-8 w-48 bg-muted/30 rounded animate-pulse" />
-            <div className="h-32 bg-muted/20 rounded-lg animate-pulse" />
-          </div>
-        </div>
-      </motion.div>
-    );
+    return null;
   }
 
   if (!isAuthorized) {
@@ -136,16 +110,5 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
 
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key="protected-content"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: showContent ? 1 : 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
-  );
+  return <>{children}</>;
 };
