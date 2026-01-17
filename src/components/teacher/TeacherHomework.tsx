@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from "@/utils/errorMessages";
-import { BookOpen, Plus, Trash2, Upload, FileText, Calendar, Loader2 } from "lucide-react";
+import { BookOpen, Plus, Trash2, FileText, Calendar, Loader2, Check } from "lucide-react";
 import { sendHomeworkNotification } from "@/utils/sendPushNotification";
 import {
   Dialog,
@@ -16,13 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface Homework {
   id: string;
@@ -36,9 +30,14 @@ interface Homework {
   created_at: string;
 }
 
+interface GradeLevel {
+  grade_level: string;
+  count: number;
+}
+
 export const TeacherHomework = () => {
   const [homework, setHomework] = useState<Homework[]>([]);
-  const [gradeLevels, setGradeLevels] = useState<string[]>([]);
+  const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -46,12 +45,10 @@ export const TeacherHomework = () => {
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedGrade, setSelectedGrade] = useState("");
+  const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-
-
 
   const handleHomeworkChange = useCallback(() => {
     fetchHomework();
@@ -73,15 +70,37 @@ export const TeacherHomework = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
+      const { data: assignedGrades } = await supabase
         .from("teacher_grade_levels")
         .select("grade_level")
         .eq("teacher_id", user.id);
 
-      if (data) {
-        setGradeLevels(data.map(g => g.grade_level));
-        if (data.length > 0) {
-          setSelectedGrade(data[0].grade_level);
+      if (assignedGrades) {
+        const gradeList = assignedGrades.map(g => g.grade_level);
+        
+        // Get student count for each grade
+        const { data: students } = await supabase
+          .from("students")
+          .select("grade_level")
+          .in("grade_level", gradeList);
+
+        if (students) {
+          const gradeCounts = students.reduce((acc: Record<string, number>, student) => {
+            acc[student.grade_level] = (acc[student.grade_level] || 0) + 1;
+            return acc;
+          }, {});
+
+          const grades = Object.entries(gradeCounts).map(([grade, count]) => ({
+            grade_level: grade,
+            count: count as number,
+          }));
+
+          setGradeLevels(grades);
+          
+          // Select first grade by default
+          if (grades.length > 0 && selectedGrades.length === 0) {
+            setSelectedGrades([grades[0].grade_level]);
+          }
         }
       }
     } catch (error) {
@@ -106,6 +125,27 @@ export const TeacherHomework = () => {
       showError("فشل تحميل الواجبات");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleGrade = (grade: string) => {
+    setSelectedGrades(prev => {
+      if (prev.includes(grade)) {
+        // Don't allow deselecting if it's the only one selected
+        if (prev.length === 1) return prev;
+        return prev.filter(g => g !== grade);
+      } else {
+        return [...prev, grade];
+      }
+    });
+  };
+
+  const selectAllGrades = () => {
+    if (selectedGrades.length === gradeLevels.length) {
+      // Keep at least one selected
+      setSelectedGrades([gradeLevels[0].grade_level]);
+    } else {
+      setSelectedGrades(gradeLevels.map(g => g.grade_level));
     }
   };
 
@@ -157,8 +197,8 @@ export const TeacherHomework = () => {
   };
 
   const handleAddHomework = async () => {
-    if (!title.trim() || !description.trim() || !selectedGrade || !dueDate) {
-      showError("الرجاء ملء جميع الحقول المطلوبة");
+    if (!title.trim() || !description.trim() || selectedGrades.length === 0 || !dueDate) {
+      showError("الرجاء ملء جميع الحقول المطلوبة واختيار قسم واحد على الأقل");
       return;
     }
 
@@ -173,24 +213,29 @@ export const TeacherHomework = () => {
         attachmentsUrls = await uploadFiles(files);
       }
 
+      // Insert homework for each selected grade
+      const homeworkEntries = selectedGrades.map(gradeLevel => ({
+        title,
+        description,
+        grade_level: gradeLevel,
+        subject: subject || null,
+        due_date: dueDate,
+        teacher_id: user.id,
+        attachments: attachmentsUrls.length > 0 ? attachmentsUrls : null,
+      }));
+
       const { error } = await supabase
         .from("homework")
-        .insert({
-          title,
-          description,
-          grade_level: selectedGrade,
-          subject: subject || null,
-          due_date: dueDate,
-          teacher_id: user.id,
-          attachments: attachmentsUrls.length > 0 ? attachmentsUrls : null,
-        });
+        .insert(homeworkEntries);
 
       if (error) throw error;
 
-      // Send push notification to parents of this grade level
-      await sendHomeworkNotification(selectedGrade, title, subject, dueDate);
+      // Send push notification to parents of all selected grade levels
+      for (const gradeLevel of selectedGrades) {
+        await sendHomeworkNotification(gradeLevel, title, subject, dueDate);
+      }
 
-      showSuccess("تم إضافة الواجب بنجاح وإرسال الإشعارات");
+      showSuccess(`تم إضافة الواجب إلى ${selectedGrades.length} قسم بنجاح وإرسال الإشعارات`);
 
       // Reset form
       setTitle("");
@@ -247,7 +292,7 @@ export const TeacherHomework = () => {
                   إضافة واجب جديد
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="font-cairo">إضافة واجب منزلي جديد</DialogTitle>
                 </DialogHeader>
@@ -277,33 +322,63 @@ export const TeacherHomework = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="grade" className="font-cairo">القسم *</Label>
-                      <Select value={selectedGrade} onValueChange={setSelectedGrade}>
-                        <SelectTrigger className="font-cairo">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {gradeLevels.map((grade) => (
-                            <SelectItem key={grade} value={grade} className="font-cairo">
-                              {grade}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-cairo">اختر الأقسام *</Label>
+                      {gradeLevels.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={selectAllGrades}
+                          className="font-cairo text-xs"
+                        >
+                          {selectedGrades.length === gradeLevels.length ? "إلغاء تحديد الكل" : "تحديد الكل"}
+                        </Button>
+                      )}
                     </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {gradeLevels.map((grade) => (
+                        <div
+                          key={grade.grade_level}
+                          className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                            selectedGrades.includes(grade.grade_level)
+                              ? "border-primary bg-primary/10"
+                              : "border-border bg-card hover:border-primary/50"
+                          }`}
+                          onClick={() => toggleGrade(grade.grade_level)}
+                        >
+                          <Checkbox
+                            checked={selectedGrades.includes(grade.grade_level)}
+                            onCheckedChange={() => toggleGrade(grade.grade_level)}
+                            className="pointer-events-none"
+                          />
+                          <div className="flex-1">
+                            <p className="font-cairo font-medium text-sm">{grade.grade_level}</p>
+                            <p className="font-cairo text-xs text-muted-foreground">{grade.count} تلميذ</p>
+                          </div>
+                          {selectedGrades.includes(grade.grade_level) && (
+                            <Check className="w-4 h-4 text-primary" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {selectedGrades.length > 0 && (
+                      <p className="text-xs text-muted-foreground font-cairo">
+                        سيتم إضافة الواجب إلى {selectedGrades.length} قسم
+                      </p>
+                    )}
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="subject" className="font-cairo">المادة</Label>
-                      <Input
-                        id="subject"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                        placeholder="مثال: الرياضيات"
-                        className="font-cairo"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="subject" className="font-cairo">المادة</Label>
+                    <Input
+                      id="subject"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="مثال: الرياضيات"
+                      className="font-cairo"
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -355,7 +430,7 @@ export const TeacherHomework = () => {
                     ) : (
                       <>
                         <Plus className="ml-2 h-4 w-4" />
-                        إضافة الواجب
+                        إضافة الواجب لـ {selectedGrades.length} قسم
                       </>
                     )}
                   </Button>
