@@ -6,6 +6,44 @@ import { playNotificationSound } from '@/utils/pushNotifications';
 import { mediumHaptic } from '@/utils/haptics';
 import { IntelligentNotificationBanner, NotificationData } from '@/components/IntelligentNotificationBanner';
 
+// App logo URL for browser notifications
+const APP_ICON_URL = '/icon-192.png';
+
+// Helper to show browser notification with detailed info
+const showBrowserNotification = (title: string, body: string, tag?: string) => {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification(title, {
+        body,
+        icon: APP_ICON_URL,
+        badge: APP_ICON_URL,
+        tag: tag || 'hamza-wasl-notification',
+        requireInteraction: false,
+      });
+      console.log('Browser notification shown:', title, body);
+    } catch (error) {
+      console.warn('Failed to show browser notification:', error);
+    }
+  } else {
+    console.log('Browser notifications not available or not permitted');
+  }
+};
+
+// Request browser notification permission
+export const requestBrowserNotificationPermission = async (): Promise<boolean> => {
+  if ('Notification' in window) {
+    try {
+      const permission = await Notification.requestPermission();
+      console.log('Browser notification permission:', permission);
+      return permission === 'granted';
+    } catch (error) {
+      console.warn('Failed to request notification permission:', error);
+      return false;
+    }
+  }
+  return false;
+};
+
 interface NotificationCounts {
   messages: number;
   attendance: number;
@@ -241,6 +279,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             ? `رسالة من ولي الأمر: ${senderName}`
             : `رسالة من: ${senderName}`;
           
+          // Show in-app notification banner
           showNotification({
             type: 'message',
             title: 'رسالة جديدة',
@@ -250,6 +289,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
               subject: newMessage.subject,
             },
           });
+          
+          // Show browser notification with detailed info
+          const browserBody = newMessage.subject 
+            ? `${senderDescription}\nالموضوع: ${newMessage.subject}`
+            : senderDescription;
+          showBrowserNotification('📩 رسالة جديدة', browserBody, 'message-notification');
         }
       )
       .on(
@@ -341,6 +386,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     status: newAttendance.status,
                   },
                 });
+                
+                // Show browser notification for attendance
+                const statusArabic = newAttendance.status === 'present' ? 'حاضر' 
+                  : newAttendance.status === 'absent' ? 'غائب' 
+                  : newAttendance.status === 'late' ? 'متأخر' 
+                  : newAttendance.status;
+                const browserBody = `الطالب: ${studentName}\nالحالة: ${statusArabic}\nالمعلم: ${teacherName}`;
+                showBrowserNotification('📋 تسجيل الحضور', browserBody, 'attendance-notification');
               }
             }
           },
@@ -384,6 +437,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 subject: newHomework.subject,
               },
             });
+            
+            // Show browser notification for homework
+            const homeworkTitle = newHomework.title || 'واجب جديد';
+            const browserBody = newHomework.subject 
+              ? `${homeworkTitle}\nالمادة: ${newHomework.subject}\nالمعلم: ${teacherName}`
+              : `${homeworkTitle}\nالمعلم: ${teacherName}`;
+            showBrowserNotification('📚 واجب جديد', browserBody, 'homework-notification');
           }
         }
       );
@@ -429,6 +489,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                   status: updatedRequest.status,
                 },
               });
+              
+              // Show browser notification for document status
+              const statusEmoji = updatedRequest.status === 'ready' ? '✅' 
+                : updatedRequest.status === 'rejected' ? '❌' 
+                : '🔄';
+              const browserBody = `الطالب: ${studentName}\nالحالة: ${statusText}\nنوع الوثيقة: ${updatedRequest.document_type || 'غير محدد'}`;
+              showBrowserNotification(`${statusEmoji} تحديث طلب الوثيقة`, browserBody, 'document-notification');
             }
           }
         },
