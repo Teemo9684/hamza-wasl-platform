@@ -212,8 +212,6 @@ jobs:
           EOF
           echo "✅ values-v35/styles.xml created"
 
-      - name: Fix WebView Display Size and System Bars
-
       - name: Setup Firebase for Push Notifications
         run: |
           ANDROID_APP_DIR="android/app"
