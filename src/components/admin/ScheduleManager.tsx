@@ -11,12 +11,12 @@ import { Upload, Trash2, Calendar } from "lucide-react";
 import { formatDateOnly } from "@/utils/formatters";
 
 const GRADE_LEVELS = [
-  "التحضيري",
-  "سنة أولى",
-  "سنة ثانية",
-  "سنة ثالثة",
-  "سنة رابعة",
-  "سنة خامسة"
+  "تحضيري",
+  "السنة الأولى ابتدائي",
+  "السنة الثانية ابتدائي",
+  "السنة الثالثة ابتدائي",
+  "السنة الرابعة ابتدائي",
+  "السنة الخامسة ابتدائي"
 ];
 
 export const ScheduleManager = () => {
