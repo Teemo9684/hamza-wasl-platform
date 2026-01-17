@@ -238,23 +238,44 @@ export const AnnouncementsManager = () => {
       const { recipient_type, target_audience, selected_grade } = formData;
 
       if (recipient_type === "all") {
-        const { data: allUserRoles } = await supabase
-          .from("user_roles")
-          .select("user_id");
-        targetUserIds = allUserRoles?.map(ur => ur.user_id) || [];
+        // Get all users who have profiles (to avoid foreign key errors)
+        const { data: allProfiles } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("is_approved", true);
+        targetUserIds = allProfiles?.map(p => p.id) || [];
       } else if (recipient_type === "teachers") {
         if (target_audience === "all") {
+          // Get teachers who have profiles
           const { data: allTeachers } = await supabase
             .from("user_roles")
             .select("user_id")
             .eq("role", "teacher");
-          targetUserIds = allTeachers?.map(t => t.user_id) || [];
+          
+          if (allTeachers && allTeachers.length > 0) {
+            const teacherIds = allTeachers.map(t => t.user_id);
+            const { data: validProfiles } = await supabase
+              .from("profiles")
+              .select("id")
+              .in("id", teacherIds)
+              .eq("is_approved", true);
+            targetUserIds = validProfiles?.map(p => p.id) || [];
+          }
         } else {
           const { data: teachers } = await supabase
             .from("teacher_grade_levels")
             .select("teacher_id")
             .eq("grade_level", selected_grade);
-          targetUserIds = teachers?.map(t => t.teacher_id) || [];
+          
+          if (teachers && teachers.length > 0) {
+            const teacherIds = teachers.map(t => t.teacher_id);
+            const { data: validProfiles } = await supabase
+              .from("profiles")
+              .select("id")
+              .in("id", teacherIds)
+              .eq("is_approved", true);
+            targetUserIds = validProfiles?.map(p => p.id) || [];
+          }
         }
       } else {
         // Parents
@@ -262,7 +283,16 @@ export const AnnouncementsManager = () => {
           const { data: allParents } = await supabase
             .from("parent_students")
             .select("parent_id");
-          targetUserIds = [...new Set(allParents?.map(p => p.parent_id) || [])];
+          
+          if (allParents && allParents.length > 0) {
+            const parentIds = [...new Set(allParents.map(p => p.parent_id))];
+            const { data: validProfiles } = await supabase
+              .from("profiles")
+              .select("id")
+              .in("id", parentIds)
+              .eq("is_approved", true);
+            targetUserIds = validProfiles?.map(p => p.id) || [];
+          }
         } else {
           const { data: students } = await supabase
             .from("students")
@@ -275,7 +305,16 @@ export const AnnouncementsManager = () => {
               .from("parent_students")
               .select("parent_id")
               .in("student_id", studentIds);
-            targetUserIds = [...new Set(parents?.map(p => p.parent_id) || [])];
+            
+            if (parents && parents.length > 0) {
+              const parentIds = [...new Set(parents.map(p => p.parent_id))];
+              const { data: validProfiles } = await supabase
+                .from("profiles")
+                .select("id")
+                .in("id", parentIds)
+                .eq("is_approved", true);
+              targetUserIds = validProfiles?.map(p => p.id) || [];
+            }
           }
         }
       }
