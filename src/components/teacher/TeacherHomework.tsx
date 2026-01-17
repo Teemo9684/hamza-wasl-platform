@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { showError, showSuccess } from "@/utils/errorMessages";
 import { BookOpen, Plus, Trash2, Upload, FileText, Calendar, Loader2 } from "lucide-react";
 import { sendHomeworkNotification } from "@/utils/sendPushNotification";
 import {
@@ -51,7 +51,7 @@ export const TeacherHomework = () => {
   const [dueDate, setDueDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
 
-  const { toast } = useToast();
+
 
   const handleHomeworkChange = useCallback(() => {
     fetchHomework();
@@ -103,11 +103,7 @@ export const TeacherHomework = () => {
       if (error) throw error;
       setHomework(data || []);
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: "فشل تحميل الواجبات",
-        variant: "destructive",
-      });
+      showError("فشل تحميل الواجبات");
     } finally {
       setLoading(false);
     }
@@ -119,11 +115,7 @@ export const TeacherHomework = () => {
       // Limit file size to 10MB per file
       const invalidFiles = selectedFiles.filter(f => f.size > 10 * 1024 * 1024);
       if (invalidFiles.length > 0) {
-        toast({
-          title: "خطأ",
-          description: "حجم كل ملف يجب أن يكون أقل من 10 ميجابايت",
-          variant: "destructive",
-        });
+        showError("حجم كل ملف يجب أن يكون أقل من 10 ميجابايت");
         return;
       }
       setFiles(selectedFiles);
@@ -166,11 +158,7 @@ export const TeacherHomework = () => {
 
   const handleAddHomework = async () => {
     if (!title.trim() || !description.trim() || !selectedGrade || !dueDate) {
-      toast({
-        title: "خطأ",
-        description: "الرجاء ملء جميع الحقول المطلوبة",
-        variant: "destructive",
-      });
+      showError("الرجاء ملء جميع الحقول المطلوبة");
       return;
     }
 
@@ -202,10 +190,7 @@ export const TeacherHomework = () => {
       // Send push notification to parents of this grade level
       await sendHomeworkNotification(selectedGrade, title, subject, dueDate);
 
-      toast({
-        title: "تم بنجاح",
-        description: "تم إضافة الواجب بنجاح وإرسال الإشعارات",
-      });
+      showSuccess("تم إضافة الواجب بنجاح وإرسال الإشعارات");
 
       // Reset form
       setTitle("");
@@ -216,11 +201,7 @@ export const TeacherHomework = () => {
       setIsDialogOpen(false);
       fetchHomework();
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message || "فشل إضافة الواجب",
-        variant: "destructive",
-      });
+      showError(error.message || "فشل إضافة الواجب");
     } finally {
       setUploading(false);
     }
@@ -235,17 +216,10 @@ export const TeacherHomework = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "تم بنجاح",
-        description: "تم حذف الواجب بنجاح",
-      });
+      showSuccess("تم حذف الواجب بنجاح");
       fetchHomework();
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message || "فشل حذف الواجب",
-        variant: "destructive",
-      });
+      showError(error.message || "فشل حذف الواجب");
     }
   };
 

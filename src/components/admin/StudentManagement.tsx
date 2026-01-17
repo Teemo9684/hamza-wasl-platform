@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { showError, showSuccess, showWarning } from "@/utils/errorMessages";
 import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles, ArrowRight, Home, AlertTriangle, FileText } from "lucide-react";
 import { studentSchema } from "@/lib/validations";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -93,7 +93,6 @@ export const StudentManagement = () => {
   const [isDeletingGrade, setIsDeletingGrade] = useState(false);
   const [deleteConfirmGrade, setDeleteConfirmGrade] = useState<string | null>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
 
   const handleStudentsChange = useCallback(() => {
     fetchStudents();
@@ -129,11 +128,7 @@ export const StudentManagement = () => {
       if (error) throw error;
       setStudents(data || []);
     } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل تحميل التلاميذ",
-        variant: "destructive",
-      });
+      showError("فشل تحميل التلاميذ");
     } finally {
       setLoading(false);
     }
@@ -304,10 +299,7 @@ export const StudentManagement = () => {
         }
 
         const subjectLabel = subjects.find(s => s.id === subject)?.label || subject;
-        toast({
-          title: "نجاح",
-          description: `تم ربط أستاذ ${subjectLabel} بالمستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
-        });
+        showSuccess(`تم ربط أستاذ ${subjectLabel} بالمستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`);
 
       } else {
         // للمستويات الأخرى: السلوك القديم
@@ -372,20 +364,13 @@ export const StudentManagement = () => {
           }));
         }
 
-        toast({
-          title: "نجاح",
-          description: `تم ربط الأستاذ بالمستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
-        });
+        showSuccess(`تم ربط الأستاذ بالمستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`);
       }
 
     } catch (error: any) {
       console.error("Error assigning teacher:", error);
       await fetchGradeTeachers();
-      toast({
-        title: "خطأ",
-        description: error.message || "فشل ربط الأستاذ بالمستوى",
-        variant: "destructive",
-      });
+      showError(error.message || "فشل ربط الأستاذ بالمستوى");
     }
   };
 
@@ -443,10 +428,7 @@ export const StudentManagement = () => {
         });
 
         const subjectLabel = subjects.find(s => s.id === subject)?.label || subject;
-        toast({
-          title: "نجاح",
-          description: `تم إزالة إسناد أستاذ ${subjectLabel} من المستوى`,
-        });
+        showSuccess(`تم إزالة إسناد أستاذ ${subjectLabel} من المستوى`);
 
       } else {
         // للمستويات الأخرى: السلوك القديم
@@ -478,20 +460,13 @@ export const StudentManagement = () => {
           return newState;
         });
 
-        toast({
-          title: "نجاح",
-          description: `تم إزالة إسناد الأستاذ من المستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`,
-        });
+        showSuccess(`تم إزالة إسناد الأستاذ من المستوى وتلاميذه (${studentsInGrade?.length || 0} تلميذ)`);
       }
 
     } catch (error: any) {
       console.error("Error removing teacher assignment:", error);
       await fetchGradeTeachers();
-      toast({
-        title: "خطأ",
-        description: error.message || "فشل إزالة إسناد الأستاذ",
-        variant: "destructive",
-      });
+      showError(error.message || "فشل إزالة إسناد الأستاذ");
     }
   };
 
@@ -510,10 +485,7 @@ export const StudentManagement = () => {
 
         if (error) throw error;
 
-        toast({
-          title: "نجاح",
-          description: "تم تحديث بيانات التلميذ بنجاح",
-        });
+        showSuccess("تم تحديث بيانات التلميذ بنجاح");
       } else {
         const { error } = await supabase
           .from("students")
@@ -521,20 +493,13 @@ export const StudentManagement = () => {
 
         if (error) throw error;
 
-        toast({
-          title: "نجاح",
-          description: "تم إضافة التلميذ بنجاح",
-        });
+        showSuccess("تم إضافة التلميذ بنجاح");
       }
 
       resetForm();
       fetchStudents();
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.errors?.[0]?.message || error.message || "فشل حفظ البيانات",
-        variant: "destructive",
-      });
+      showError(error.errors?.[0]?.message || error.message || "فشل حفظ البيانات");
     }
   };
 
@@ -558,18 +523,11 @@ export const StudentManagement = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "نجاح",
-        description: "تم حذف التلميذ بنجاح",
-      });
+      showSuccess("تم حذف التلميذ بنجاح");
 
       fetchStudents();
     } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل حذف التلميذ",
-        variant: "destructive",
-      });
+      showError("فشل حذف التلميذ");
     }
   };
 
@@ -581,10 +539,7 @@ export const StudentManagement = () => {
       const studentsInGrade = students.filter(s => s.grade_level === gradeLevel);
       
       if (studentsInGrade.length === 0) {
-        toast({
-          title: "تنبيه",
-          description: "لا يوجد تلاميذ في هذا المستوى",
-        });
+        showWarning("لا يوجد تلاميذ في هذا المستوى");
         return;
       }
 
@@ -628,20 +583,13 @@ export const StudentManagement = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "نجاح",
-        description: `تم حذف ${studentsInGrade.length} تلميذ من ${gradeLevel}`,
-      });
+      showSuccess(`تم حذف ${studentsInGrade.length} تلميذ من ${gradeLevel}`);
 
       setDeleteConfirmGrade(null);
       fetchStudents();
     } catch (error: any) {
       console.error("Error deleting grade students:", error);
-      toast({
-        title: "خطأ",
-        description: error.message || "فشل حذف التلاميذ",
-        variant: "destructive",
-      });
+      showError(error.message || "فشل حذف التلاميذ");
     } finally {
       setIsDeletingGrade(false);
     }
@@ -696,21 +644,13 @@ export const StudentManagement = () => {
 
     // التحقق من نوع الملف
     if (file.type !== 'application/pdf') {
-      toast({
-        title: "خطأ",
-        description: "يرجى اختيار ملف PDF صالح",
-        variant: "destructive",
-      });
+      showError("يرجى اختيار ملف PDF صالح");
       return;
     }
 
     // التحقق من حجم الملف (الحد الأقصى 20MB)
     if (file.size > 20 * 1024 * 1024) {
-      toast({
-        title: "خطأ",
-        description: "حجم الملف كبير جداً. يرجى اختيار ملف أصغر من 20MB",
-        variant: "destructive",
-      });
+      showError("حجم الملف كبير جداً. يرجى اختيار ملف أصغر من 20MB");
       return;
     }
 

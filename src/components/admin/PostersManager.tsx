@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { toast } from 'sonner';
+import { showError, showSuccess } from '@/utils/errorMessages';
 import { Plus, Trash2, ArrowUp, ArrowDown, Image, X, Loader2 } from 'lucide-react';
 import { formatDateOnly } from '@/utils/formatters';
 import { realtimeManager } from '@/utils/realtimeManager';
@@ -77,7 +77,7 @@ export const PostersManager = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)');
+        showError('حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)');
         return;
       }
       setFormData({
@@ -92,12 +92,12 @@ export const PostersManager = () => {
     e.preventDefault();
     
     if (!formData.title.trim()) {
-      toast.error('يرجى إدخال عنوان الملصق');
+      showError('يرجى إدخال عنوان الملصق');
       return;
     }
 
     if (!formData.imageFile) {
-      toast.error('يرجى اختيار صورة للملصق');
+      showError('يرجى اختيار صورة للملصق');
       return;
     }
 
@@ -140,11 +140,11 @@ export const PostersManager = () => {
         throw insertError;
       }
 
-      toast.success('تم إضافة الملصق بنجاح');
+      showSuccess('تم إضافة الملصق بنجاح');
       resetForm();
     } catch (error: any) {
       console.error('Error adding poster:', error);
-      toast.error(error.message || 'حدث خطأ أثناء إضافة الملصق');
+      showError(error.message || 'حدث خطأ أثناء إضافة الملصق');
     } finally {
       setUploading(false);
     }
@@ -167,10 +167,10 @@ export const PostersManager = () => {
 
       if (error) throw error;
 
-      toast.success('تم حذف الملصق بنجاح');
+      showSuccess('تم حذف الملصق بنجاح');
     } catch (error: any) {
       console.error('Error deleting poster:', error);
-      toast.error('حدث خطأ أثناء حذف الملصق');
+      showError('حدث خطأ أثناء حذف الملصق');
     }
   };
 
@@ -202,7 +202,7 @@ export const PostersManager = () => {
       fetchPosters();
     } catch (error) {
       console.error('Error moving poster:', error);
-      toast.error('حدث خطأ أثناء تغيير الترتيب');
+      showError('حدث خطأ أثناء تغيير الترتيب');
     }
   };
 
@@ -215,10 +215,10 @@ export const PostersManager = () => {
 
       if (error) throw error;
 
-      toast.success(poster.is_active ? 'تم إخفاء الملصق' : 'تم تفعيل الملصق');
+      showSuccess(poster.is_active ? 'تم إخفاء الملصق' : 'تم تفعيل الملصق');
     } catch (error) {
       console.error('Error toggling poster:', error);
-      toast.error('حدث خطأ');
+      showError('حدث خطأ');
     }
   };
 
