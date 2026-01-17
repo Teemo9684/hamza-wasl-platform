@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import { Users, ArrowRight, Mail, Lock, User, Phone, Hash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { parentRegistrationSchema } from "@/lib/validations";
+import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
 
 const RegisterParent = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -34,11 +33,7 @@ const RegisterParent = () => {
       });
 
       if (formData.password !== formData.confirmPassword) {
-        toast({
-          title: "خطأ",
-          description: "كلمتا المرور غير متطابقتين",
-          variant: "destructive",
-        });
+        ErrorMessages.PASSWORDS_MISMATCH();
         return;
       }
 
@@ -62,11 +57,7 @@ const RegisterParent = () => {
           .rpc('check_student_exists', { _national_school_id: formData.nationalSchoolId.trim() });
 
         if (studentError || !studentData || studentData.length === 0) {
-          toast({
-            title: "التلميذ غير موجود",
-            description: `لم يتم العثور على تلميذ بالرقم الوطني "${formData.nationalSchoolId}". يرجى التأكد من أن التلميذ مسجل في النظام من قبل الإدارة.`,
-            variant: "destructive",
-          });
+          showError("student not found");
           return;
         }
 
@@ -79,27 +70,16 @@ const RegisterParent = () => {
         });
 
         if (linkError) {
-          toast({
-            title: "خطأ في الربط",
-            description: `فشل ربط الحساب بالتلميذ "${student.student_name}". يرجى المحاولة مرة أخرى أو التواصل مع الإدارة.`,
-            variant: "destructive",
-          });
+          showError(linkError, "خطأ في الربط");
           return;
         }
 
-        toast({
-          title: "تم التسجيل بنجاح",
-          description: "تم ربط حسابك بابنك بنجاح. يرجى الانتظار حتى يتم اعتماد حسابك من قبل الإدارة قبل تسجيل الدخول.",
-        });
+        showSuccess("تم التسجيل بنجاح", `تم ربط حسابك بابنك "${student.student_name}" بنجاح. انتظر اعتماد حسابك من الإدارة.`);
         
         navigate("/login/parent");
       }
     } catch (error: any) {
-      toast({
-        title: "خطأ في التسجيل",
-        description: error.errors?.[0]?.message || error.message || "حدث خطأ أثناء التسجيل",
-        variant: "destructive",
-      });
+      showError(error.errors?.[0]?.message || error);
     }
   };
 
