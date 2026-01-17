@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -10,6 +9,8 @@ import {
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { realtimeManager } from '@/utils/realtimeManager';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 
 interface Poster {
   id: string;
@@ -22,10 +23,25 @@ export const PostersCarousel = () => {
   const [posters, setPosters] = useState<Poster[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPoster, setSelectedPoster] = useState<Poster | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { 
+      loop: true, 
+      align: 'start',
+      dragFree: true,
+      containScroll: 'trimSnaps',
+      direction: 'rtl'
+    },
+    [Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })]
+  );
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   const fetchPosters = useCallback(async () => {
     try {
@@ -50,75 +66,7 @@ export const PostersCarousel = () => {
     setLoading(false);
   }, []);
 
-  const goToNext = useCallback(() => {
-    if (posters.length <= 1) return;
-    
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % posters.length);
-      setIsTransitioning(false);
-    }, 300);
-  }, [posters.length]);
-
-  const goToPrev = useCallback(() => {
-    if (posters.length <= 1) return;
-    
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + posters.length) % posters.length);
-      setIsTransitioning(false);
-    }, 300);
-  }, [posters.length]);
-
-  const goToSlide = useCallback((index: number) => {
-    if (index === currentIndex) return;
-    
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex(index);
-      setIsTransitioning(false);
-    }, 300);
-  }, [currentIndex]);
-
-  // Auto-advance slides
-  useEffect(() => {
-    if (posters.length <= 1) return;
-
-    intervalRef.current = setInterval(goToNext, 4000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [posters.length, goToNext]);
-
-  // Reset interval when manually changing slides
-  const resetInterval = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    if (posters.length > 1) {
-      intervalRef.current = setInterval(goToNext, 4000);
-    }
-  }, [posters.length, goToNext]);
-
-  const handlePrev = useCallback(() => {
-    goToPrev();
-    resetInterval();
-  }, [goToPrev, resetInterval]);
-
-  const handleNext = useCallback(() => {
-    goToNext();
-    resetInterval();
-  }, [goToNext, resetInterval]);
-
-  const handleDotClick = useCallback((index: number) => {
-    goToSlide(index);
-    resetInterval();
-  }, [goToSlide, resetInterval]);
-
-  // Setup realtime subscription using realtimeManager for better reconnection
+  // Setup realtime subscription
   useEffect(() => {
     fetchPosters();
 
@@ -134,17 +82,14 @@ export const PostersCarousel = () => {
     return cleanup;
   }, [fetchPosters]);
 
-  // Reset current index if it exceeds posters length
-  useEffect(() => {
-    if (currentIndex >= posters.length && posters.length > 0) {
-      setCurrentIndex(0);
-    }
-  }, [posters.length, currentIndex]);
-
   if (loading) {
     return (
       <div className="w-full px-4 py-6">
-        <Skeleton className="w-full h-48 md:h-64 rounded-2xl" />
+        <div className="flex gap-4 overflow-hidden">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="flex-shrink-0 w-72 h-44 rounded-2xl" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -153,67 +98,66 @@ export const PostersCarousel = () => {
     return null;
   }
 
-  const currentPoster = posters[currentIndex];
-
   return (
     <>
-      <div className="w-full px-4 py-6">
-        <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-          {/* Main Image Container */}
-          <div className="relative aspect-[16/9] md:aspect-[21/9] bg-muted">
-            {currentPoster && (
-              <div
-                className={cn(
-                  "absolute inset-0 transition-all duration-500 ease-in-out cursor-pointer",
-                  isTransitioning ? "opacity-0 scale-105" : "opacity-100 scale-100"
-                )}
-                onClick={() => setSelectedPoster(currentPoster)}
-              >
-                <img
-                  src={currentPoster.image_url}
-                  alt={currentPoster.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    console.error('Image failed to load:', currentPoster.image_url);
-                    e.currentTarget.src = '/placeholder.svg';
-                  }}
-                />
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
-                
-                {/* Title */}
-                <div className="absolute inset-x-0 bottom-6 p-4 md:p-6 pointer-events-none">
-                  <h3 className="text-white text-lg md:text-2xl lg:text-3xl font-bold text-right drop-shadow-lg">
-                    {currentPoster.title}
-                  </h3>
-                </div>
-              </div>
-            )}
-          </div>
-
-
-          {/* Minimal Line Indicators */}
+      <div className="w-full py-6">
+        <div className="relative group">
+          {/* Navigation Arrows */}
           {posters.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
-              {posters.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleDotClick(index)}
-                  className="focus:outline-none"
-                  aria-label={`انتقل إلى الملصقة ${index + 1}`}
+            <>
+              <button
+                onClick={scrollNext}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-background/80 shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-background"
+                aria-label="التالي"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+              <button
+                onClick={scrollPrev}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-background/80 shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-background"
+                aria-label="السابق"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            </>
+          )}
+
+          {/* Carousel Container */}
+          <div className="overflow-hidden px-4" ref={emblaRef}>
+            <div className="flex gap-4">
+              {posters.map((poster) => (
+                <div
+                  key={poster.id}
+                  className="flex-shrink-0 w-72 md:w-80 lg:w-96 cursor-grab active:cursor-grabbing"
+                  onClick={() => setSelectedPoster(poster)}
                 >
-                  <div 
-                    className={cn(
-                      "h-1 rounded-full transition-all duration-300",
-                      index === currentIndex 
-                        ? "w-6 bg-white/90" 
-                        : "w-3 bg-white/40 hover:bg-white/60"
-                    )}
-                  />
-                </button>
+                  <div className="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 group/card">
+                    <div className="aspect-[4/3] bg-muted">
+                      <img
+                        src={poster.image_url}
+                        alt={poster.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                        onError={(e) => {
+                          console.error('Image failed to load:', poster.image_url);
+                          e.currentTarget.src = '/placeholder.svg';
+                        }}
+                        draggable={false}
+                      />
+                    </div>
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
+                    
+                    {/* Title */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 pointer-events-none">
+                      <h3 className="text-white text-base md:text-lg font-bold text-right drop-shadow-lg line-clamp-2">
+                        {poster.title}
+                      </h3>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
