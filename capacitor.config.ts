@@ -36,7 +36,7 @@ const config: CapacitorConfig = {
       showSpinner: false
     },
     StatusBar: {
-      style: "DARK",
+      style: "LIGHT",
       backgroundColor: "#f8fafc",
       overlaysWebView: false
     },
