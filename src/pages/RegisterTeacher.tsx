@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import { UserCheck, ArrowRight, Mail, Lock, User, BookOpen, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { teacherRegistrationSchema } from "@/lib/validations";
+import { showError, showSuccess, ErrorMessages } from "@/utils/errorMessages";
 import {
   Select,
   SelectContent,
@@ -17,7 +17,6 @@ import {
 
 const RegisterTeacher = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -47,11 +46,7 @@ const RegisterTeacher = () => {
       });
 
       if (formData.password !== formData.confirmPassword) {
-        toast({
-          title: "خطأ",
-          description: "كلمتا المرور غير متطابقتين",
-          variant: "destructive",
-        });
+        ErrorMessages.PASSWORDS_MISMATCH();
         return;
       }
 
@@ -71,19 +66,11 @@ const RegisterTeacher = () => {
       if (error) throw error;
 
       if (data.user) {
-        toast({
-          title: "تم التسجيل بنجاح",
-          description: "يرجى الانتظار حتى يتم اعتماد حسابك من قبل الإدارة قبل تسجيل الدخول",
-        });
-        
+        showSuccess("تم التسجيل بنجاح", "انتظر حتى يتم اعتماد حسابك من قبل الإدارة");
         navigate("/login/teacher");
       }
     } catch (error: any) {
-      toast({
-        title: "خطأ في التسجيل",
-        description: error.errors?.[0]?.message || error.message || "حدث خطأ أثناء التسجيل",
-        variant: "destructive",
-      });
+      showError(error.errors?.[0]?.message || error);
     }
   };
 

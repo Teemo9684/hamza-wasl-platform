@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Users, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
 
 const LoginParent = () => {
   const navigate = useNavigate();
@@ -64,7 +65,7 @@ const LoginParent = () => {
     
     // Validate inputs
     if (!email || !password) {
-      toast.error("الرجاء إدخال البريد الإلكتروني وكلمة المرور");
+      showWarning("حقول مطلوبة", "الرجاء إدخال البريد الإلكتروني وكلمة المرور");
       return;
     }
 
@@ -94,7 +95,7 @@ const LoginParent = () => {
         }
 
         if (!profileData.is_approved) {
-          toast.error("حسابك قيد المراجعة من قبل الإدارة. الرجاء الانتظار حتى يتم اعتماد حسابك.");
+          showWarning("الحساب قيد المراجعة", "حسابك قيد المراجعة من قبل الإدارة. انتظر حتى يتم اعتماد حسابك.");
           await supabase.auth.signOut();
           setIsLoading(false);
           return;
@@ -113,7 +114,7 @@ const LoginParent = () => {
         }
 
         if (!roleData) {
-          toast.error("هذا الحساب ليس حساب ولي أمر");
+          ErrorMessages.NOT_PARENT_ACCOUNT();
           await supabase.auth.signOut();
           setIsLoading(false);
           return;
@@ -126,7 +127,7 @@ const LoginParent = () => {
           localStorage.removeItem('parent_email');
         }
 
-        toast.success("تم تسجيل الدخول بنجاح");
+        showSuccess("تم تسجيل الدخول بنجاح", "مرحباً بك في التطبيق");
         
         // Use setTimeout to ensure toast is shown before navigation
         setTimeout(() => {
@@ -134,13 +135,7 @@ const LoginParent = () => {
         }, 100);
       }
     } catch (error: any) {
-      if (error.message?.includes("Invalid login credentials")) {
-        toast.error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
-      } else if (error.message?.includes("Email not confirmed")) {
-        toast.error("الرجاء تأكيد بريدك الإلكتروني أولاً");
-      } else {
-        toast.error(error.message || "خطأ في تسجيل الدخول");
-      }
+      showError(error);
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +143,7 @@ const LoginParent = () => {
 
   const handleResetPassword = async () => {
     if (!resetEmail) {
-      toast.error("الرجاء إدخال البريد الإلكتروني");
+      showWarning("حقل مطلوب", "الرجاء إدخال البريد الإلكتروني");
       return;
     }
 
@@ -160,11 +155,11 @@ const LoginParent = () => {
 
       if (error) throw error;
 
-      toast.success("تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني");
+      showSuccess("تم الإرسال", "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني");
       setIsResetDialogOpen(false);
       setResetEmail("");
     } catch (error: any) {
-      toast.error(error.message || "حدث خطأ في إرسال رابط إعادة التعيين");
+      showError(error, "خطأ في الإرسال");
     } finally {
       setIsResetting(false);
     }
