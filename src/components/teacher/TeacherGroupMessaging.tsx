@@ -6,14 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Users, Loader2 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Send, Users, Loader2, Check } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { sendMessageNotification } from "@/utils/sendPushNotification";
 
 interface GradeLevel {
@@ -24,7 +18,7 @@ interface GradeLevel {
 export const TeacherGroupMessaging = () => {
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
-  const [selectedGrade, setSelectedGrade] = useState("");
+  const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
   const [gradeLevels, setGradeLevels] = useState<GradeLevel[]>([]);
   const [recipientCount, setRecipientCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -35,10 +29,12 @@ export const TeacherGroupMessaging = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedGrade) {
+    if (selectedGrades.length > 0) {
       calculateRecipientCount();
+    } else {
+      setRecipientCount(0);
     }
-  }, [selectedGrade]);
+  }, [selectedGrades]);
 
   const fetchTeacherGrades = async () => {
     try {
@@ -81,8 +77,9 @@ export const TeacherGroupMessaging = () => {
 
         setGradeLevels(grades);
         
+        // Select all grades by default
         if (grades.length > 0) {
-          setSelectedGrade(grades[0].grade_level);
+          setSelectedGrades(grades.map(g => g.grade_level));
         }
       }
     } catch (error) {
@@ -92,12 +89,15 @@ export const TeacherGroupMessaging = () => {
 
   const calculateRecipientCount = async () => {
     try {
-      if (!selectedGrade) return;
+      if (selectedGrades.length === 0) {
+        setRecipientCount(0);
+        return;
+      }
 
       const { data: students } = await supabase
         .from("students")
         .select("id")
-        .eq("grade_level", selectedGrade);
+        .in("grade_level", selectedGrades);
 
       if (students && students.length > 0) {
         const studentIds = students.map(s => s.id);
@@ -115,6 +115,24 @@ export const TeacherGroupMessaging = () => {
     }
   };
 
+  const toggleGrade = (grade: string) => {
+    setSelectedGrades(prev => {
+      if (prev.includes(grade)) {
+        return prev.filter(g => g !== grade);
+      } else {
+        return [...prev, grade];
+      }
+    });
+  };
+
+  const selectAllGrades = () => {
+    if (selectedGrades.length === gradeLevels.length) {
+      setSelectedGrades([]);
+    } else {
+      setSelectedGrades(gradeLevels.map(g => g.grade_level));
+    }
+  };
+
   const handleSendGroupMessage = async () => {
     if (!subject.trim() || !content.trim()) {
       toast({
@@ -125,10 +143,10 @@ export const TeacherGroupMessaging = () => {
       return;
     }
 
-    if (!selectedGrade) {
+    if (selectedGrades.length === 0) {
       toast({
         title: "خطأ",
-        description: "الرجاء اختيار القسم",
+        description: "الرجاء اختيار قسم واحد على الأقل",
         variant: "destructive",
       });
       return;
@@ -140,16 +158,16 @@ export const TeacherGroupMessaging = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // Get students in selected grade
+      // Get students in selected grades
       const { data: students } = await supabase
         .from("students")
         .select("id")
-        .eq("grade_level", selectedGrade);
+        .in("grade_level", selectedGrades);
 
       if (!students || students.length === 0) {
         toast({
           title: "تنبيه",
-          description: "لا يوجد تلاميذ في هذا القسم",
+          description: "لا يوجد تلاميذ في الأقسام المحددة",
           variant: "destructive",
         });
         setLoading(false);
@@ -167,7 +185,7 @@ export const TeacherGroupMessaging = () => {
       if (!parents || parents.length === 0) {
         toast({
           title: "تنبيه",
-          description: "لا يوجد أولياء أمور مرتبطين بتلاميذ هذا القسم",
+          description: "لا يوجد أولياء أمور مرتبطين بتلاميذ هذه الأقسام",
           variant: "destructive",
         });
         setLoading(false);
@@ -207,7 +225,7 @@ export const TeacherGroupMessaging = () => {
 
       toast({
         title: "تم الإرسال",
-        description: `تم إرسال الرسالة إلى ${recipientIds.length} ولي أمر بنجاح`,
+        description: `تم إرسال الرسالة إلى ${recipientIds.length} ولي أمر في ${selectedGrades.length} قسم`,
       });
 
       // Reset form
@@ -247,26 +265,51 @@ export const TeacherGroupMessaging = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="grade" className="font-cairo">اختر القسم</Label>
-            <Select value={selectedGrade} onValueChange={setSelectedGrade}>
-              <SelectTrigger className="font-cairo">
-                <SelectValue placeholder="اختر القسم" />
-              </SelectTrigger>
-              <SelectContent>
-                {gradeLevels.map((grade) => (
-                  <SelectItem key={grade.grade_level} value={grade.grade_level} className="font-cairo">
-                    {grade.grade_level} ({grade.count} تلميذ)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="font-cairo">اختر الأقسام</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={selectAllGrades}
+                className="font-cairo text-xs"
+              >
+                {selectedGrades.length === gradeLevels.length ? "إلغاء تحديد الكل" : "تحديد الكل"}
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {gradeLevels.map((grade) => (
+                <div
+                  key={grade.grade_level}
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    selectedGrades.includes(grade.grade_level)
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-card hover:border-primary/50"
+                  }`}
+                  onClick={() => toggleGrade(grade.grade_level)}
+                >
+                  <Checkbox
+                    checked={selectedGrades.includes(grade.grade_level)}
+                    onCheckedChange={() => toggleGrade(grade.grade_level)}
+                    className="pointer-events-none"
+                  />
+                  <div className="flex-1">
+                    <p className="font-cairo font-medium text-sm">{grade.grade_level}</p>
+                    <p className="font-cairo text-xs text-muted-foreground">{grade.count} تلميذ</p>
+                  </div>
+                  {selectedGrades.includes(grade.grade_level) && (
+                    <Check className="w-4 h-4 text-primary" />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
             <Users className="w-5 h-5 text-primary" />
             <span className="font-cairo text-sm">
-              عدد المستلمين: <strong>{recipientCount}</strong> ولي أمر
+              عدد المستلمين: <strong>{recipientCount}</strong> ولي أمر في <strong>{selectedGrades.length}</strong> قسم
             </span>
           </div>
 

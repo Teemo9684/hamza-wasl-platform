@@ -28,58 +28,111 @@ const getDeviceName = (): string => {
 // Audio context singleton for notification sounds
 let audioContext: AudioContext | null = null;
 let isAudioUnlocked = false;
+let audioUnlockAttempts = 0;
+const MAX_UNLOCK_ATTEMPTS = 3;
 
 // Initialize audio context (call after user interaction)
 const getAudioContext = (): AudioContext | null => {
   if (!audioContext) {
     try {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      console.log('AudioContext created, state:', audioContext.state);
     } catch (error) {
       console.error('Failed to create AudioContext:', error);
       return null;
     }
   }
   
-  // Resume if suspended
+  // Resume if suspended - this is critical for iOS and Android
   if (audioContext.state === 'suspended') {
-    audioContext.resume();
+    audioContext.resume().then(() => {
+      console.log('AudioContext resumed from suspended state');
+    }).catch(err => {
+      console.warn('Failed to resume AudioContext:', err);
+    });
   }
   
   return audioContext;
 };
 
-// Unlock audio on first user interaction
-export const unlockAudio = () => {
-  if (isAudioUnlocked) return;
+// Unlock audio on first user interaction - more aggressive unlocking
+export const unlockAudio = async () => {
+  if (isAudioUnlocked && audioContext?.state === 'running') return;
+  
+  audioUnlockAttempts++;
+  console.log(`Attempting to unlock audio (attempt ${audioUnlockAttempts})...`);
   
   const ctx = getAudioContext();
   if (ctx) {
-    // Create a silent buffer to unlock audio
-    const buffer = ctx.createBuffer(1, 1, 22050);
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    source.start(0);
-    isAudioUnlocked = true;
-    // Audio unlocked
+    try {
+      // First, try to resume if suspended
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+      
+      // Create a silent buffer to unlock audio
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+      
+      // Wait a moment to ensure audio is unlocked
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      if (ctx.state === 'running') {
+        isAudioUnlocked = true;
+        console.log('Audio successfully unlocked, state:', ctx.state);
+      } else {
+        console.warn('Audio unlock attempted but state is:', ctx.state);
+      }
+    } catch (error) {
+      console.warn('Error during audio unlock:', error);
+    }
   }
+};
+
+// Force unlock audio - call this on critical user interactions
+export const forceUnlockAudio = async () => {
+  isAudioUnlocked = false;
+  audioContext = null;
+  audioUnlockAttempts = 0;
+  await unlockAudio();
 };
 
 // نوع الإشعار
 export type NotificationType = 'default' | 'user' | 'document' | 'message' | 'attendance' | 'homework' | 'announcement';
 
 // Play notification sound based on type
-export const playNotificationSound = (type: NotificationType = 'default') => {
+export const playNotificationSound = async (type: NotificationType = 'default') => {
   try {
+    // Ensure audio is unlocked first
+    if (!isAudioUnlocked) {
+      console.log('Audio not unlocked, attempting to unlock...');
+      await unlockAudio();
+    }
+    
     const ctx = getAudioContext();
     if (!ctx) {
-      console.warn('AudioContext not available');
+      console.warn('AudioContext not available for sound:', type);
       return;
     }
 
-    // Resume context if needed
+    // Resume context if needed - critical for playing sounds
     if (ctx.state === 'suspended') {
-      ctx.resume();
+      try {
+        await ctx.resume();
+        console.log('AudioContext resumed for notification sound');
+      } catch (e) {
+        console.warn('Failed to resume AudioContext:', e);
+        return;
+      }
+    }
+    
+    // Double check state before playing
+    if (ctx.state !== 'running') {
+      console.warn('AudioContext not running, state:', ctx.state);
+      return;
     }
     
     const gainNode = ctx.createGain();

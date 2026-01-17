@@ -112,16 +112,35 @@ const App = () => {
   }, [showSplash]);
 
   useEffect(() => {
-    const handleUserInteraction = () => {
-      unlockAudio();
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('touchstart', handleUserInteraction);
-      document.removeEventListener('keydown', handleUserInteraction);
+    const handleUserInteraction = async () => {
+      console.log('User interaction detected, unlocking audio...');
+      await unlockAudio();
+      // Keep listeners for first few interactions to ensure audio is unlocked
     };
 
-    document.addEventListener('click', handleUserInteraction);
-    document.addEventListener('touchstart', handleUserInteraction);
-    document.addEventListener('keydown', handleUserInteraction);
+    // Add listeners with passive option for better performance
+    const options = { passive: true };
+    document.addEventListener('click', handleUserInteraction, options);
+    document.addEventListener('touchstart', handleUserInteraction, options);
+    document.addEventListener('touchend', handleUserInteraction, options);
+    document.addEventListener('keydown', handleUserInteraction, options);
+
+    // Also try to unlock on visibility change (when app comes back to foreground)
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        console.log('App became visible, ensuring audio is unlocked...');
+        await unlockAudio();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup after some time (audio should be unlocked by then)
+    const cleanupTimeout = setTimeout(() => {
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('touchend', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+    }, 30000); // Keep listeners for 30 seconds
 
     if (isPushNotificationsAvailable()) {
       initializePushNotifications();
@@ -172,9 +191,12 @@ const App = () => {
     });
 
     return () => {
+      clearTimeout(cleanupTimeout);
       document.removeEventListener('click', handleUserInteraction);
       document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('touchend', handleUserInteraction);
       document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       subscription.unsubscribe();
       cleanupRealtime?.();
       cleanupScheduleNotifications();
