@@ -23,6 +23,11 @@ export const PostersCarousel = () => {
   const [selectedPoster, setSelectedPoster] = useState<Poster | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Touch/drag state
+  const touchStartRef = useRef<number>(0);
+  const touchEndRef = useRef<number>(0);
+  const isDraggingRef = useRef<boolean>(false);
 
   const fetchPosters = useCallback(async () => {
     try {
@@ -57,6 +62,64 @@ export const PostersCarousel = () => {
 
   const goToIndex = useCallback((index: number) => {
     setCurrentIndex(index);
+  }, []);
+
+  // Touch handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartRef.current = e.touches[0].clientX;
+    isDraggingRef.current = true;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDraggingRef.current) return;
+    touchEndRef.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    
+    const diff = touchStartRef.current - touchEndRef.current;
+    const threshold = 50;
+    
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
+        goToNext();
+      } else {
+        goToPrev();
+      }
+    }
+  }, [goToNext, goToPrev]);
+
+  // Mouse drag handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    touchStartRef.current = e.clientX;
+    isDraggingRef.current = true;
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    touchEndRef.current = e.clientX;
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    
+    const diff = touchStartRef.current - touchEndRef.current;
+    const threshold = 50;
+    
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
+        goToNext();
+      } else {
+        goToPrev();
+      }
+    }
+  }, [goToNext, goToPrev]);
+
+  const handleMouseLeave = useCallback(() => {
+    isDraggingRef.current = false;
   }, []);
 
   // Setup realtime subscription
@@ -165,8 +228,15 @@ export const PostersCarousel = () => {
 
           {/* 3D Carousel Container */}
           <div 
-            className="relative h-48 md:h-56 flex items-center justify-center"
+            className="relative h-48 md:h-56 flex items-center justify-center select-none cursor-grab active:cursor-grabbing"
             style={{ perspective: '1000px' }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
           >
             <div 
               className="relative w-56 md:w-64 h-full"
@@ -188,7 +258,7 @@ export const PostersCarousel = () => {
                       ...style,
                       transformStyle: 'preserve-3d',
                     }}
-                    onClick={() => isCurrent && setSelectedPoster(poster)}
+                    onClick={() => isCurrent && !isDraggingRef.current && setSelectedPoster(poster)}
                   >
                     <div className={cn(
                       "w-full h-full overflow-hidden rounded-xl shadow-xl transition-shadow duration-300",
@@ -236,8 +306,8 @@ export const PostersCarousel = () => {
                     className={cn(
                       "h-1.5 rounded-full transition-all duration-300",
                       index === currentIndex 
-                        ? "w-5 bg-primary" 
-                        : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                        ? "w-5 bg-gradient-to-r from-white/90 to-white/70 shadow-sm shadow-white/30" 
+                        : "w-1.5 bg-white/30 hover:bg-white/50"
                     )}
                   />
                 </button>
