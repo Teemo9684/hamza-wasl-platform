@@ -138,21 +138,7 @@ const TeacherOverviewPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background pt-[env(safe-area-inset-top)]">
-        <div className="animate-pulse space-y-4 p-4">
-          <div className="h-14 bg-muted/40 rounded-lg" />
-          <div className="grid grid-cols-3 gap-4">
-            <div className="h-24 bg-muted/30 rounded-xl" />
-            <div className="h-24 bg-muted/30 rounded-xl" />
-            <div className="h-24 bg-muted/30 rounded-xl" />
-          </div>
-          <div className="h-48 bg-muted/20 rounded-xl" />
-        </div>
-      </div>
-    );
-  }
+  // No loading spinner - content renders immediately for smooth transitions
 
   const headerHeight = 56;
 
