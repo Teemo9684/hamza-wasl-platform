@@ -8,6 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useState } from "react";
+import { AnimatedContainer, AnimatedItem, AnimatedCard } from "@/components/AnimatedSection";
 
 interface StudentsByGrade {
   [gradeLevel: string]: any[];
@@ -73,103 +74,115 @@ export const TeacherOverview = ({
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold mb-2">مرحباً {teacherInfo.name}</h2>
-        <p className="text-muted-foreground">{teacherInfo.subject} • إدارة التلاميذ والتواصل مع الأولياء</p>
-      </div>
+    <AnimatedContainer className="space-y-6">
+      <AnimatedItem>
+        <div>
+          <h2 className="text-3xl font-bold mb-2">مرحباً {teacherInfo.name}</h2>
+          <p className="text-muted-foreground">{teacherInfo.subject} • إدارة التلاميذ والتواصل مع الأولياء</p>
+        </div>
+      </AnimatedItem>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">عدد التلاميذ</CardTitle>
-            <Users className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{studentsCount}</div>
-          </CardContent>
-        </Card>
+      <AnimatedItem className="grid gap-6 md:grid-cols-3">
+        <AnimatedCard>
+          <Card className="border-primary/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">عدد التلاميذ</CardTitle>
+              <Users className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{studentsCount}</div>
+            </CardContent>
+          </Card>
+        </AnimatedCard>
 
-        <Card className="border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">رسائل غير مقروءة</CardTitle>
-            <MessageSquare className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{unreadMessagesCount}</div>
-          </CardContent>
-        </Card>
+        <AnimatedCard>
+          <Card className="border-primary/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">رسائل غير مقروءة</CardTitle>
+              <MessageSquare className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{unreadMessagesCount}</div>
+            </CardContent>
+          </Card>
+        </AnimatedCard>
 
-        <Card className="border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">المادة</CardTitle>
-            <GraduationCap className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">{teacherInfo.subject}</div>
-          </CardContent>
-        </Card>
-      </div>
+        <AnimatedCard>
+          <Card className="border-primary/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">المادة</CardTitle>
+              <GraduationCap className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-bold">{teacherInfo.subject}</div>
+            </CardContent>
+          </Card>
+        </AnimatedCard>
+      </AnimatedItem>
 
       {/* عرض التلاميذ حسب المستوى لأساتذة اللغات */}
       {isLanguageTeacher && sortedGrades.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-primary" />
-              قوائم التلاميذ حسب المستوى
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {sortedGrades.map((grade) => (
-              <Collapsible
-                key={grade}
-                open={openGrades.includes(grade)}
-                onOpenChange={() => toggleGrade(grade)}
-              >
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                  <div className="flex items-center gap-3">
-                    <ChevronDown 
-                      className={`h-5 w-5 text-primary transition-transform duration-200 ${
-                        openGrades.includes(grade) ? 'rotate-180' : ''
-                      }`} 
-                    />
-                    <span className="font-semibold text-base">
-                      {getShortGradeLabel(grade)}
-                    </span>
-                  </div>
-                  <Badge variant="secondary" className="text-sm px-3">
-                    {studentsByGrade[grade]?.length || 0} تلميذ
-                  </Badge>
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent className="pt-3">
-                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                    {studentsByGrade[grade]?.map((student, index) => (
-                      <Card key={student.id} className="p-3 hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
-                            {index + 1}
+        <AnimatedItem>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-primary" />
+                قوائم التلاميذ حسب المستوى
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {sortedGrades.map((grade) => (
+                <Collapsible
+                  key={grade}
+                  open={openGrades.includes(grade)}
+                  onOpenChange={() => toggleGrade(grade)}
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    <div className="flex items-center gap-3">
+                      <ChevronDown 
+                        className={`h-5 w-5 text-primary transition-transform duration-200 ${
+                          openGrades.includes(grade) ? 'rotate-180' : ''
+                        }`} 
+                      />
+                      <span className="font-semibold text-base">
+                        {getShortGradeLabel(grade)}
+                      </span>
+                    </div>
+                    <Badge variant="secondary" className="text-sm px-3">
+                      {studentsByGrade[grade]?.length || 0} تلميذ
+                    </Badge>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="pt-3">
+                    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                      {studentsByGrade[grade]?.map((student, index) => (
+                        <Card key={student.id} className="p-3 hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{student.full_name}</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {student.national_school_id}
+                                {student.class_section && ` • ${student.class_section}`}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{student.full_name}</p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {student.national_school_id}
-                              {student.class_section && ` • ${student.class_section}`}
-                            </p>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
-          </CardContent>
-        </Card>
+                        </Card>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
+            </CardContent>
+          </Card>
+        </AnimatedItem>
       )}
 
-      <StudentSearch students={students} onSendMessage={onSendMessage} />
-    </div>
+      <AnimatedItem>
+        <StudentSearch students={students} onSendMessage={onSendMessage} />
+      </AnimatedItem>
+    </AnimatedContainer>
   );
 };
