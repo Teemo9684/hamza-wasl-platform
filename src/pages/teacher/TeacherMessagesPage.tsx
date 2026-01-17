@@ -97,6 +97,30 @@ const TeacherMessagesPage = () => {
     }
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف الرسالة بنجاح",
+      });
+      
+      fetchTeacherData();
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSendReply = async (
     messageId: string,
     recipientId: string,
@@ -206,6 +230,7 @@ const TeacherMessagesPage = () => {
                 messages={messages}
                 onMarkAsRead={handleMarkAsRead}
                 onSendReply={handleSendReply}
+                onDeleteMessage={handleDeleteMessage}
               />
             </div>
           </AnimatedSection>
