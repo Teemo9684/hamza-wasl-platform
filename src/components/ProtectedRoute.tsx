@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Capacitor } from "@capacitor/core";
+import { showError } from "@/utils/errorMessages";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -67,7 +67,7 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
         if (import.meta.env.DEV) {
           console.error("Error checking role:", error);
         }
-        toast.error("حدث خطأ في التحقق من الصلاحيات");
+        showError("permission denied");
         setIsAuthorized(false);
       } else {
         const authorized = !!roleData;
@@ -77,7 +77,7 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
         authCache.set(cacheKey, { isAuthorized: authorized, timestamp: Date.now() });
         
         if (!roleData) {
-          toast.error("ليس لديك صلاحية للوصول إلى هذه الصفحة");
+          showError("not authorized");
         }
       }
     } catch (error) {

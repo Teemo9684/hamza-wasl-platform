@@ -4,12 +4,11 @@ import { useRealtime } from "@/hooks/useRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { Users, UserCheck, Search, Trash2, CheckCircle, XCircle, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast as sonnerToast } from "sonner";
 import { formatDateOnly, formatDateTime } from "@/utils/formatters";
+import { showError, showSuccess } from "@/utils/errorMessages";
 import {
   Table,
   TableBody,
@@ -51,7 +50,6 @@ export const UserManagement = () => {
   const [activeTab, setActiveTab] = useState<"teachers" | "parents" | "pending">("teachers");
   const [loading, setLoading] = useState(true);
   const [loadingApproval, setLoadingApproval] = useState<string | null>(null);
-  const { toast } = useToast();
 
   const handleUsersChange = useCallback(() => {
     if (activeTab !== "pending") {
@@ -123,11 +121,7 @@ export const UserManagement = () => {
 
       setUsers(usersWithRoles);
     } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل تحميل المستخدمين",
-        variant: "destructive",
-      });
+      showError("فشل تحميل المستخدمين");
     } finally {
       setLoading(false);
     }
@@ -142,18 +136,11 @@ export const UserManagement = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "نجاح",
-        description: "تم حذف المستخدم بنجاح",
-      });
+      showSuccess("تم الحذف", "تم حذف المستخدم بنجاح");
 
       fetchUsers();
     } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل حذف المستخدم",
-        variant: "destructive",
-      });
+      showError("فشل حذف المستخدم");
     }
   };
 
@@ -169,12 +156,12 @@ export const UserManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
-      sonnerToast.success("تم اعتماد الحساب بنجاح");
+      showSuccess("تم الاعتماد", "تم اعتماد الحساب بنجاح");
       setLoadingApproval(null);
     },
     onError: (error) => {
       console.error("Error approving account:", error);
-      sonnerToast.error("حدث خطأ أثناء اعتماد الحساب");
+      showError("حدث خطأ أثناء اعتماد الحساب");
       setLoadingApproval(null);
     },
   });
@@ -193,12 +180,12 @@ export const UserManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
-      sonnerToast.success("تم رفض الحساب وحذفه");
+      showSuccess("تم الرفض", "تم رفض الحساب وحذفه");
       setLoadingApproval(null);
     },
     onError: (error) => {
       console.error("Error rejecting account:", error);
-      sonnerToast.error("حدث خطأ أثناء رفض الحساب");
+      showError("حدث خطأ أثناء رفض الحساب");
       setLoadingApproval(null);
     },
   });

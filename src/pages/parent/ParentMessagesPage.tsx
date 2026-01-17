@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { toast as sonnerToast } from "sonner";
 import { ParentMessages } from "@/components/parent/ParentMessages";
 import { useParentDashboard } from "@/components/ParentDashboardLayout";
 import { realtimeManager } from "@/utils/realtimeManager";
@@ -9,9 +7,9 @@ import { setAppBadge } from "@/utils/appBadge";
 import { playNotificationSound } from "@/utils/pushNotifications";
 import { mediumHaptic } from "@/utils/haptics";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { showError, showSuccess } from "@/utils/errorMessages";
 
 export const ParentMessagesContent = () => {
-  const { toast } = useToast();
   const { children } = useParentDashboard();
   const [teachers, setTeachers] = useState<any[]>([]);
   const [receivedMessages, setReceivedMessages] = useState<any[]>([]);
@@ -80,9 +78,7 @@ export const ParentMessagesContent = () => {
         
         playNotificationSound('message');
         mediumHaptic();
-        sonnerToast.success("رسالة جديدة", {
-          description: senderData?.full_name || 'رسالة جديدة من المعلم',
-        });
+        showSuccess("رسالة جديدة", senderData?.full_name || 'رسالة جديدة من المعلم');
         
         refreshCounts();
       }
@@ -151,11 +147,7 @@ export const ParentMessagesContent = () => {
       if (messagesError) throw messagesError;
       setReceivedMessages(messagesData || []);
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error);
     }
   };
 

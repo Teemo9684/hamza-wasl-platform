@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, ArrowRight, Home, Settings } from "lucide-react";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
 
 
 const LoginAdmin = () => {
@@ -42,14 +42,14 @@ const LoginAdmin = () => {
       
       if (error) {
         console.error('Setup error:', error);
-        toast.error("حدث خطأ في إعداد حساب المسؤول");
+        showError("حدث خطأ في إعداد حساب المسؤول");
         return;
       }
 
-      toast.success(data.message || "تم إعداد حساب المسؤول بنجاح");
+      showSuccess("تم إعداد حساب المسؤول", data.message || "تم إعداد الحساب بنجاح");
     } catch (error) {
       console.error('Setup admin error:', error);
-      toast.error("حدث خطأ في إعداد حساب المسؤول");
+      showError("حدث خطأ في إعداد حساب المسؤول");
     } finally {
       setIsSettingUp(false);
     }
@@ -63,7 +63,7 @@ const LoginAdmin = () => {
     
     // التحقق من الرقم السري
     if (!pin || pin.trim().length === 0) {
-      toast.error("الرجاء إدخال الرقم السري");
+      showWarning("حقل مطلوب", "الرجاء إدخال الرقم السري");
       return;
     }
 
@@ -76,7 +76,7 @@ const LoginAdmin = () => {
       });
 
       if (loginError || !loginData?.success) {
-        toast.error("الرقم السري غير صحيح");
+        showError("invalid login credentials");
         setIsLoading(false);
         return;
       }
@@ -109,21 +109,15 @@ const LoginAdmin = () => {
 
       if (!roleData) {
         await supabase.auth.signOut();
-        toast.error("ليس لديك صلاحية المسؤول");
+        ErrorMessages.PERMISSION_DENIED();
         setIsLoading(false);
         return;
       }
 
-      toast.success("تم تسجيل الدخول بنجاح");
+      showSuccess("تم تسجيل الدخول بنجاح", "مرحباً بك في لوحة التحكم");
       navigate("/dashboard/admin", { replace: true });
     } catch (error: any) {
-      if (error.message?.includes("Invalid login credentials")) {
-        toast.error("الرقم السري غير صحيح");
-      } else if (error.message?.includes("Email not confirmed")) {
-        toast.error("الرجاء تأكيد بريدك الإلكتروني أولاً");
-      } else {
-        toast.error("حدث خطأ في تسجيل الدخول");
-      }
+      showError(error);
     } finally {
       setIsLoading(false);
     }
