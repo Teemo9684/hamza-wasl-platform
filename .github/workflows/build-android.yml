@@ -83,6 +83,16 @@ jobs:
             exit 1
           fi
 
+      - name: Add SplashScreen Dependency
+        run: |
+          BUILD_GRADLE="android/app/build.gradle"
+          if ! grep -q "androidx.core:core-splashscreen" "$BUILD_GRADLE"; then
+            sed -i '/dependencies {/a\    implementation "androidx.core:core-splashscreen:1.0.1"' "$BUILD_GRADLE"
+            echo "✅ Added SplashScreen dependency"
+          else
+            echo "✅ SplashScreen dependency already exists"
+          fi
+
       - name: Configure System Bars Theme
         run: |
           STYLES_FILE="android/app/src/main/res/values/styles.xml"

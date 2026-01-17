@@ -12,11 +12,19 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Install and immediately dismiss the Android 12+ Splash Screen
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+            // Set condition to false immediately to minimize splash duration
+            splashScreen.setKeepOnScreenCondition(() -> false);
+        }
+        
         // Enable Edge-to-Edge BEFORE super.onCreate()
         enableEdgeToEdge();
         
