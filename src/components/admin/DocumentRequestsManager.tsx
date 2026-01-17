@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Clock, CheckCircle, XCircle, Loader2, User, Calendar, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { showError, showSuccess, showInfo } from "@/utils/errorMessages";
 import { formatDateTime } from "@/utils/formatters";
 import { sendDocumentStatusNotification } from "@/utils/sendPushNotification";
 import { realtimeManager } from "@/utils/realtimeManager";
@@ -56,7 +56,7 @@ export const DocumentRequestsManager = () => {
       if (error) throw error;
       setRequests(data || []);
     } catch (error: any) {
-      toast.error("خطأ في تحميل الطلبات");
+      showError("خطأ في تحميل الطلبات");
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export const DocumentRequestsManager = () => {
       console.log('DocumentRequestsManager: Update received', payload);
       fetchRequests();
       if (payload.eventType !== 'REFRESH') {
-        toast.info("تم تحديث طلبات الوثائق");
+        showInfo("تم تحديث طلبات الوثائق");
       }
     };
 
@@ -109,10 +109,10 @@ export const DocumentRequestsManager = () => {
         );
       }
 
-      toast.success("تم تحديث حالة الطلب");
+      showSuccess("تم تحديث حالة الطلب");
       fetchRequests();
     } catch (error: any) {
-      toast.error("خطأ في تحديث الحالة");
+      showError("خطأ في تحديث الحالة");
     } finally {
       setUpdatingId(null);
     }
@@ -126,9 +126,9 @@ export const DocumentRequestsManager = () => {
         .eq('id', requestId);
 
       if (error) throw error;
-      toast.success("تم حفظ الملاحظات");
+      showSuccess("تم حفظ الملاحظات");
     } catch (error: any) {
-      toast.error("خطأ في حفظ الملاحظات");
+      showError("خطأ في حفظ الملاحظات");
     }
   };
 
@@ -140,10 +140,10 @@ export const DocumentRequestsManager = () => {
         .eq('id', requestId);
 
       if (error) throw error;
-      toast.success("تم حذف الطلب بنجاح");
+      showSuccess("تم حذف الطلب بنجاح");
       fetchRequests();
     } catch (error: any) {
-      toast.error("خطأ في حذف الطلب");
+      showError("خطأ في حذف الطلب");
     }
   };
 

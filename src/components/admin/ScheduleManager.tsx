@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { showError, showSuccess, showWarning, showInfo } from "@/utils/errorMessages";
 import { Upload, Trash2, Calendar } from "lucide-react";
 import { formatDateOnly } from "@/utils/formatters";
 
@@ -49,7 +49,7 @@ export const ScheduleManager = () => {
       if (error) throw error;
       setSchedules(data || []);
     } catch (error: any) {
-      toast.error("خطأ في تحميل جداول الحصص");
+      showError("خطأ في تحميل جداول الحصص");
       console.error(error);
     } finally {
       setLoading(false);
@@ -59,7 +59,7 @@ export const ScheduleManager = () => {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) return;
     if (!selectedGrade) {
-      toast.error("الرجاء اختيار القسم أولاً");
+      showError("الرجاء اختيار القسم أولاً");
       return;
     }
 
@@ -75,7 +75,7 @@ export const ScheduleManager = () => {
         reader.readAsDataURL(file);
       });
 
-      toast.info("جاري تحسين الصورة بالذكاء الاصطناعي...");
+      showInfo("جاري تحسين الصورة بالذكاء الاصطناعي...");
       const imageData = await base64Promise;
 
       // Enhance image using AI
@@ -91,18 +91,18 @@ export const ScheduleManager = () => {
         if (functionError) {
           console.error("Enhancement function error:", functionError);
           enhancementFailed = true;
-          toast.warning("لم يتمكن من تحسين الصورة، سيتم رفع الصورة الأصلية");
+          showWarning("لم يتمكن من تحسين الصورة، سيتم رفع الصورة الأصلية");
         } else if (functionData?.enhancedImage) {
           enhancedImageData = functionData.enhancedImage;
-          toast.success("تم تحسين الصورة بنجاح!");
+          showSuccess("تم تحسين الصورة بنجاح!");
         } else if (functionData?.fallback) {
           enhancementFailed = true;
-          toast.warning("لم يتمكن من تحسين الصورة، سيتم رفع الصورة الأصلية");
+          showWarning("لم يتمكن من تحسين الصورة، سيتم رفع الصورة الأصلية");
         }
       } catch (enhanceError) {
         console.error("Enhancement error:", enhanceError);
         enhancementFailed = true;
-        toast.warning("لم يتمكن من تحسين الصورة، سيتم رفع الصورة الأصلية");
+        showWarning("لم يتمكن من تحسين الصورة، سيتم رفع الصورة الأصلية");
       }
 
       // Convert base64 back to file
@@ -113,7 +113,7 @@ export const ScheduleManager = () => {
       const fileName = `schedule-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const finalFile = new File([blob], fileName, { type: blob.type });
 
-      toast.info("جاري رفع الصورة...");
+      showInfo("جاري رفع الصورة...");
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
@@ -160,13 +160,13 @@ export const ScheduleManager = () => {
         if (insertError) throw insertError;
       }
 
-      toast.success(enhancementFailed 
+      showSuccess(enhancementFailed 
         ? "تم رفع جدول الحصص بنجاح" 
         : "تم رفع وتحسين جدول الحصص بنجاح");
       fetchSchedules();
       setSelectedGrade("");
     } catch (error: any) {
-      toast.error("خطأ في رفع جدول الحصص");
+      showError("خطأ في رفع جدول الحصص");
       console.error(error);
     } finally {
       setUploading(false);
@@ -196,10 +196,10 @@ export const ScheduleManager = () => {
 
       if (dbError) throw dbError;
 
-      toast.success("تم حذف جدول الحصص بنجاح");
+      showSuccess("تم حذف جدول الحصص بنجاح");
       fetchSchedules();
     } catch (error: any) {
-      toast.error("خطأ في حذف جدول الحصص");
+      showError("خطأ في حذف جدول الحصص");
       console.error(error);
     }
   };
@@ -213,10 +213,10 @@ export const ScheduleManager = () => {
 
       if (error) throw error;
 
-      toast.success(currentStatus ? "تم إخفاء الجدول" : "تم تفعيل الجدول");
+      showSuccess(currentStatus ? "تم إخفاء الجدول" : "تم تفعيل الجدول");
       fetchSchedules();
     } catch (error: any) {
-      toast.error("خطأ في تحديث حالة الجدول");
+      showError("خطأ في تحديث حالة الجدول");
       console.error(error);
     }
   };
