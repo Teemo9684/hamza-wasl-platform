@@ -202,17 +202,27 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const cleanupFunctions: (() => void)[] = [];
 
     // Messages subscription (for both parent and teacher)
-    const messageCleanup = realtimeManager.subscribe(
-      `notification-context-messages-${userId}`,
-      'messages',
-      async (payload) => {
-        if (payload.eventType === 'REFRESH') {
-          refreshCounts();
-          return;
-        }
-
-        if (payload.eventType === 'INSERT') {
+    // Use two subscription methods for better reliability
+    
+    // Method 1: Direct channel subscription without filter (more reliable for new messages)
+    const directChannel = supabase
+      .channel(`messages-direct-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        async (payload) => {
+          console.log('Direct channel: New message received', payload);
           const newMessage = payload.new as any;
+          
+          // Only process if this message is for current user
+          if (newMessage.recipient_id !== userId) {
+            console.log('Message not for current user, ignoring');
+            return;
+          }
           
           const { data: senderData } = await supabase
             .from('profiles')
@@ -229,7 +239,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const senderName = senderData?.full_name || 'مستخدم';
           const senderDescription = userRole === 'teacher' 
             ? `رسالة من ولي الأمر: ${senderName}`
-            : `رسالة من المعلم: ${senderName}`;
+            : `رسالة من: ${senderName}`;
           
           showNotification({
             type: 'message',
@@ -241,10 +251,39 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             },
           });
         }
-
-        if (payload.eventType === 'UPDATE') {
-          refreshCounts();
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const updatedMessage = payload.new as any;
+          if (updatedMessage.recipient_id === userId) {
+            refreshCounts();
+          }
         }
+      )
+      .subscribe((status) => {
+        console.log('Direct messages channel status:', status);
+      });
+    
+    cleanupFunctions.push(() => {
+      supabase.removeChannel(directChannel);
+    });
+
+    // Method 2: RealtimeManager subscription with filter (backup)
+    const messageCleanup = realtimeManager.subscribe(
+      `notification-context-messages-${userId}`,
+      'messages',
+      async (payload) => {
+        if (payload.eventType === 'REFRESH') {
+          refreshCounts();
+          return;
+        }
+        // INSERT and UPDATE are handled by direct channel above
       },
       `recipient_id=eq.${userId}`
     );
