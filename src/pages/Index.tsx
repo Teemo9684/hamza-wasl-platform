@@ -15,7 +15,6 @@ import { format } from "date-fns";
 import { PostersCarousel } from "@/components/PostersCarousel";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
-import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
 import { useAppVersion } from "@/hooks/useAppVersion";
 
 // Stagger animation variants
@@ -450,16 +449,6 @@ const Index = () => {
             {format(currentTime, "HH:mm:ss")}
           </div>
         </div>
-      </motion.div>
-
-      {/* Update Notification Banner - Below Date/Time */}
-      <motion.div 
-        className="absolute top-[6.5rem] left-0 right-0 z-20"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
-      >
-        <UpdateNotificationBanner />
       </motion.div>
 
       {/* Main Content */}
