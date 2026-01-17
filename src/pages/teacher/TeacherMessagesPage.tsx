@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { TeacherMessages } from "@/components/teacher/TeacherMessages";
 import { messageSchema } from "@/lib/validations";
 import { sendMessageNotification } from "@/utils/sendPushNotification";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { showError, showSuccess } from "@/utils/errorMessages";
 
 export const TeacherMessagesContent = () => {
-  const { toast } = useToast();
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [teacherName, setTeacherName] = useState("");
@@ -48,11 +47,7 @@ export const TeacherMessagesContent = () => {
       if (messagesError) throw messagesError;
       setMessages(messagesData || []);
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error);
     } finally {
       setLoading(false);
     }
@@ -68,11 +63,7 @@ export const TeacherMessagesContent = () => {
       if (error) throw error;
       fetchTeacherData();
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error);
     }
   };
 
@@ -85,18 +76,11 @@ export const TeacherMessagesContent = () => {
 
       if (error) throw error;
       
-      toast({
-        title: "تم الحذف",
-        description: "تم حذف الرسالة بنجاح",
-      });
+      showSuccess("تم الحذف", "تم حذف الرسالة بنجاح");
       
       fetchTeacherData();
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error);
     }
   };
 
@@ -134,19 +118,12 @@ export const TeacherMessagesContent = () => {
         `رد: ${originalSubject}`
       );
 
-      toast({
-        title: "تم بنجاح",
-        description: "تم إرسال الرد بنجاح",
-      });
+      showSuccess("تم الإرسال", "تم إرسال الرد بنجاح");
 
       await handleMarkAsRead(messageId);
       fetchTeacherData();
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.errors?.[0]?.message || error.message,
-        variant: "destructive",
-      });
+      showError(error.errors?.[0]?.message || error);
     }
   };
 

@@ -7,8 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2, Info } from "lucide-react";
 import { useAppVersion } from "@/hooks/useAppVersion";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { lightHaptic, successHaptic, errorHaptic, warningHaptic } from "@/utils/haptics";
+import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,7 +72,7 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
         email: user.email || "",
       });
     } catch (error: any) {
-      toast.error("خطأ في جلب بيانات الملف الشخصي");
+      showError(error, "خطأ في جلب البيانات");
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
   const handleSaveProfile = async () => {
     if (!profile.full_name.trim()) {
       errorHaptic();
-      toast.error("يرجى إدخال الاسم الكامل");
+      ErrorMessages.REQUIRED_FIELDS();
       return;
     }
 
@@ -103,10 +103,10 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
       if (error) throw error;
 
       successHaptic();
-      toast.success("تم تحديث البيانات الشخصية بنجاح");
+      showSuccess("تم الحفظ", "تم تحديث البيانات الشخصية بنجاح");
     } catch (error: any) {
       errorHaptic();
-      toast.error(error.message || "خطأ في حفظ البيانات");
+      showError(error, "خطأ في الحفظ");
     } finally {
       setSavingProfile(false);
     }
@@ -115,19 +115,19 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
   const handleChangePassword = async () => {
     if (!passwords.newPassword || !passwords.confirmPassword) {
       errorHaptic();
-      toast.error("يرجى إدخال كلمة المرور الجديدة وتأكيدها");
+      showWarning("حقول مطلوبة", "يرجى إدخال كلمة المرور الجديدة وتأكيدها");
       return;
     }
 
     if (passwords.newPassword.length < 6) {
       errorHaptic();
-      toast.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+      showError("password should be at least");
       return;
     }
 
     if (passwords.newPassword !== passwords.confirmPassword) {
       errorHaptic();
-      toast.error("كلمتا المرور غير متطابقتين");
+      ErrorMessages.PASSWORDS_MISMATCH();
       return;
     }
 
@@ -142,11 +142,11 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
       if (error) throw error;
 
       successHaptic();
-      toast.success("تم تغيير كلمة المرور بنجاح");
+      showSuccess("تم التغيير", "تم تغيير كلمة المرور بنجاح");
       setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error: any) {
       errorHaptic();
-      toast.error(error.message || "خطأ في تغيير كلمة المرور");
+      showError(error, "خطأ في تغيير كلمة المرور");
     } finally {
       setChangingPassword(false);
     }
@@ -169,11 +169,11 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
       if (error) throw error;
 
       successHaptic();
-      toast.success(`تم إلغاء ربط "${childName}" من حسابك`);
+      showSuccess("تم إلغاء الربط", `تم إلغاء ربط "${childName}" من حسابك`);
       onChildRemoved?.();
     } catch (error: any) {
       errorHaptic();
-      toast.error(error.message || "خطأ في إلغاء ربط الابن");
+      showError(error, "خطأ في إلغاء الربط");
     } finally {
       setRemovingChild(null);
     }

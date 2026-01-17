@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { TeacherAttendance } from "@/components/teacher/TeacherAttendance";
 import { attendanceNotesSchema } from "@/lib/validations";
 import { sendAttendanceNotification } from "@/utils/sendPushNotification";
+import { showError, showSuccess } from "@/utils/errorMessages";
 
 export const TeacherAttendanceContent = () => {
-  const { toast } = useToast();
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,11 +79,7 @@ export const TeacherAttendanceContent = () => {
 
       setStudents(studentsData);
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError(error);
     } finally {
       setLoading(false);
     }
@@ -132,16 +127,9 @@ export const TeacherAttendanceContent = () => {
         }
       }
 
-      toast({
-        title: "تم بنجاح",
-        description: "تم تسجيل الحضور وإرسال الإشعار لولي الأمر",
-      });
+      showSuccess("تم التسجيل", "تم تسجيل الحضور وإرسال الإشعار لولي الأمر");
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.errors?.[0]?.message || error.message,
-        variant: "destructive",
-      });
+      showError(error.errors?.[0]?.message || error);
     }
   };
 
