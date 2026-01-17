@@ -93,10 +93,10 @@ const App = () => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Trigger entrance animation after splash finishes
+    // Trigger entrance animation immediately after splash finishes
     if (!showSplash) {
-      const timer = setTimeout(() => setIsLoaded(true), 100);
-      return () => clearTimeout(timer);
+      // Use requestAnimationFrame for smoother transition
+      requestAnimationFrame(() => setIsLoaded(true));
     }
   }, [showSplash]);
 
