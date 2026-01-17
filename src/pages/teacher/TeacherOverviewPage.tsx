@@ -1,19 +1,15 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TeacherOverview } from "@/components/teacher/TeacherOverview";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { useNavigate } from "react-router-dom";
 
 interface StudentsByGrade {
   [gradeLevel: string]: any[];
 }
 
-const TeacherOverviewPage = () => {
+export const TeacherOverviewContent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [students, setStudents] = useState<any[]>([]);
@@ -22,7 +18,7 @@ const TeacherOverviewPage = () => {
   const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
   const [isLanguageTeacher, setIsLanguageTeacher] = useState(false);
   
-  const { counts, setUserId, setUserRole } = useNotifications();
+  const { counts } = useNotifications();
 
   useEffect(() => {
     fetchTeacherData();
@@ -31,13 +27,7 @@ const TeacherOverviewPage = () => {
   const fetchTeacherData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/login/teacher");
-        return;
-      }
-
-      setUserId(user.id);
-      setUserRole('teacher');
+      if (!user) return;
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -116,68 +106,21 @@ const TeacherOverviewPage = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   const handleSendMessageToParent = async (parentId: string, studentId: string) => {
     navigate('/dashboard/teacher/messages');
   };
 
-  const handleNavigate = (sectionId: string) => {
-    if (sectionId === 'overview') {
-      navigate('/dashboard/teacher');
-    } else {
-      navigate(`/dashboard/teacher/${sectionId}`);
-    }
-  };
-
-  const header = (
-    <header>
-      <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-sm md:text-lg font-bold truncate leading-tight">لوحة تحكم المعلم</h1>
-          <p className="text-[11px] md:text-xs text-muted-foreground truncate">إدارة التلاميذ والتواصل</p>
-        </div>
-        <Button
-          variant="ghost"
-          onClick={handleLogout}
-          className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
-          size="sm"
-        >
-          <LogOut className="ml-1.5 h-4 w-4" />
-          <span className="hidden sm:inline">تسجيل الخروج</span>
-          <span className="sm:hidden">خروج</span>
-        </Button>
-      </div>
-    </header>
-  );
-
-  const bottomNav = (
-    <BottomNav 
-      items={teacherNavItems} 
-      onNavigate={handleNavigate}
-      useHashNavigation={false}
-      notifications={{
-        messages: counts.messages,
-      }}
-    />
-  );
-
   return (
-    <DashboardLayout header={header} bottomNav={bottomNav}>
-      <TeacherOverview
-        teacherInfo={teacherInfo}
-        studentsCount={students.length}
-        unreadMessagesCount={counts.messages}
-        students={students}
-        studentsByGrade={studentsByGrade}
-        isLanguageTeacher={isLanguageTeacher}
-        onSendMessage={handleSendMessageToParent}
-      />
-    </DashboardLayout>
+    <TeacherOverview
+      teacherInfo={teacherInfo}
+      studentsCount={students.length}
+      unreadMessagesCount={counts.messages}
+      students={students}
+      studentsByGrade={studentsByGrade}
+      isLanguageTeacher={isLanguageTeacher}
+      onSendMessage={handleSendMessageToParent}
+    />
   );
 };
 
-export default TeacherOverviewPage;
+export default TeacherOverviewContent;

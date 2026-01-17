@@ -1,25 +1,18 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TeacherMessages } from "@/components/teacher/TeacherMessages";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { messageSchema } from "@/lib/validations";
 import { sendMessageNotification } from "@/utils/sendPushNotification";
 import { useNotifications } from "@/contexts/NotificationContext";
 
-const TeacherMessagesPage = () => {
-  const navigate = useNavigate();
+export const TeacherMessagesContent = () => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [teacherName, setTeacherName] = useState("");
   
-  const { counts, setUserId, setUserRole, clearSection } = useNotifications();
+  const { clearSection } = useNotifications();
 
   useEffect(() => {
     fetchTeacherData();
@@ -32,14 +25,7 @@ const TeacherMessagesPage = () => {
   const fetchTeacherData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/login/teacher");
-        return;
-      }
-
-      setCurrentUserId(user.id);
-      setUserId(user.id);
-      setUserRole('teacher');
+      if (!user) return;
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -164,56 +150,14 @@ const TeacherMessagesPage = () => {
     }
   };
 
-  const handleNavigate = (sectionId: string) => {
-    if (sectionId === 'overview') {
-      navigate('/dashboard/teacher');
-    } else {
-      navigate(`/dashboard/teacher/${sectionId}`);
-    }
-  };
-
-  const header = (
-    <header>
-      <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/dashboard/teacher')}
-          className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
-          size="sm"
-        >
-          <ArrowRight className="ml-1.5 h-4 w-4" />
-          رجوع
-        </Button>
-        <div className="min-w-0 flex-1 text-center">
-          <h1 className="text-sm md:text-lg font-bold truncate leading-tight">الرسائل</h1>
-        </div>
-        <div className="w-20"></div>
-      </div>
-    </header>
-  );
-
-  const bottomNav = (
-    <BottomNav 
-      items={teacherNavItems} 
-      activeSection="messages"
-      onNavigate={handleNavigate}
-      useHashNavigation={false}
-      notifications={{
-        messages: counts.messages,
-      }}
-    />
-  );
-
   return (
-    <DashboardLayout header={header} bottomNav={bottomNav}>
-      <TeacherMessages
-        messages={messages}
-        onMarkAsRead={handleMarkAsRead}
-        onSendReply={handleSendReply}
-        onDeleteMessage={handleDeleteMessage}
-      />
-    </DashboardLayout>
+    <TeacherMessages
+      messages={messages}
+      onMarkAsRead={handleMarkAsRead}
+      onSendReply={handleSendReply}
+      onDeleteMessage={handleDeleteMessage}
+    />
   );
 };
 
-export default TeacherMessagesPage;
+export default TeacherMessagesContent;
