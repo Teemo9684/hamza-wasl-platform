@@ -6,8 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { ParentMessages } from "@/components/parent/ParentMessages";
-import { NewsTicker } from "@/components/NewsTicker";
-import { useNewsTicker } from "@/hooks/useNewsTicker";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { setAppBadge } from "@/utils/appBadge";
@@ -18,20 +17,18 @@ import { useNotifications } from "@/contexts/NotificationContext";
 const ParentMessagesPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { hasNews, tickerHeight } = useNewsTicker();
   const [children, setChildren] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [receivedMessages, setReceivedMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  const { counts, clearSection, setUserId, setChildIds, setUserRole, refreshCounts } = useNotifications();
+  const { counts, clearSection, setUserId, setChildIds, refreshCounts } = useNotifications();
 
   useEffect(() => {
     fetchParentData();
   }, []);
 
-  // Real-time subscription for messages
   useEffect(() => {
     if (!currentUserId) return;
 
@@ -182,14 +179,9 @@ const ParentMessagesPage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
-    if (sectionId === 'messages') {
-      return; // Already here
-    }
-    if (sectionId === 'attendance') {
-      clearSection('attendance');
-    } else if (sectionId === 'homework') {
-      clearSection('homework');
-    }
+    if (sectionId === 'messages') return;
+    if (sectionId === 'attendance') clearSection('attendance');
+    else if (sectionId === 'homework') clearSection('homework');
     if (sectionId === 'overview') {
       navigate('/dashboard/parent');
     } else {
@@ -199,67 +191,50 @@ const ParentMessagesPage = () => {
 
   const unreadMessagesCount = receivedMessages.filter(m => !m.is_read).length;
 
-  // No loading spinner - content renders immediately
+  const header = (
+    <header>
+      <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/dashboard/parent')}
+          className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
+          size="sm"
+        >
+          <ArrowRight className="ml-1.5 h-4 w-4" />
+          رجوع
+        </Button>
+        <div className="min-w-0 flex-1 text-center">
+          <h1 className="text-sm md:text-lg font-bold truncate leading-tight">الرسائل</h1>
+        </div>
+        <div className="w-20"></div>
+      </div>
+    </header>
+  );
 
-  const headerHeight = 56;
+  const bottomNav = (
+    <BottomNav 
+      items={parentNavItems} 
+      activeSection="messages"
+      onNavigate={handleNavigate}
+      useHashNavigation={false}
+      notifications={{
+        messages: unreadMessagesCount,
+        attendance: counts.attendance,
+        homework: counts.homework,
+        documents: counts.documents,
+      }}
+    />
+  );
 
   return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-clip pt-[env(safe-area-inset-top)]">
-      {hasNews && (
-        <div className="fixed top-[env(safe-area-inset-top)] left-0 right-0 z-50">
-          <NewsTicker />
-        </div>
-      )}
-      
-      <div 
-        className="fixed left-0 right-0 z-40 bg-background/98 backdrop-blur-xl border-b shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
-        style={{ top: `calc(env(safe-area-inset-top) + ${hasNews ? tickerHeight : 0}px)` }}
-      >
-        <header>
-          <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/dashboard/parent')}
-              className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
-              size="sm"
-            >
-              <ArrowRight className="ml-1.5 h-4 w-4" />
-              رجوع
-            </Button>
-            <div className="min-w-0 flex-1 text-center">
-              <h1 className="text-sm md:text-lg font-bold truncate leading-tight">الرسائل</h1>
-            </div>
-            <div className="w-20"></div>
-          </div>
-        </header>
-      </div>
-
-      <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
-
-      <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <div className="max-w-6xl mx-auto w-full">
-          <ParentMessages
-            teachers={teachers}
-            receivedMessages={receivedMessages}
-            children={children}
-            onMessageSent={fetchParentData}
-          />
-        </div>
-      </main>
-
-      <BottomNav 
-        items={parentNavItems} 
-        activeSection="messages"
-        onNavigate={handleNavigate}
-        useHashNavigation={false}
-        notifications={{
-          messages: unreadMessagesCount,
-          attendance: counts.attendance,
-          homework: counts.homework,
-          documents: counts.documents,
-        }}
+    <DashboardLayout header={header} bottomNav={bottomNav}>
+      <ParentMessages
+        teachers={teachers}
+        receivedMessages={receivedMessages}
+        children={children}
+        onMessageSent={fetchParentData}
       />
-    </div>
+    </DashboardLayout>
   );
 };
 

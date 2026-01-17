@@ -5,8 +5,7 @@ import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentOverview } from "@/components/parent/ParentOverview";
-import { NewsTicker } from "@/components/NewsTicker";
-import { useNewsTicker } from "@/hooks/useNewsTicker";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { realtimeManager } from "@/utils/realtimeManager";
@@ -14,7 +13,6 @@ import { realtimeManager } from "@/utils/realtimeManager";
 const ParentOverviewPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { hasNews, tickerHeight } = useNewsTicker();
   const [children, setChildren] = useState<any[]>([]);
   const [selectedChild, setSelectedChild] = useState<string>("");
   const [attendance, setAttendance] = useState<any[]>([]);
@@ -33,7 +31,6 @@ const ParentOverviewPage = () => {
     }
   }, [selectedChild]);
 
-  // Real-time subscription for attendance
   useEffect(() => {
     if (!selectedChild) return;
 
@@ -87,7 +84,6 @@ const ParentOverviewPage = () => {
         return;
       }
 
-      // Set user ID and role in notification context
       setUserId(user.id);
       setUserRole('parent');
 
@@ -110,7 +106,6 @@ const ParentOverviewPage = () => {
       if (childrenError) throw childrenError;
       setChildren(childrenData || []);
       
-      // Set child IDs in notification context
       if (childrenData && childrenData.length > 0) {
         setChildIds(childrenData.map(c => c.id));
         setSelectedChild(childrenData[0].id);
@@ -159,15 +154,12 @@ const ParentOverviewPage = () => {
   };
 
   const handleNavigate = (sectionId: string) => {
-    // Clear the section's badge when navigating to it
     if (sectionId === 'attendance') {
       clearSection('attendance');
     } else if (sectionId === 'homework') {
       clearSection('homework');
     } else if (sectionId === 'documents') {
       clearSection('documents');
-    } else if (sectionId === 'messages') {
-      // Messages are marked as read individually, not cleared here
     }
     
     if (sectionId === 'overview') {
@@ -176,70 +168,53 @@ const ParentOverviewPage = () => {
     navigate(`/dashboard/parent/${sectionId}`);
   };
 
-  // No loading spinner - content renders immediately for smooth transitions
+  const header = (
+    <header>
+      <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-sm md:text-lg font-bold truncate leading-tight">مرحباً، {parentName}</h1>
+          <p className="text-[11px] md:text-xs text-muted-foreground truncate">لوحة تحكم ولي الأمر</p>
+        </div>
+        <Button
+          variant="ghost"
+          onClick={handleLogout}
+          className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
+          size="sm"
+        >
+          <LogOut className="ml-1.5 h-4 w-4" />
+          <span className="hidden sm:inline">تسجيل الخروج</span>
+          <span className="sm:hidden">خروج</span>
+        </Button>
+      </div>
+    </header>
+  );
 
-  const headerHeight = 56;
+  const bottomNav = (
+    <BottomNav 
+      items={parentNavItems} 
+      activeSection="overview"
+      onNavigate={handleNavigate}
+      useHashNavigation={false}
+      notifications={{
+        messages: counts.messages,
+        attendance: counts.attendance,
+        homework: counts.homework,
+        documents: counts.documents,
+      }}
+    />
+  );
 
   return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-clip pt-[env(safe-area-inset-top)]">
-      {hasNews && (
-        <div className="fixed top-[env(safe-area-inset-top)] left-0 right-0 z-50">
-          <NewsTicker />
-        </div>
-      )}
-      
-      <div 
-        className="fixed left-0 right-0 z-40 bg-background/98 backdrop-blur-xl border-b shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
-        style={{ top: `calc(env(safe-area-inset-top) + ${hasNews ? tickerHeight : 0}px)` }}
-      >
-        <header>
-          <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-sm md:text-lg font-bold truncate leading-tight">مرحباً، {parentName}</h1>
-              <p className="text-[11px] md:text-xs text-muted-foreground truncate">لوحة تحكم ولي الأمر</p>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
-              size="sm"
-            >
-              <LogOut className="ml-1.5 h-4 w-4" />
-              <span className="hidden sm:inline">تسجيل الخروج</span>
-              <span className="sm:hidden">خروج</span>
-            </Button>
-          </div>
-        </header>
-      </div>
-
-      <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
-
-      <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <div className="max-w-6xl mx-auto w-full">
-          <ParentOverview
-            children={children}
-            selectedChild={selectedChild}
-            onSelectChild={setSelectedChild}
-            attendance={attendance}
-            calculateAttendanceRate={calculateAttendanceRate}
-            onChildAdded={fetchParentData}
-          />
-        </div>
-      </main>
-
-      <BottomNav 
-        items={parentNavItems} 
-        activeSection="overview"
-        onNavigate={handleNavigate}
-        useHashNavigation={false}
-        notifications={{
-          messages: counts.messages,
-          attendance: counts.attendance,
-          homework: counts.homework,
-          documents: counts.documents,
-        }}
+    <DashboardLayout header={header} bottomNav={bottomNav}>
+      <ParentOverview
+        children={children}
+        selectedChild={selectedChild}
+        onSelectChild={setSelectedChild}
+        attendance={attendance}
+        calculateAttendanceRate={calculateAttendanceRate}
+        onChildAdded={fetchParentData}
       />
-    </div>
+    </DashboardLayout>
   );
 };
 

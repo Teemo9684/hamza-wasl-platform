@@ -5,8 +5,7 @@ import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TeacherOverview } from "@/components/teacher/TeacherOverview";
-import { NewsTicker } from "@/components/NewsTicker";
-import { useNewsTicker } from "@/hooks/useNewsTicker";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
 
@@ -17,14 +16,13 @@ interface StudentsByGrade {
 const TeacherOverviewPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { hasNews, tickerHeight } = useNewsTicker();
   const [students, setStudents] = useState<any[]>([]);
   const [studentsByGrade, setStudentsByGrade] = useState<StudentsByGrade>({});
   const [loading, setLoading] = useState(true);
   const [teacherInfo, setTeacherInfo] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
   const [isLanguageTeacher, setIsLanguageTeacher] = useState(false);
   
-  const { counts, setUserId, setUserRole, clearSection } = useNotifications();
+  const { counts, setUserId, setUserRole } = useNotifications();
 
   useEffect(() => {
     fetchTeacherData();
@@ -38,7 +36,6 @@ const TeacherOverviewPage = () => {
         return;
       }
 
-      // Set up notification context
       setUserId(user.id);
       setUserRole('teacher');
 
@@ -136,67 +133,50 @@ const TeacherOverviewPage = () => {
     }
   };
 
-  // No loading spinner - content renders immediately for smooth transitions
+  const header = (
+    <header>
+      <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-sm md:text-lg font-bold truncate leading-tight">لوحة تحكم المعلم</h1>
+          <p className="text-[11px] md:text-xs text-muted-foreground truncate">إدارة التلاميذ والتواصل</p>
+        </div>
+        <Button
+          variant="ghost"
+          onClick={handleLogout}
+          className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
+          size="sm"
+        >
+          <LogOut className="ml-1.5 h-4 w-4" />
+          <span className="hidden sm:inline">تسجيل الخروج</span>
+          <span className="sm:hidden">خروج</span>
+        </Button>
+      </div>
+    </header>
+  );
 
-  const headerHeight = 56;
+  const bottomNav = (
+    <BottomNav 
+      items={teacherNavItems} 
+      onNavigate={handleNavigate}
+      useHashNavigation={false}
+      notifications={{
+        messages: counts.messages,
+      }}
+    />
+  );
 
   return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-clip pt-[env(safe-area-inset-top)]">
-      {hasNews && (
-        <div className="fixed top-[env(safe-area-inset-top)] left-0 right-0 z-50">
-          <NewsTicker />
-        </div>
-      )}
-      
-      <div 
-        className="fixed left-0 right-0 z-40 bg-background/98 backdrop-blur-xl border-b shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
-        style={{ top: `calc(env(safe-area-inset-top) + ${hasNews ? tickerHeight : 0}px)` }}
-      >
-        <header>
-          <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-sm md:text-lg font-bold truncate leading-tight">لوحة تحكم المعلم</h1>
-              <p className="text-[11px] md:text-xs text-muted-foreground truncate">إدارة التلاميذ والتواصل</p>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
-              size="sm"
-            >
-              <LogOut className="ml-1.5 h-4 w-4" />
-              <span className="hidden sm:inline">تسجيل الخروج</span>
-              <span className="sm:hidden">خروج</span>
-            </Button>
-          </div>
-        </header>
-      </div>
-
-      <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
-
-      <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <div className="max-w-6xl mx-auto w-full">
-          <TeacherOverview
-            teacherInfo={teacherInfo}
-            studentsCount={students.length}
-            unreadMessagesCount={counts.messages}
-            students={students}
-            studentsByGrade={studentsByGrade}
-            isLanguageTeacher={isLanguageTeacher}
-            onSendMessage={handleSendMessageToParent}
-          />
-        </div>
-      </main>
-
-      <BottomNav 
-        items={teacherNavItems} 
-        onNavigate={handleNavigate}
-        useHashNavigation={false}
-        notifications={{
-          messages: counts.messages,
-        }}
+    <DashboardLayout header={header} bottomNav={bottomNav}>
+      <TeacherOverview
+        teacherInfo={teacherInfo}
+        studentsCount={students.length}
+        unreadMessagesCount={counts.messages}
+        students={students}
+        studentsByGrade={studentsByGrade}
+        isLanguageTeacher={isLanguageTeacher}
+        onSendMessage={handleSendMessageToParent}
       />
-    </div>
+    </DashboardLayout>
   );
 };
 
