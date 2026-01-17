@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { realtimeManager } from '@/utils/realtimeManager';
 
 interface Poster {
@@ -20,7 +21,7 @@ export const PostersCarousel = () => {
   const [posters, setPosters] = useState<Poster[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPoster, setSelectedPoster] = useState<Poster | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -47,32 +48,45 @@ export const PostersCarousel = () => {
     setLoading(false);
   }, []);
 
-  const scrollLeft = useCallback(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+  const scrollToIndex = useCallback((index: number) => {
+    if (scrollContainerRef.current && posters.length > 0) {
+      const container = scrollContainerRef.current;
+      const cardWidth = 200; // w-48 = 192px + gap
+      const scrollPosition = index * cardWidth;
+      container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+      setCurrentIndex(index);
     }
-  }, []);
+  }, [posters.length]);
+
+  const scrollLeft = useCallback(() => {
+    const newIndex = currentIndex > 0 ? currentIndex - 1 : posters.length - 1;
+    scrollToIndex(newIndex);
+  }, [currentIndex, posters.length, scrollToIndex]);
 
   const scrollRight = useCallback(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
-  }, []);
+    const newIndex = currentIndex < posters.length - 1 ? currentIndex + 1 : 0;
+    scrollToIndex(newIndex);
+  }, [currentIndex, posters.length, scrollToIndex]);
 
-  // Auto-scroll function
+  // Auto-scroll function - continuous without stopping
   const autoScroll = useCallback(() => {
-    if (scrollContainerRef.current && !isHovered) {
+    if (scrollContainerRef.current && posters.length > 1) {
+      const newIndex = currentIndex < posters.length - 1 ? currentIndex + 1 : 0;
+      scrollToIndex(newIndex);
+    }
+  }, [currentIndex, posters.length, scrollToIndex]);
+
+  // Track scroll position to update current index
+  const handleScroll = useCallback(() => {
+    if (scrollContainerRef.current && posters.length > 0) {
       const container = scrollContainerRef.current;
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      
-      // If at the end, scroll back to start
-      if (container.scrollLeft >= maxScroll - 10) {
-        container.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        container.scrollBy({ left: 300, behavior: 'smooth' });
+      const cardWidth = 200;
+      const newIndex = Math.round(container.scrollLeft / cardWidth);
+      if (newIndex !== currentIndex && newIndex >= 0 && newIndex < posters.length) {
+        setCurrentIndex(newIndex);
       }
     }
-  }, [isHovered]);
+  }, [currentIndex, posters.length]);
 
   // Setup realtime subscription
   useEffect(() => {
@@ -90,9 +104,9 @@ export const PostersCarousel = () => {
     return cleanup;
   }, [fetchPosters]);
 
-  // Auto-play effect
+  // Auto-play effect - continuous every 4 seconds
   useEffect(() => {
-    if (posters.length > 1 && !isHovered) {
+    if (posters.length > 1) {
       autoPlayRef.current = setInterval(autoScroll, 4000);
     }
 
@@ -101,14 +115,14 @@ export const PostersCarousel = () => {
         clearInterval(autoPlayRef.current);
       }
     };
-  }, [posters.length, isHovered, autoScroll]);
+  }, [posters.length, autoScroll]);
 
   if (loading) {
     return (
-      <div className="w-full px-4 py-6">
-        <div className="flex gap-4 overflow-hidden">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="flex-shrink-0 w-72 h-44 rounded-2xl" />
+      <div className="w-full px-4 py-4">
+        <div className="flex gap-3 overflow-hidden">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="flex-shrink-0 w-48 h-32 rounded-xl" />
           ))}
         </div>
       </div>
@@ -121,54 +135,54 @@ export const PostersCarousel = () => {
 
   return (
     <>
-      <div className="w-full py-6">
-        <div 
-          className="relative group"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
+      <div className="w-full py-4">
+        <div className="relative group">
           {/* Navigation Arrows */}
           {posters.length > 1 && (
             <>
               <button
                 onClick={scrollRight}
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-background/80 shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-background"
+                className="absolute right-1 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-background/80 shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-background"
                 aria-label="التالي"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-4 w-4" />
               </button>
               <button
                 onClick={scrollLeft}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-background/80 shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-background"
+                className="absolute left-1 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-background/80 shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-background"
                 aria-label="السابق"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
             </>
           )}
 
-          {/* Carousel Container with CSS Scroll Snap */}
+          {/* Carousel Container */}
           <div 
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto px-4 scrollbar-hide scroll-smooth snap-x snap-mandatory"
+            onScroll={handleScroll}
+            className="flex gap-3 overflow-x-auto px-3 scrollbar-hide scroll-smooth snap-x snap-mandatory"
             style={{ 
               scrollbarWidth: 'none', 
               msOverflowStyle: 'none',
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            {posters.map((poster) => (
+            {posters.map((poster, index) => (
               <div
                 key={poster.id}
-                className="flex-shrink-0 w-72 md:w-80 lg:w-96 cursor-pointer snap-start"
+                className="flex-shrink-0 w-48 md:w-56 cursor-pointer snap-start"
                 onClick={() => setSelectedPoster(poster)}
               >
-                <div className="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group/card hover:scale-[1.02]">
+                <div className={cn(
+                  "relative overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-all duration-300",
+                  index === currentIndex && "ring-2 ring-primary ring-offset-2"
+                )}>
                   <div className="aspect-[4/3] bg-muted">
                     <img
                       src={poster.image_url}
                       alt={poster.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       onError={(e) => {
                         console.error('Image failed to load:', poster.image_url);
                         e.currentTarget.src = '/placeholder.svg';
@@ -177,11 +191,11 @@ export const PostersCarousel = () => {
                     />
                   </div>
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
                   
                   {/* Title */}
-                  <div className="absolute inset-x-0 bottom-0 p-4 pointer-events-none">
-                    <h3 className="text-white text-base md:text-lg font-bold text-right drop-shadow-lg line-clamp-2">
+                  <div className="absolute inset-x-0 bottom-0 p-2 pointer-events-none">
+                    <h3 className="text-white text-sm font-semibold text-right drop-shadow-lg line-clamp-1">
                       {poster.title}
                     </h3>
                   </div>
@@ -189,6 +203,29 @@ export const PostersCarousel = () => {
               </div>
             ))}
           </div>
+
+          {/* Dot Indicators */}
+          {posters.length > 1 && (
+            <div className="flex justify-center gap-1.5 mt-3">
+              {posters.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => scrollToIndex(index)}
+                  className="focus:outline-none"
+                  aria-label={`انتقل إلى الملصقة ${index + 1}`}
+                >
+                  <div 
+                    className={cn(
+                      "h-1.5 rounded-full transition-all duration-300",
+                      index === currentIndex 
+                        ? "w-4 bg-primary" 
+                        : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                    )}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
