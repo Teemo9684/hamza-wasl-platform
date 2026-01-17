@@ -16,8 +16,8 @@ const configureStatusBar = async () => {
   if (Capacitor.isNativePlatform()) {
     try {
       const { StatusBar, Style } = await import("@capacitor/status-bar");
-      // Set status bar with splash screen background color and dark icons
-      await StatusBar.setStyle({ style: Style.Dark }); // Dark icons on light background
+      // Set status bar with light background and dark/black icons
+      await StatusBar.setStyle({ style: Style.Light }); // Light style = dark/black icons
       await StatusBar.setBackgroundColor({ color: '#f8fafc' }); // Light background matching splash
       await StatusBar.setOverlaysWebView({ overlay: false });
     } catch (e) {
