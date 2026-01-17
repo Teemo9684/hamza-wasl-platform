@@ -27,21 +27,25 @@ import DashboardAdmin from "./pages/DashboardAdmin";
 import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
 
-// Parent pages
-import ParentOverviewPage from "./pages/parent/ParentOverviewPage";
-import ParentAttendancePage from "./pages/parent/ParentAttendancePage";
-import ParentHomeworkPage from "./pages/parent/ParentHomeworkPage";
-import ParentSchedulePage from "./pages/parent/ParentSchedulePage";
-import ParentMessagesPage from "./pages/parent/ParentMessagesPage";
-import ParentSettingsPage from "./pages/parent/ParentSettingsPage";
-import ParentDocumentRequestsPage from "./pages/parent/ParentDocumentRequestsPage";
+// Dashboard Layouts
+import { ParentDashboardLayout } from "./components/ParentDashboardLayout";
+import { TeacherDashboardLayout } from "./components/TeacherDashboardLayout";
 
-// Teacher pages
-import TeacherOverviewPage from "./pages/teacher/TeacherOverviewPage";
-import TeacherAttendancePage from "./pages/teacher/TeacherAttendancePage";
-import TeacherHomeworkPage from "./pages/teacher/TeacherHomeworkPage";
-import TeacherMessagesPage from "./pages/teacher/TeacherMessagesPage";
-import TeacherGroupMessagesPage from "./pages/teacher/TeacherGroupMessagesPage";
+// Parent page content components
+import { ParentOverviewContent } from "./pages/parent/ParentOverviewPage";
+import { ParentAttendanceContent } from "./pages/parent/ParentAttendancePage";
+import { ParentHomeworkContent } from "./pages/parent/ParentHomeworkPage";
+import { ParentScheduleContent } from "./pages/parent/ParentSchedulePage";
+import { ParentMessagesContent } from "./pages/parent/ParentMessagesPage";
+import { ParentDocumentRequestsContent } from "./pages/parent/ParentDocumentRequestsPage";
+import { ParentSettingsContent } from "./pages/parent/ParentSettingsPage";
+
+// Teacher page content components
+import { TeacherOverviewContent } from "./pages/teacher/TeacherOverviewPage";
+import { TeacherAttendanceContent } from "./pages/teacher/TeacherAttendancePage";
+import { TeacherHomeworkContent } from "./pages/teacher/TeacherHomeworkPage";
+import { TeacherMessagesContent } from "./pages/teacher/TeacherMessagesPage";
+import { TeacherGroupMessagesContent } from "./pages/teacher/TeacherGroupMessagesPage";
 
 const queryClient = new QueryClient();
 
@@ -50,41 +54,43 @@ const AnimatedRoutes = () => {
   const location = useLocation();
   
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
-        <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
-        <Route path="/register/parent" element={<PageTransition><RegisterParent /></PageTransition>} />
-        <Route path="/register/teacher" element={<PageTransition><RegisterTeacher /></PageTransition>} />
-        <Route path="/login/parent" element={<PageTransition><LoginParent /></PageTransition>} />
-        <Route path="/login/teacher" element={<PageTransition><LoginTeacher /></PageTransition>} />
-        <Route path="/login/admin" element={<PageTransition><LoginAdmin /></PageTransition>} />
-        
-        {/* Parent Dashboard Routes - No PageTransition to keep fixed elements static */}
-        <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentOverviewPage /></ProtectedRoute>} />
-        <Route path="/dashboard/parent/overview" element={<ProtectedRoute requiredRole="parent"><ParentOverviewPage /></ProtectedRoute>} />
-        <Route path="/dashboard/parent/attendance" element={<ProtectedRoute requiredRole="parent"><ParentAttendancePage /></ProtectedRoute>} />
-        <Route path="/dashboard/parent/homework" element={<ProtectedRoute requiredRole="parent"><ParentHomeworkPage /></ProtectedRoute>} />
-        <Route path="/dashboard/parent/schedule" element={<ProtectedRoute requiredRole="parent"><ParentSchedulePage /></ProtectedRoute>} />
-        <Route path="/dashboard/parent/messages" element={<ProtectedRoute requiredRole="parent"><ParentMessagesPage /></ProtectedRoute>} />
-        <Route path="/dashboard/parent/documents" element={<ProtectedRoute requiredRole="parent"><ParentDocumentRequestsPage /></ProtectedRoute>} />
-        <Route path="/dashboard/parent/settings" element={<ProtectedRoute requiredRole="parent"><ParentSettingsPage /></ProtectedRoute>} />
-        
-        {/* Teacher Dashboard Routes - No PageTransition to keep fixed elements static */}
-        <Route path="/dashboard/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherOverviewPage /></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/overview" element={<ProtectedRoute requiredRole="teacher"><TeacherOverviewPage /></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/attendance" element={<ProtectedRoute requiredRole="teacher"><TeacherAttendancePage /></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/homework" element={<ProtectedRoute requiredRole="teacher"><TeacherHomeworkPage /></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/messages" element={<ProtectedRoute requiredRole="teacher"><TeacherMessagesPage /></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/groupMessages" element={<ProtectedRoute requiredRole="teacher"><TeacherGroupMessagesPage /></ProtectedRoute>} />
-        
-        {/* Admin Dashboard */}
-        <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><DashboardAdmin /></ProtectedRoute>} />
-        
-        <Route path="/install" element={<PageTransition><InstallApp /></PageTransition>} />
-        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-      </Routes>
-    </AnimatePresence>
+    <Routes location={location}>
+      <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+      <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+      <Route path="/register/parent" element={<PageTransition><RegisterParent /></PageTransition>} />
+      <Route path="/register/teacher" element={<PageTransition><RegisterTeacher /></PageTransition>} />
+      <Route path="/login/parent" element={<PageTransition><LoginParent /></PageTransition>} />
+      <Route path="/login/teacher" element={<PageTransition><LoginTeacher /></PageTransition>} />
+      <Route path="/login/admin" element={<PageTransition><LoginAdmin /></PageTransition>} />
+      
+      {/* Parent Dashboard with shared layout */}
+      <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentDashboardLayout /></ProtectedRoute>}>
+        <Route index element={<ParentOverviewContent />} />
+        <Route path="overview" element={<ParentOverviewContent />} />
+        <Route path="attendance" element={<ParentAttendanceContent />} />
+        <Route path="homework" element={<ParentHomeworkContent />} />
+        <Route path="schedule" element={<ParentScheduleContent />} />
+        <Route path="messages" element={<ParentMessagesContent />} />
+        <Route path="documents" element={<ParentDocumentRequestsContent />} />
+        <Route path="settings" element={<ParentSettingsContent />} />
+      </Route>
+      
+      {/* Teacher Dashboard with shared layout */}
+      <Route path="/dashboard/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherDashboardLayout /></ProtectedRoute>}>
+        <Route index element={<TeacherOverviewContent />} />
+        <Route path="overview" element={<TeacherOverviewContent />} />
+        <Route path="attendance" element={<TeacherAttendanceContent />} />
+        <Route path="homework" element={<TeacherHomeworkContent />} />
+        <Route path="messages" element={<TeacherMessagesContent />} />
+        <Route path="groupMessages" element={<TeacherGroupMessagesContent />} />
+      </Route>
+      
+      {/* Admin Dashboard */}
+      <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><DashboardAdmin /></ProtectedRoute>} />
+      
+      <Route path="/install" element={<PageTransition><InstallApp /></PageTransition>} />
+      <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+    </Routes>
   );
 };
 

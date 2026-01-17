@@ -1,29 +1,23 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { ParentMessages } from "@/components/parent/ParentMessages";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { BottomNav, parentNavItems } from "@/components/BottomNav";
+import { useParentDashboard } from "@/components/ParentDashboardLayout";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { setAppBadge } from "@/utils/appBadge";
 import { playNotificationSound } from "@/utils/pushNotifications";
 import { mediumHaptic } from "@/utils/haptics";
 import { useNotifications } from "@/contexts/NotificationContext";
 
-const ParentMessagesPage = () => {
-  const navigate = useNavigate();
+export const ParentMessagesContent = () => {
   const { toast } = useToast();
-  const [children, setChildren] = useState<any[]>([]);
+  const { children } = useParentDashboard();
   const [teachers, setTeachers] = useState<any[]>([]);
   const [receivedMessages, setReceivedMessages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  const { counts, clearSection, setUserId, setChildIds, refreshCounts } = useNotifications();
+  const { refreshCounts } = useNotifications();
 
   useEffect(() => {
     fetchParentData();
@@ -120,28 +114,17 @@ const ParentMessagesPage = () => {
   const fetchParentData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/login/parent");
-        return;
-      }
+      if (!user) return;
 
       setCurrentUserId(user.id);
-      setUserId(user.id);
 
-      const { data: childrenData, error: childrenError } = await supabase
+      const { data: childrenData } = await supabase
         .from('students')
         .select(`
           *,
           parent_students!inner(parent_id)
         `)
         .eq('parent_students.parent_id', user.id);
-
-      if (childrenError) throw childrenError;
-      setChildren(childrenData || []);
-      
-      if (childrenData && childrenData.length > 0) {
-        setChildIds(childrenData.map(c => c.id));
-      }
 
       const { data: teachersData, error: teachersError } = await supabase
         .from('teacher_students')
@@ -173,69 +156,17 @@ const ParentMessagesPage = () => {
         description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
-
-  const handleNavigate = (sectionId: string) => {
-    if (sectionId === 'messages') return;
-    if (sectionId === 'attendance') clearSection('attendance');
-    else if (sectionId === 'homework') clearSection('homework');
-    if (sectionId === 'overview') {
-      navigate('/dashboard/parent');
-    } else {
-      navigate(`/dashboard/parent/${sectionId}`);
-    }
-  };
-
-  const unreadMessagesCount = receivedMessages.filter(m => !m.is_read).length;
-
-  const header = (
-    <header>
-      <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/dashboard/parent')}
-          className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
-          size="sm"
-        >
-          <ArrowRight className="ml-1.5 h-4 w-4" />
-          رجوع
-        </Button>
-        <div className="min-w-0 flex-1 text-center">
-          <h1 className="text-sm md:text-lg font-bold truncate leading-tight">الرسائل</h1>
-        </div>
-        <div className="w-20"></div>
-      </div>
-    </header>
-  );
-
-  const bottomNav = (
-    <BottomNav 
-      items={parentNavItems} 
-      activeSection="messages"
-      onNavigate={handleNavigate}
-      useHashNavigation={false}
-      notifications={{
-        messages: unreadMessagesCount,
-        attendance: counts.attendance,
-        homework: counts.homework,
-        documents: counts.documents,
-      }}
-    />
-  );
 
   return (
-    <DashboardLayout header={header} bottomNav={bottomNav}>
-      <ParentMessages
-        teachers={teachers}
-        receivedMessages={receivedMessages}
-        children={children}
-        onMessageSent={fetchParentData}
-      />
-    </DashboardLayout>
+    <ParentMessages
+      teachers={teachers}
+      receivedMessages={receivedMessages}
+      children={children}
+      onMessageSent={fetchParentData}
+    />
   );
 };
 
-export default ParentMessagesPage;
+export default ParentMessagesContent;
