@@ -1,13 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useMemo } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Mail, MailOpen, Reply, User, Trash2, ChevronDown } from "lucide-react";
-import { useState, useMemo } from "react";
+import { MessageSquare } from "lucide-react";
+import { MessagesHeader } from "@/components/shared/MessagesHeader";
+import { ConversationGroup } from "@/components/shared/ConversationGroup";
 
 interface Message {
   id: string;
@@ -55,17 +53,23 @@ export const TeacherMessages = ({
     content: "",
   });
   const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read">("all");
-  const [expandedSenders, setExpandedSenders] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter messages based on status
+  // Filter messages based on status and search
   const filteredMessages = useMemo(() => {
     return messages.filter((message) => {
-      if (filterStatus === "all") return true;
-      if (filterStatus === "unread") return !message.is_read;
-      if (filterStatus === "read") return message.is_read;
-      return true;
+      const matchesStatus = filterStatus === "all" 
+        || (filterStatus === "unread" && !message.is_read)
+        || (filterStatus === "read" && message.is_read);
+      
+      const matchesSearch = !searchQuery 
+        || message.subject.toLowerCase().includes(searchQuery.toLowerCase())
+        || message.content.toLowerCase().includes(searchQuery.toLowerCase())
+        || message.sender?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return matchesStatus && matchesSearch;
     });
-  }, [messages, filterStatus]);
+  }, [messages, filterStatus, searchQuery]);
 
   // Group messages by sender
   const groupedMessages = useMemo(() => {
@@ -90,13 +94,11 @@ export const TeacherMessages = ({
         groups[senderId].unreadCount++;
       }
       
-      // Update last message date if this message is newer
       if (new Date(message.created_at) > new Date(groups[senderId].lastMessageDate)) {
         groups[senderId].lastMessageDate = message.created_at;
       }
     });
     
-    // Sort groups by last message date (newest first)
     return Object.values(groups).sort(
       (a, b) => new Date(b.lastMessageDate).getTime() - new Date(a.lastMessageDate).getTime()
     );
@@ -146,187 +148,84 @@ export const TeacherMessages = ({
     setMessageToDelete(null);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-u-nu-latn', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('ar-u-nu-latn', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const totalUnread = messages.filter(m => !m.is_read).length;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-2">الرسائل والاستفسارات</h2>
-          <p className="text-muted-foreground text-sm">تواصل مع أولياء الأمور • {groupedMessages.length} محادثة</p>
-        </div>
-        <Select value={filterStatus} onValueChange={(value: "all" | "unread" | "read") => setFilterStatus(value)}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="تصفية" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">الكل ({messages.length})</SelectItem>
-            <SelectItem value="unread">جديد ({messages.filter(m => !m.is_read).length})</SelectItem>
-            <SelectItem value="read">مقروءة ({messages.filter(m => m.is_read).length})</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <MessagesHeader
+        title="الرسائل والاستفسارات"
+        subtitle="تواصل مع أولياء الأمور"
+        totalCount={messages.length}
+        unreadCount={totalUnread}
+        conversationCount={groupedMessages.length}
+        filterStatus={filterStatus}
+        onFilterChange={setFilterStatus}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        showSearch
+      />
 
       {groupedMessages.length > 0 ? (
-        <Accordion 
-          type="multiple" 
-          value={expandedSenders}
-          onValueChange={setExpandedSenders}
-          className="space-y-3"
-        >
-          {groupedMessages.map((group) => (
-            <AccordionItem 
-              key={group.senderId} 
-              value={group.senderId}
-              className="border rounded-xl overflow-hidden bg-card shadow-sm"
-            >
-              <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 transition-colors [&[data-state=open]]:bg-muted/30">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="h-6 w-6 text-primary" />
-                    </div>
-                    {group.unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                        {group.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1 text-right">
-                    <h3 className="font-semibold text-base">{group.senderName}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {group.messages.length} رسالة • آخر رسالة: {formatDate(group.lastMessageDate)}
-                    </p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-0 pb-0">
-                <ScrollArea className="max-h-[400px]">
-                  <div className="divide-y">
-                    {group.messages
-                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                      .map((message) => {
-                        const isReply = message.subject?.startsWith('رد:');
-                        
-                        return (
-                          <div 
-                            key={message.id} 
-                            className={`p-4 transition-colors ${!message.is_read ? 'bg-primary/5' : 'bg-background'}`}
-                          >
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                              <div className="flex items-center gap-2 flex-1">
-                                {message.is_read ? (
-                                  <MailOpen className="h-4 w-4 text-muted-foreground shrink-0" />
-                                ) : (
-                                  <Mail className="h-4 w-4 text-primary shrink-0" />
-                                )}
-                                <span className="font-medium text-sm line-clamp-1">{message.subject}</span>
-                              </div>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                {!message.is_read ? (
-                                  <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-xs px-2 py-0">جديد</Badge>
-                                ) : isReply ? (
-                                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs px-2 py-0">رد</Badge>
-                                ) : null}
-                                <span className="text-xs text-muted-foreground">{formatTime(message.created_at)}</span>
-                              </div>
-                            </div>
-                            
-                            <div className="bg-muted/40 p-3 rounded-lg mb-3">
-                              <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                            </div>
-                            
-                            {message.student && (
-                              <p className="text-xs text-muted-foreground mb-3">
-                                بخصوص الطالب: <span className="font-medium text-foreground">{message.student.full_name}</span>
-                              </p>
-                            )}
-                            
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="default"
-                                size="sm"
-                                onClick={() => handleOpenReply(message)}
-                                className="gap-1.5 h-8 text-xs"
-                              >
-                                <Reply className="h-3.5 w-3.5" />
-                                رد
-                              </Button>
-                              {!message.is_read && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => onMarkAsRead(message.id)}
-                                  className="h-8 text-xs"
-                                >
-                                  تعليم كمقروءة
-                                </Button>
-                              )}
-                              {onDeleteMessage && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteClick(message.id)}
-                                  className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 mr-auto"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </ScrollArea>
-              </AccordionContent>
-            </AccordionItem>
+        <div className="space-y-3">
+          {groupedMessages.map((group, index) => (
+            <ConversationGroup
+              key={group.senderId}
+              id={group.senderId}
+              name={group.senderName}
+              messages={group.messages}
+              unreadCount={group.unreadCount}
+              lastMessageDate={group.lastMessageDate}
+              defaultOpen={index === 0 && group.unreadCount > 0}
+              onReply={handleOpenReply}
+              onMarkAsRead={onMarkAsRead}
+              onDelete={onDeleteMessage ? handleDeleteClick : undefined}
+            />
           ))}
-        </Accordion>
+        </div>
       ) : (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">لا توجد رسائل حالياً</p>
+        <Card className="border-dashed">
+          <CardContent className="py-16 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <MessageSquare className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="font-semibold text-lg mb-1">لا توجد رسائل</h3>
+            <p className="text-muted-foreground text-sm">
+              {searchQuery ? "لا توجد نتائج مطابقة للبحث" : "ستظهر الرسائل الواردة هنا"}
+            </p>
           </CardContent>
         </Card>
       )}
 
       {/* Reply Dialog */}
       <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>الرد على الرسالة</DialogTitle>
+            <DialogDescription>
+              إلى: {replyMessage.recipientName}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">إلى: {replyMessage.recipientName}</p>
-              <p className="text-sm text-muted-foreground">الموضوع: رد: {replyMessage.originalSubject}</p>
+            <div className="p-3 rounded-lg bg-muted/50 text-sm">
+              <span className="text-muted-foreground">الموضوع: </span>
+              <span className="font-medium">رد: {replyMessage.originalSubject}</span>
             </div>
             <Textarea
               value={replyMessage.content}
               onChange={(e) => setReplyMessage({ ...replyMessage, content: e.target.value })}
               placeholder="اكتب ردك هنا..."
               rows={6}
+              className="resize-none"
             />
-            <Button onClick={handleSendReply} className="w-full" disabled={!replyMessage.content.trim()}>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsReplyDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button onClick={handleSendReply} disabled={!replyMessage.content.trim()}>
               إرسال الرد
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
