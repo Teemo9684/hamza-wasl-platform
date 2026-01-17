@@ -1,11 +1,15 @@
 # إعداد تطبيق Android
 
-## 🎨 إصلاح الصفحة الزرقاء عند بدء التطبيق
+## 🎨 توحيد شاشات البداية (Splash Screens)
 
 ### المشكلة
-عند فتح التطبيق، تظهر صفحة زرقاء لفترة قصيرة قبل ظهور Splash Screen. هذا اللون يأتي من theme الافتراضي لـ Android.
+عند فتح التطبيق تظهر عدة شاشات قبل Splash Screen الرئيسي:
+1. **شاشة أيقونة التطبيق** (Android 12+ Splash) - لا يمكن حذفها
+2. **صفحة زرقاء** (من windowBackground) - يمكن تغيير لونها
+3. **Splash Screen المخصص** (صورة بيضاء مع الشعار) ✅
 
-### الحل
+### الحل: توحيد جميع الشاشات بلون أبيض
+بهذا ستبدو كشاشة واحدة سلسة تنتهي بـ Splash Screen المخصص.
 
 #### الخطوة 1: تعديل ملف styles.xml
 بعد تشغيل `npx cap add android`، افتح الملف:
@@ -13,33 +17,38 @@
 android/app/src/main/res/values/styles.xml
 ```
 
-#### الخطوة 2: تغيير windowBackground
-أضف أو عدّل السطر التالي داخل `<style>`:
-```xml
-<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-    <item name="android:windowBackground">#FFFFFF</item>
-    <!-- باقي الإعدادات -->
-</style>
-```
-
-#### الخطوة 3: (اختياري) إنشاء ملف colors.xml
-إذا لم يكن موجوداً، أنشئ الملف:
-```
-android/app/src/main/res/values/colors.xml
-```
-
-بالمحتوى:
+#### الخطوة 2: إضافة الإعدادات التالية
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splashBackground">#FFFFFF</color>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- توحيد لون الخلفية لجميع الشاشات -->
+        <item name="android:windowBackground">#FFFFFF</item>
+        
+        <!-- إعدادات Android 12+ Splash Screen -->
+        <item name="android:windowSplashScreenBackground">#FFFFFF</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#FFFFFF</item>
+        
+        <!-- إخفاء شريط العنوان -->
+        <item name="android:windowNoTitle">true</item>
+    </style>
 </resources>
 ```
 
-ثم استخدمه في styles.xml:
-```xml
-<item name="android:windowBackground">@color/splashBackground</item>
+#### الخطوة 3: (اختياري) تخصيص أيقونة Android 12+ Splash
+إذا أردت تغيير أيقونة شاشة البداية الأولى، ضع صورة مربعة في:
 ```
+android/app/src/main/res/drawable/splash_icon.xml
+```
+
+ثم أضف في styles.xml:
+```xml
+<item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+```
+
+### ⚠️ ملاحظة مهمة
+شاشة Android 12+ Splash **لا يمكن حذفها** - هي جزء إجباري من نظام Android.
+لكن بتوحيد الألوان، ستظهر كانتقال سلس إلى Splash Screen المخصص.
 
 ---
 
