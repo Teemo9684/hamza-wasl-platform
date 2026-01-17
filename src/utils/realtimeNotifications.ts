@@ -125,13 +125,24 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
           // Trigger haptic vibration for announcements
           warningHaptic();
           
-          toast.info('إعلان جديد', {
-            description: announcement.title,
-            duration: 5000,
+          const announcementTitle = announcement.title || 'إعلان جديد';
+          const announcementContent = announcement.content || '';
+          
+          // Show toast with full details
+          const toastDescription = announcementContent 
+            ? `${announcementTitle}\n${announcementContent.substring(0, 80)}${announcementContent.length > 80 ? '...' : ''}`
+            : announcementTitle;
+          
+          toast.info('📢 إعلان جديد', {
+            description: toastDescription,
+            duration: 8000,
           });
 
-          // Show browser notification if supported
-          showBrowserNotification('إعلان جديد', announcement.title);
+          // Show browser notification with full details
+          const browserBody = announcementContent 
+            ? `${announcementTitle}\n${announcementContent.substring(0, 100)}${announcementContent.length > 100 ? '...' : ''}`
+            : announcementTitle;
+          showBrowserNotification('📢 إعلان جديد', browserBody);
         }
       }
     }
