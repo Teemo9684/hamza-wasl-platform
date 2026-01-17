@@ -10,7 +10,6 @@ import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNotifications } from "@/contexts/NotificationContext";
-import ContentTransition from "@/components/ContentTransition";
 
 const ParentSchedulePage = () => {
   const navigate = useNavigate();
@@ -133,11 +132,9 @@ const ParentSchedulePage = () => {
           </div>
         )}
 
-        <ContentTransition>
-          <div className="max-w-6xl mx-auto w-full">
-            <ParentSchedule selectedChild={selectedChild} children={children} />
-          </div>
-        </ContentTransition>
+        <div className="max-w-6xl mx-auto w-full">
+          <ParentSchedule selectedChild={selectedChild} children={children} />
+        </div>
       </main>
 
       <BottomNav 

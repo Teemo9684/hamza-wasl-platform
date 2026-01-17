@@ -9,7 +9,6 @@ import PageTransition from "@/components/PageTransition";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
-import { NavigationProvider } from "@/contexts/NavigationContext";
 import { initializePushNotifications, isPushNotificationsAvailable, unlockAudio, registerPushTokenForUser } from "@/utils/pushNotifications";
 import { setupRealtimeNotifications, requestBrowserNotificationPermission } from "@/utils/realtimeNotifications";
 import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifications";
@@ -193,17 +192,15 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
             <NotificationProvider>
-              <NavigationProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <BackButtonHandler />
-                    <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
-                    <AnimatedRoutes />
-                  </BrowserRouter>
-                </TooltipProvider>
-              </NavigationProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <BackButtonHandler />
+                  <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
+                  <AnimatedRoutes />
+                </BrowserRouter>
+              </TooltipProvider>
             </NotificationProvider>
           </ThemeProvider>
         </QueryClientProvider>

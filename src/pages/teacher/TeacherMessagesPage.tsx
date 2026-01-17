@@ -11,7 +11,6 @@ import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { messageSchema } from "@/lib/validations";
 import { sendMessageNotification } from "@/utils/sendPushNotification";
 import { useNotifications } from "@/contexts/NotificationContext";
-import ContentTransition from "@/components/ContentTransition";
 
 const TeacherMessagesPage = () => {
   const navigate = useNavigate();
@@ -216,16 +215,14 @@ const TeacherMessagesPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <ContentTransition>
-          <div className="max-w-6xl mx-auto w-full">
-            <TeacherMessages
-              messages={messages}
-              onMarkAsRead={handleMarkAsRead}
-              onSendReply={handleSendReply}
-              onDeleteMessage={handleDeleteMessage}
-            />
-          </div>
-        </ContentTransition>
+        <div className="max-w-6xl mx-auto w-full">
+          <TeacherMessages
+            messages={messages}
+            onMarkAsRead={handleMarkAsRead}
+            onSendReply={handleSendReply}
+            onDeleteMessage={handleDeleteMessage}
+          />
+        </div>
       </main>
 
       <BottomNav 
