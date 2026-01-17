@@ -20,7 +20,9 @@ export const PostersCarousel = () => {
   const [posters, setPosters] = useState<Poster[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPoster, setSelectedPoster] = useState<Poster | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchPosters = useCallback(async () => {
     try {
@@ -57,6 +59,21 @@ export const PostersCarousel = () => {
     }
   }, []);
 
+  // Auto-scroll function
+  const autoScroll = useCallback(() => {
+    if (scrollContainerRef.current && !isHovered) {
+      const container = scrollContainerRef.current;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      
+      // If at the end, scroll back to start
+      if (container.scrollLeft >= maxScroll - 10) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: 300, behavior: 'smooth' });
+      }
+    }
+  }, [isHovered]);
+
   // Setup realtime subscription
   useEffect(() => {
     fetchPosters();
@@ -72,6 +89,19 @@ export const PostersCarousel = () => {
 
     return cleanup;
   }, [fetchPosters]);
+
+  // Auto-play effect
+  useEffect(() => {
+    if (posters.length > 1 && !isHovered) {
+      autoPlayRef.current = setInterval(autoScroll, 4000);
+    }
+
+    return () => {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+      }
+    };
+  }, [posters.length, isHovered, autoScroll]);
 
   if (loading) {
     return (
@@ -92,7 +122,11 @@ export const PostersCarousel = () => {
   return (
     <>
       <div className="w-full py-6">
-        <div className="relative group">
+        <div 
+          className="relative group"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           {/* Navigation Arrows */}
           {posters.length > 1 && (
             <>
