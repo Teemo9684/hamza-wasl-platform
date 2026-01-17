@@ -1,18 +1,25 @@
 import { toast } from 'sonner';
 import { playNotificationSound } from './pushNotifications';
+import { heavyHaptic, warningHaptic } from './haptics';
 
 // School schedule configuration
 const SCHOOL_SCHEDULE = {
-  // Days: 0 = Sunday, 1 = Monday, ..., 4 = Thursday
+  // Days: 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday
   schoolDays: [0, 1, 2, 3, 4], // Sunday to Thursday
   
-  // Regular schedule (Sunday to Wednesday)
+  // Regular schedule (Sunday, Monday, Wednesday)
   regularSchedule: {
     morning: { start: '08:00', end: '11:15' },
     afternoon: { start: '13:00', end: '15:00' },
   },
   
-  // Thursday schedule (different afternoon)
+  // Tuesday schedule (morning only - no afternoon)
+  tuesdaySchedule: {
+    morning: { start: '08:00', end: '11:15' },
+    afternoon: null, // No afternoon session on Tuesday
+  },
+  
+  // Thursday schedule (different afternoon time)
   thursdaySchedule: {
     morning: { start: '08:00', end: '11:15' },
     afternoon: { start: '13:00', end: '14:30' },
@@ -20,6 +27,9 @@ const SCHOOL_SCHEDULE = {
   
   // Minutes before to notify
   notifyMinutesBefore: 5,
+  
+  // Notification display duration in milliseconds
+  notificationDuration: 8000,
 };
 
 interface ScheduleTime {
@@ -28,22 +38,39 @@ interface ScheduleTime {
   session: 'morning' | 'afternoon';
 }
 
-// Get schedule times for a specific day
+// Get schedule for a specific day
 const getScheduleForDay = (dayOfWeek: number): ScheduleTime[] => {
   if (!SCHOOL_SCHEDULE.schoolDays.includes(dayOfWeek)) {
     return [];
   }
   
-  const schedule = dayOfWeek === 4 
-    ? SCHOOL_SCHEDULE.thursdaySchedule 
-    : SCHOOL_SCHEDULE.regularSchedule;
+  let schedule;
   
-  return [
+  if (dayOfWeek === 2) {
+    // Tuesday - morning only
+    schedule = SCHOOL_SCHEDULE.tuesdaySchedule;
+  } else if (dayOfWeek === 4) {
+    // Thursday - different afternoon time
+    schedule = SCHOOL_SCHEDULE.thursdaySchedule;
+  } else {
+    // Sunday, Monday, Wednesday - regular schedule
+    schedule = SCHOOL_SCHEDULE.regularSchedule;
+  }
+  
+  const times: ScheduleTime[] = [
     { time: schedule.morning.start, type: 'start', session: 'morning' },
     { time: schedule.morning.end, type: 'end', session: 'morning' },
-    { time: schedule.afternoon.start, type: 'start', session: 'afternoon' },
-    { time: schedule.afternoon.end, type: 'end', session: 'afternoon' },
   ];
+  
+  // Add afternoon session if it exists
+  if (schedule.afternoon) {
+    times.push(
+      { time: schedule.afternoon.start, type: 'start', session: 'afternoon' },
+      { time: schedule.afternoon.end, type: 'end', session: 'afternoon' }
+    );
+  }
+  
+  return times;
 };
 
 // Convert time string to minutes since midnight
@@ -96,12 +123,13 @@ const checkScheduleNotifications = () => {
   });
 };
 
-// Trigger the notification
-const triggerNotification = (scheduleItem: ScheduleTime) => {
+// Trigger the notification with sound, haptics, and visual banner
+const triggerNotification = async (scheduleItem: ScheduleTime) => {
   const sessionName = scheduleItem.session === 'morning' ? 'الفترة الصباحية' : 'الفترة المسائية';
   const actionName = scheduleItem.type === 'start' ? 'بداية' : 'نهاية';
+  const actionEmoji = scheduleItem.type === 'start' ? '🏫' : '🏠';
   
-  const title = `⏰ تذكير - ${actionName} ${sessionName}`;
+  const title = `${actionEmoji} تذكير - ${actionName} ${sessionName}`;
   const message = scheduleItem.type === 'start' 
     ? `باقي 5 دقائق على بداية ${sessionName} (${scheduleItem.time})`
     : `باقي 5 دقائق على نهاية ${sessionName} (${scheduleItem.time})`;
@@ -109,15 +137,44 @@ const triggerNotification = (scheduleItem: ScheduleTime) => {
   // Play notification sound
   playNotificationSound();
   
-  // Show toast notification
+  // Trigger haptic feedback
+  try {
+    if (scheduleItem.type === 'start') {
+      await heavyHaptic();
+    } else {
+      await warningHaptic();
+    }
+  } catch (e) {
+    console.log('Haptic feedback not available');
+  }
+  
+  // Show toast notification with custom styling and duration
   toast.info(title, {
     description: message,
-    duration: 10000,
-    icon: '🔔',
+    duration: SCHOOL_SCHEDULE.notificationDuration,
+    icon: '⏰',
+    className: 'school-schedule-toast',
+    style: {
+      background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%)',
+      color: 'white',
+      border: 'none',
+      boxShadow: '0 10px 40px -10px hsl(var(--primary)/0.5)',
+    },
   });
   
   // Show browser notification if permitted
   showBrowserNotification(title, message);
+  
+  // Dispatch custom event for the app to show a sliding banner
+  window.dispatchEvent(new CustomEvent('school-schedule-alert', {
+    detail: {
+      title,
+      message,
+      type: scheduleItem.type,
+      session: scheduleItem.session,
+      time: scheduleItem.time,
+    }
+  }));
   
   console.log('School schedule notification:', title, message);
 };
@@ -165,14 +222,25 @@ export const getTodaySchedule = (): { session: string; start: string; end: strin
     return [];
   }
   
-  const schedule = dayOfWeek === 4 
-    ? SCHOOL_SCHEDULE.thursdaySchedule 
-    : SCHOOL_SCHEDULE.regularSchedule;
+  let schedule;
   
-  return [
+  if (dayOfWeek === 2) {
+    schedule = SCHOOL_SCHEDULE.tuesdaySchedule;
+  } else if (dayOfWeek === 4) {
+    schedule = SCHOOL_SCHEDULE.thursdaySchedule;
+  } else {
+    schedule = SCHOOL_SCHEDULE.regularSchedule;
+  }
+  
+  const result = [
     { session: 'الفترة الصباحية', start: schedule.morning.start, end: schedule.morning.end },
-    { session: 'الفترة المسائية', start: schedule.afternoon.start, end: schedule.afternoon.end },
   ];
+  
+  if (schedule.afternoon) {
+    result.push({ session: 'الفترة المسائية', start: schedule.afternoon.start, end: schedule.afternoon.end });
+  }
+  
+  return result;
 };
 
 // Get next notification time
