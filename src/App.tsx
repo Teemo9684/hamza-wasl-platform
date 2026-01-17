@@ -15,6 +15,7 @@ import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifica
 import { supabase } from "@/integrations/supabase/client";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { LiveUpdateChecker } from "@/components/LiveUpdateChecker";
+import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import SplashScreen from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
@@ -97,6 +98,9 @@ const AnimatedRoutes = () => {
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  
+  // Ensure session persistence on native platforms
+  useSessionPersistence();
 
   useEffect(() => {
     // Trigger entrance animation immediately after splash finishes

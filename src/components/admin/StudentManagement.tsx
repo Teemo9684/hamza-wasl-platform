@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { showError, showSuccess, showWarning } from "@/utils/errorMessages";
+import { showError, showSuccess, showWarning, showInfo } from "@/utils/errorMessages";
 import { GraduationCap, Plus, Edit, Trash2, Save, X, Search, User, UserPlus, Upload, Sparkles, ArrowRight, Home, AlertTriangle, FileText } from "lucide-react";
 import { studentSchema } from "@/lib/validations";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -657,10 +657,7 @@ export const StudentManagement = () => {
     setIsExtracting(true);
     
     try {
-      toast({
-        title: "جاري المعالجة",
-        description: "يتم تحويل ملف PDF إلى صور وتحليلها...",
-      });
+      showInfo("جاري تحويل ملف PDF إلى صور وتحليلها...");
 
       // فتح ملف PDF
       const arrayBuffer = await file.arrayBuffer();
@@ -672,10 +669,7 @@ export const StudentManagement = () => {
       const allExtractedStudents: any[] = [];
       
       for (let pageNum = 1; pageNum <= Math.min(pdf.numPages, 10); pageNum++) {
-        toast({
-          title: "جاري المعالجة",
-          description: `معالجة الصفحة ${pageNum} من ${Math.min(pdf.numPages, 10)}...`,
-        });
+        showInfo(`معالجة الصفحة ${pageNum} من ${Math.min(pdf.numPages, 10)}...`);
         
         try {
           const imageBase64 = await pdfPageToImage(pdf, pageNum);
@@ -715,24 +709,13 @@ export const StudentManagement = () => {
       if (allExtractedStudents.length > 0) {
         setExtractedStudents(allExtractedStudents);
         
-        toast({
-          title: "نجح الاستخراج",
-          description: `تم استخراج ${allExtractedStudents.length} تلميذ من ${Math.min(pdf.numPages, 10)} صفحات`,
-        });
+        showSuccess(`تم استخراج ${allExtractedStudents.length} تلميذ من ${Math.min(pdf.numPages, 10)} صفحات`);
       } else {
-        toast({
-          title: "لم يتم العثور على بيانات",
-          description: "لم يتم استخراج أي بيانات تلاميذ من الملف. تأكد من وضوح الملف",
-          variant: "destructive",
-        });
+        showWarning("لم يتم استخراج أي بيانات تلاميذ من الملف. تأكد من وضوح الملف");
       }
     } catch (error: any) {
       console.error('Error extracting students from PDF:', error);
-      toast({
-        title: "خطأ في استخراج البيانات",
-        description: error.message || "فشل استخراج البيانات من ملف PDF. حاول مرة أخرى",
-        variant: "destructive",
-      });
+      showError(error.message || "فشل استخراج البيانات من ملف PDF. حاول مرة أخرى");
     } finally {
       setIsExtracting(false);
       // Reset file input
@@ -758,20 +741,13 @@ export const StudentManagement = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "نجح الحفظ",
-        description: `تم إضافة ${extractedStudents.length} تلميذ بنجاح`,
-      });
+      showSuccess(`تم إضافة ${extractedStudents.length} تلميذ بنجاح`);
 
       setExtractedStudents([]);
       fetchStudents();
     } catch (error) {
       console.error('Error saving extracted students:', error);
-      toast({
-        title: "خطأ",
-        description: "فشل حفظ التلاميذ",
-        variant: "destructive",
-      });
+      showError("فشل حفظ التلاميذ");
     }
   };
 
