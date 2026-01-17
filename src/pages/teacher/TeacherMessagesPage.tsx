@@ -7,12 +7,11 @@ import { useToast } from "@/hooks/use-toast";
 import { TeacherMessages } from "@/components/teacher/TeacherMessages";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
-import { AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { messageSchema } from "@/lib/validations";
 import { sendMessageNotification } from "@/utils/sendPushNotification";
 import { useNotifications } from "@/contexts/NotificationContext";
+import ContentTransition from "@/components/ContentTransition";
 
 const TeacherMessagesPage = () => {
   const navigate = useNavigate();
@@ -217,18 +216,16 @@ const TeacherMessagesPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <AnimatePresence mode="wait">
-          <AnimatedSection key="teacher-messages">
-            <div className="max-w-6xl mx-auto w-full">
-              <TeacherMessages
-                messages={messages}
-                onMarkAsRead={handleMarkAsRead}
-                onSendReply={handleSendReply}
-                onDeleteMessage={handleDeleteMessage}
-              />
-            </div>
-          </AnimatedSection>
-        </AnimatePresence>
+        <ContentTransition>
+          <div className="max-w-6xl mx-auto w-full">
+            <TeacherMessages
+              messages={messages}
+              onMarkAsRead={handleMarkAsRead}
+              onSendReply={handleSendReply}
+              onDeleteMessage={handleDeleteMessage}
+            />
+          </div>
+        </ContentTransition>
       </main>
 
       <BottomNav 

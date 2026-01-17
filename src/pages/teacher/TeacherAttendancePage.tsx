@@ -7,12 +7,11 @@ import { useToast } from "@/hooks/use-toast";
 import { TeacherAttendance } from "@/components/teacher/TeacherAttendance";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
-import { AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { attendanceNotesSchema } from "@/lib/validations";
 import { sendAttendanceNotification } from "@/utils/sendPushNotification";
 import { useNotifications } from "@/contexts/NotificationContext";
+import ContentTransition from "@/components/ContentTransition";
 
 const TeacherAttendancePage = () => {
   const navigate = useNavigate();
@@ -213,16 +212,14 @@ const TeacherAttendancePage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <AnimatePresence mode="wait">
-          <AnimatedSection key="teacher-attendance">
-            <div className="max-w-6xl mx-auto w-full">
-              <TeacherAttendance
-                students={students}
-                onRecordAttendance={handleRecordAttendance}
-              />
-            </div>
-          </AnimatedSection>
-        </AnimatePresence>
+        <ContentTransition>
+          <div className="max-w-6xl mx-auto w-full">
+            <TeacherAttendance
+              students={students}
+              onRecordAttendance={handleRecordAttendance}
+            />
+          </div>
+        </ContentTransition>
       </main>
 
       <BottomNav 

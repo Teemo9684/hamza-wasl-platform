@@ -7,10 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { NewsTicker } from "@/components/NewsTicker";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
-import { AnimatedSection } from "@/components/AnimatedSection";
-import { AnimatePresence } from "framer-motion";
 import { ParentDocumentRequests } from "@/components/parent/ParentDocumentRequests";
 import { useNotifications } from "@/contexts/NotificationContext";
+import ContentTransition from "@/components/ContentTransition";
 
 const ParentDocumentRequestsPage = () => {
   const navigate = useNavigate();
@@ -119,16 +118,14 @@ const ParentDocumentRequestsPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <AnimatePresence mode="wait">
-          <AnimatedSection key="parent-documents">
-            <div className="max-w-6xl mx-auto w-full">
-              <ParentDocumentRequests 
-                selectedChild={selectedChild} 
-                children={children} 
-              />
-            </div>
-          </AnimatedSection>
-        </AnimatePresence>
+        <ContentTransition>
+          <div className="max-w-6xl mx-auto w-full">
+            <ParentDocumentRequests 
+              selectedChild={selectedChild} 
+              children={children} 
+            />
+          </div>
+        </ContentTransition>
       </main>
 
       <BottomNav 

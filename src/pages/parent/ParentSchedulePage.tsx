@@ -7,11 +7,10 @@ import { useToast } from "@/hooks/use-toast";
 import { ParentSchedule } from "@/components/parent/ParentSchedule";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
-import { AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNotifications } from "@/contexts/NotificationContext";
+import ContentTransition from "@/components/ContentTransition";
 
 const ParentSchedulePage = () => {
   const navigate = useNavigate();
@@ -134,13 +133,11 @@ const ParentSchedulePage = () => {
           </div>
         )}
 
-        <AnimatePresence mode="wait">
-          <AnimatedSection key="parent-schedule">
-            <div className="max-w-6xl mx-auto w-full">
-              <ParentSchedule selectedChild={selectedChild} children={children} />
-            </div>
-          </AnimatedSection>
-        </AnimatePresence>
+        <ContentTransition>
+          <div className="max-w-6xl mx-auto w-full">
+            <ParentSchedule selectedChild={selectedChild} children={children} />
+          </div>
+        </ContentTransition>
       </main>
 
       <BottomNav 

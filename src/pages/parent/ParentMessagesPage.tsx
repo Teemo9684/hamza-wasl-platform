@@ -8,14 +8,13 @@ import { toast as sonnerToast } from "sonner";
 import { ParentMessages } from "@/components/parent/ParentMessages";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
-import { AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/AnimatedSection";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { setAppBadge } from "@/utils/appBadge";
 import { playNotificationSound } from "@/utils/pushNotifications";
 import { mediumHaptic } from "@/utils/haptics";
 import { useNotifications } from "@/contexts/NotificationContext";
+import ContentTransition from "@/components/ContentTransition";
 
 const ParentMessagesPage = () => {
   const navigate = useNavigate();
@@ -239,18 +238,16 @@ const ParentMessagesPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <AnimatePresence mode="wait">
-          <AnimatedSection key="parent-messages">
-            <div className="max-w-6xl mx-auto w-full">
-              <ParentMessages
-                teachers={teachers}
-                receivedMessages={receivedMessages}
-                children={children}
-                onMessageSent={fetchParentData}
-              />
-            </div>
-          </AnimatedSection>
-        </AnimatePresence>
+        <ContentTransition>
+          <div className="max-w-6xl mx-auto w-full">
+            <ParentMessages
+              teachers={teachers}
+              receivedMessages={receivedMessages}
+              children={children}
+              onMessageSent={fetchParentData}
+            />
+          </div>
+        </ContentTransition>
       </main>
 
       <BottomNav 
