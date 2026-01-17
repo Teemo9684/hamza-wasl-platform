@@ -7,11 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { ParentOverview } from "@/components/parent/ParentOverview";
 import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
-import { AnimatePresence } from "framer-motion";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { realtimeManager } from "@/utils/realtimeManager";
-import ContentTransition from "@/components/ContentTransition";
 
 const ParentOverviewPage = () => {
   const navigate = useNavigate();
@@ -217,18 +215,16 @@ const ParentOverviewPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <ContentTransition>
-          <div className="max-w-6xl mx-auto w-full">
-            <ParentOverview
-              children={children}
-              selectedChild={selectedChild}
-              onSelectChild={setSelectedChild}
-              attendance={attendance}
-              calculateAttendanceRate={calculateAttendanceRate}
-              onChildAdded={fetchParentData}
-            />
-          </div>
-        </ContentTransition>
+        <div className="max-w-6xl mx-auto w-full">
+          <ParentOverview
+            children={children}
+            selectedChild={selectedChild}
+            onSelectChild={setSelectedChild}
+            attendance={attendance}
+            calculateAttendanceRate={calculateAttendanceRate}
+            onChildAdded={fetchParentData}
+          />
+        </div>
       </main>
 
       <BottomNav 

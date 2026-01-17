@@ -3,7 +3,6 @@ import { Home, Calendar, BookOpen, MessageSquare, Send, FileText, Clock, Users, 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { lightHaptic } from "@/utils/haptics";
-import { useNavigation, getNavigationDirection } from "@/contexts/NavigationContext";
 
 interface NavItem {
   id: string;
@@ -30,10 +29,8 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [currentDotIndex, setCurrentDotIndex] = useState(0);
-  const itemsPerView = 5; // عدد العناصر المرئية تقريباً
+  const itemsPerView = 5;
   const totalDots = Math.ceil(items.length / itemsPerView);
-  
-  const { setDirection, previousIndex, setPreviousIndex } = useNavigation();
 
   // تتبع القسم الحالي من الـ hash
   useEffect(() => {
@@ -129,12 +126,6 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
 
   const handleClick = (sectionId: string) => {
     lightHaptic();
-    
-    // Calculate navigation direction
-    const currentIndex = items.findIndex(item => item.id === sectionId);
-    const direction = getNavigationDirection(currentIndex, previousIndex);
-    setDirection(direction);
-    setPreviousIndex(currentIndex);
     
     if (onNavigate) {
       onNavigate(sectionId);

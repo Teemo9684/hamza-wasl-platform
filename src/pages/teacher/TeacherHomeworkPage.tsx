@@ -9,7 +9,6 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
-import ContentTransition from "@/components/ContentTransition";
 
 const TeacherHomeworkPage = () => {
   const navigate = useNavigate();
@@ -91,11 +90,9 @@ const TeacherHomeworkPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <ContentTransition>
-          <div className="max-w-6xl mx-auto w-full">
-            <TeacherHomework />
-          </div>
-        </ContentTransition>
+        <div className="max-w-6xl mx-auto w-full">
+          <TeacherHomework />
+        </div>
       </main>
 
       <BottomNav 

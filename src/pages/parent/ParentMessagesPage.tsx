@@ -14,7 +14,6 @@ import { setAppBadge } from "@/utils/appBadge";
 import { playNotificationSound } from "@/utils/pushNotifications";
 import { mediumHaptic } from "@/utils/haptics";
 import { useNotifications } from "@/contexts/NotificationContext";
-import ContentTransition from "@/components/ContentTransition";
 
 const ParentMessagesPage = () => {
   const navigate = useNavigate();
@@ -238,16 +237,14 @@ const ParentMessagesPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <ContentTransition>
-          <div className="max-w-6xl mx-auto w-full">
-            <ParentMessages
-              teachers={teachers}
-              receivedMessages={receivedMessages}
-              children={children}
-              onMessageSent={fetchParentData}
-            />
-          </div>
-        </ContentTransition>
+        <div className="max-w-6xl mx-auto w-full">
+          <ParentMessages
+            teachers={teachers}
+            receivedMessages={receivedMessages}
+            children={children}
+            onMessageSent={fetchParentData}
+          />
+        </div>
       </main>
 
       <BottomNav 

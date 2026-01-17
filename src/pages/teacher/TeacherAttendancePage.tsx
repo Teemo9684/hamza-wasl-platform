@@ -11,7 +11,6 @@ import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { attendanceNotesSchema } from "@/lib/validations";
 import { sendAttendanceNotification } from "@/utils/sendPushNotification";
 import { useNotifications } from "@/contexts/NotificationContext";
-import ContentTransition from "@/components/ContentTransition";
 
 const TeacherAttendancePage = () => {
   const navigate = useNavigate();
@@ -212,14 +211,12 @@ const TeacherAttendancePage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <ContentTransition>
-          <div className="max-w-6xl mx-auto w-full">
-            <TeacherAttendance
-              students={students}
-              onRecordAttendance={handleRecordAttendance}
-            />
-          </div>
-        </ContentTransition>
+        <div className="max-w-6xl mx-auto w-full">
+          <TeacherAttendance
+            students={students}
+            onRecordAttendance={handleRecordAttendance}
+          />
+        </div>
       </main>
 
       <BottomNav 

@@ -9,7 +9,6 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { ParentDocumentRequests } from "@/components/parent/ParentDocumentRequests";
 import { useNotifications } from "@/contexts/NotificationContext";
-import ContentTransition from "@/components/ContentTransition";
 
 const ParentDocumentRequestsPage = () => {
   const navigate = useNavigate();
@@ -118,14 +117,12 @@ const ParentDocumentRequestsPage = () => {
       <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
       <main className="flex-1 p-3 md:p-4 pb-24 w-full">
-        <ContentTransition>
-          <div className="max-w-6xl mx-auto w-full">
-            <ParentDocumentRequests 
-              selectedChild={selectedChild} 
-              children={children} 
-            />
-          </div>
-        </ContentTransition>
+        <div className="max-w-6xl mx-auto w-full">
+          <ParentDocumentRequests 
+            selectedChild={selectedChild} 
+            children={children} 
+          />
+        </div>
       </main>
 
       <BottomNav 

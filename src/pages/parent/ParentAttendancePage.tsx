@@ -14,7 +14,6 @@ import { mediumHaptic } from "@/utils/haptics";
 import { toast as sonnerToast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNotifications } from "@/contexts/NotificationContext";
-import ContentTransition from "@/components/ContentTransition";
 
 const ParentAttendancePage = () => {
   const navigate = useNavigate();
@@ -218,11 +217,9 @@ const ParentAttendancePage = () => {
           </div>
         )}
 
-        <ContentTransition>
-          <div className="max-w-6xl mx-auto w-full">
-            <ParentAttendance attendance={attendance} selectedChild={selectedChild} />
-          </div>
-        </ContentTransition>
+        <div className="max-w-6xl mx-auto w-full">
+          <ParentAttendance attendance={attendance} selectedChild={selectedChild} />
+        </div>
       </main>
 
       <BottomNav 
