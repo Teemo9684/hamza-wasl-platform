@@ -15,6 +15,7 @@ import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifica
 import { supabase } from "@/integrations/supabase/client";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { LiveUpdateChecker } from "@/components/LiveUpdateChecker";
+import { SchoolScheduleAlert } from "@/components/SchoolScheduleAlert";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import SplashScreen from "@/components/SplashScreen";
 import Index from "./pages/Index";
@@ -205,6 +206,7 @@ const App = () => {
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
+                <SchoolScheduleAlert />
                 <BrowserRouter>
                   <BackButtonHandler />
                   <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
