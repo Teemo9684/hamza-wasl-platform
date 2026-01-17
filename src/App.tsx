@@ -60,26 +60,26 @@ const AnimatedRoutes = () => {
         <Route path="/login/teacher" element={<PageTransition><LoginTeacher /></PageTransition>} />
         <Route path="/login/admin" element={<PageTransition><LoginAdmin /></PageTransition>} />
         
-        {/* Parent Dashboard Routes */}
-        <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentOverviewPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/parent/overview" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentOverviewPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/parent/attendance" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentAttendancePage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/parent/homework" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentHomeworkPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/parent/schedule" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentSchedulePage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/parent/messages" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentMessagesPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/parent/documents" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentDocumentRequestsPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/parent/settings" element={<ProtectedRoute requiredRole="parent"><PageTransition><ParentSettingsPage /></PageTransition></ProtectedRoute>} />
+        {/* Parent Dashboard Routes - No PageTransition to keep fixed elements static */}
+        <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentOverviewPage /></ProtectedRoute>} />
+        <Route path="/dashboard/parent/overview" element={<ProtectedRoute requiredRole="parent"><ParentOverviewPage /></ProtectedRoute>} />
+        <Route path="/dashboard/parent/attendance" element={<ProtectedRoute requiredRole="parent"><ParentAttendancePage /></ProtectedRoute>} />
+        <Route path="/dashboard/parent/homework" element={<ProtectedRoute requiredRole="parent"><ParentHomeworkPage /></ProtectedRoute>} />
+        <Route path="/dashboard/parent/schedule" element={<ProtectedRoute requiredRole="parent"><ParentSchedulePage /></ProtectedRoute>} />
+        <Route path="/dashboard/parent/messages" element={<ProtectedRoute requiredRole="parent"><ParentMessagesPage /></ProtectedRoute>} />
+        <Route path="/dashboard/parent/documents" element={<ProtectedRoute requiredRole="parent"><ParentDocumentRequestsPage /></ProtectedRoute>} />
+        <Route path="/dashboard/parent/settings" element={<ProtectedRoute requiredRole="parent"><ParentSettingsPage /></ProtectedRoute>} />
         
-        {/* Teacher Dashboard Routes */}
-        <Route path="/dashboard/teacher" element={<ProtectedRoute requiredRole="teacher"><PageTransition><TeacherOverviewPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/overview" element={<ProtectedRoute requiredRole="teacher"><PageTransition><TeacherOverviewPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/attendance" element={<ProtectedRoute requiredRole="teacher"><PageTransition><TeacherAttendancePage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/homework" element={<ProtectedRoute requiredRole="teacher"><PageTransition><TeacherHomeworkPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/messages" element={<ProtectedRoute requiredRole="teacher"><PageTransition><TeacherMessagesPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/dashboard/teacher/groupMessages" element={<ProtectedRoute requiredRole="teacher"><PageTransition><TeacherGroupMessagesPage /></PageTransition></ProtectedRoute>} />
+        {/* Teacher Dashboard Routes - No PageTransition to keep fixed elements static */}
+        <Route path="/dashboard/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherOverviewPage /></ProtectedRoute>} />
+        <Route path="/dashboard/teacher/overview" element={<ProtectedRoute requiredRole="teacher"><TeacherOverviewPage /></ProtectedRoute>} />
+        <Route path="/dashboard/teacher/attendance" element={<ProtectedRoute requiredRole="teacher"><TeacherAttendancePage /></ProtectedRoute>} />
+        <Route path="/dashboard/teacher/homework" element={<ProtectedRoute requiredRole="teacher"><TeacherHomeworkPage /></ProtectedRoute>} />
+        <Route path="/dashboard/teacher/messages" element={<ProtectedRoute requiredRole="teacher"><TeacherMessagesPage /></ProtectedRoute>} />
+        <Route path="/dashboard/teacher/groupMessages" element={<ProtectedRoute requiredRole="teacher"><TeacherGroupMessagesPage /></ProtectedRoute>} />
         
         {/* Admin Dashboard */}
-        <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><PageTransition><DashboardAdmin /></PageTransition></ProtectedRoute>} />
+        <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><DashboardAdmin /></ProtectedRoute>} />
         
         <Route path="/install" element={<PageTransition><InstallApp /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
