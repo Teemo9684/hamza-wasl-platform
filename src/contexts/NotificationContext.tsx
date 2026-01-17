@@ -106,36 +106,110 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setCurrentNotification(null);
   }, []);
 
-  // Load last seen timestamps from localStorage
+  // Load last seen timestamps from database (persistent) with localStorage fallback
   useEffect(() => {
-    if (userId) {
-      const savedAttendance = localStorage.getItem(`lastSeenAttendance_${userId}`);
-      const savedHomework = localStorage.getItem(`lastSeenHomework_${userId}`);
-      const savedDocuments = localStorage.getItem(`lastSeenDocuments_${userId}`);
-      setLastSeenAttendance(savedAttendance);
-      setLastSeenHomework(savedHomework);
-      setLastSeenDocuments(savedDocuments);
-    }
+    const loadLastSeenFromDB = async () => {
+      if (!userId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('notification_read_states')
+          .select('section_type, last_seen_at')
+          .eq('user_id', userId);
+        
+        if (error) {
+          console.error('Error loading notification states:', error);
+          // Fallback to localStorage
+          const savedAttendance = localStorage.getItem(`lastSeenAttendance_${userId}`);
+          const savedHomework = localStorage.getItem(`lastSeenHomework_${userId}`);
+          const savedDocuments = localStorage.getItem(`lastSeenDocuments_${userId}`);
+          setLastSeenAttendance(savedAttendance);
+          setLastSeenHomework(savedHomework);
+          setLastSeenDocuments(savedDocuments);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          data.forEach((item) => {
+            if (item.section_type === 'attendance') {
+              setLastSeenAttendance(item.last_seen_at);
+              localStorage.setItem(`lastSeenAttendance_${userId}`, item.last_seen_at);
+            } else if (item.section_type === 'homework') {
+              setLastSeenHomework(item.last_seen_at);
+              localStorage.setItem(`lastSeenHomework_${userId}`, item.last_seen_at);
+            } else if (item.section_type === 'documents') {
+              setLastSeenDocuments(item.last_seen_at);
+              localStorage.setItem(`lastSeenDocuments_${userId}`, item.last_seen_at);
+            }
+          });
+        } else {
+          // No DB data, check localStorage and migrate to DB
+          const savedAttendance = localStorage.getItem(`lastSeenAttendance_${userId}`);
+          const savedHomework = localStorage.getItem(`lastSeenHomework_${userId}`);
+          const savedDocuments = localStorage.getItem(`lastSeenDocuments_${userId}`);
+          setLastSeenAttendance(savedAttendance);
+          setLastSeenHomework(savedHomework);
+          setLastSeenDocuments(savedDocuments);
+        }
+      } catch (err) {
+        console.error('Error in loadLastSeenFromDB:', err);
+      }
+    };
+    
+    loadLastSeenFromDB();
   }, [userId]);
 
-  const clearSection = useCallback((section: 'messages' | 'attendance' | 'homework' | 'documents') => {
+  const clearSection = useCallback(async (section: 'messages' | 'attendance' | 'homework' | 'documents') => {
     const now = new Date().toISOString();
     
-    if (section === 'attendance' && userId) {
-      localStorage.setItem(`lastSeenAttendance_${userId}`, now);
-      setLastSeenAttendance(now);
-    } else if (section === 'homework' && userId) {
-      localStorage.setItem(`lastSeenHomework_${userId}`, now);
-      setLastSeenHomework(now);
-    } else if (section === 'documents' && userId) {
-      localStorage.setItem(`lastSeenDocuments_${userId}`, now);
-      setLastSeenDocuments(now);
-    }
-    
+    // Immediately update local state
     setCounts(prev => ({
       ...prev,
       [section]: 0,
     }));
+    
+    if (section === 'attendance' && userId) {
+      localStorage.setItem(`lastSeenAttendance_${userId}`, now);
+      setLastSeenAttendance(now);
+      
+      // Persist to database
+      await supabase
+        .from('notification_read_states')
+        .upsert({
+          user_id: userId,
+          section_type: 'attendance',
+          last_seen_at: now,
+          updated_at: now
+        }, { onConflict: 'user_id,section_type' });
+        
+    } else if (section === 'homework' && userId) {
+      localStorage.setItem(`lastSeenHomework_${userId}`, now);
+      setLastSeenHomework(now);
+      
+      // Persist to database
+      await supabase
+        .from('notification_read_states')
+        .upsert({
+          user_id: userId,
+          section_type: 'homework',
+          last_seen_at: now,
+          updated_at: now
+        }, { onConflict: 'user_id,section_type' });
+        
+    } else if (section === 'documents' && userId) {
+      localStorage.setItem(`lastSeenDocuments_${userId}`, now);
+      setLastSeenDocuments(now);
+      
+      // Persist to database
+      await supabase
+        .from('notification_read_states')
+        .upsert({
+          user_id: userId,
+          section_type: 'documents',
+          last_seen_at: now,
+          updated_at: now
+        }, { onConflict: 'user_id,section_type' });
+    }
   }, [userId]);
 
   const refreshCounts = useCallback(async () => {
