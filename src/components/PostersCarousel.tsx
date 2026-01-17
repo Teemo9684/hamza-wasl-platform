@@ -22,12 +22,30 @@ export const PostersCarousel = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPoster, setSelectedPoster] = useState<Poster | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Touch/drag state
   const touchStartRef = useRef<number>(0);
   const touchEndRef = useRef<number>(0);
   const isDraggingRef = useRef<boolean>(false);
+
+  // Pause rotation and resume after 2 seconds
+  const pauseAndResume = useCallback(() => {
+    setIsPaused(true);
+    
+    // Clear any existing resume timeout
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+    }
+    
+    // Resume after 2 seconds
+    resumeTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, 2000);
+  }, []);
 
   const fetchPosters = useCallback(async () => {
     try {
@@ -68,7 +86,8 @@ export const PostersCarousel = () => {
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartRef.current = e.touches[0].clientX;
     isDraggingRef.current = true;
-  }, []);
+    pauseAndResume();
+  }, [pauseAndResume]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDraggingRef.current) return;
@@ -95,7 +114,8 @@ export const PostersCarousel = () => {
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     touchStartRef.current = e.clientX;
     isDraggingRef.current = true;
-  }, []);
+    pauseAndResume();
+  }, [pauseAndResume]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDraggingRef.current) return;
@@ -138,9 +158,9 @@ export const PostersCarousel = () => {
     return cleanup;
   }, [fetchPosters]);
 
-  // Continuous auto-play every 4 seconds
+  // Continuous auto-play every 4 seconds (pauses when isPaused is true)
   useEffect(() => {
-    if (posters.length > 1) {
+    if (posters.length > 1 && !isPaused) {
       autoPlayRef.current = setInterval(goToNext, 4000);
     }
 
@@ -149,7 +169,16 @@ export const PostersCarousel = () => {
         clearInterval(autoPlayRef.current);
       }
     };
-  }, [posters.length, goToNext]);
+  }, [posters.length, goToNext, isPaused]);
+
+  // Cleanup resume timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (resumeTimeoutRef.current) {
+        clearTimeout(resumeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Calculate 3D position for each card
   const getCardStyle = (index: number) => {
@@ -258,11 +287,19 @@ export const PostersCarousel = () => {
                       ...style,
                       transformStyle: 'preserve-3d',
                     }}
-                    onClick={() => isCurrent && !isDraggingRef.current && setSelectedPoster(poster)}
+                    onClick={() => {
+                      if (isCurrent && !isDraggingRef.current) {
+                        pauseAndResume();
+                        setSelectedPoster(poster);
+                      }
+                    }}
+                    onMouseEnter={() => isCurrent && setIsHovering(true)}
+                    onMouseLeave={() => setIsHovering(false)}
                   >
                     <div className={cn(
-                      "w-full h-full overflow-hidden rounded-xl shadow-xl transition-shadow duration-300",
-                      isCurrent && "shadow-2xl ring-2 ring-primary/50"
+                      "w-full h-full overflow-hidden rounded-xl shadow-xl transition-all duration-300",
+                      isCurrent && "shadow-2xl ring-2 ring-primary/50",
+                      isCurrent && isHovering && "shadow-[0_0_30px_rgba(255,255,255,0.4),0_0_60px_rgba(255,255,255,0.2)] ring-white/70"
                     )}>
                       <div className="relative w-full h-full bg-muted">
                         <img
