@@ -62,6 +62,7 @@ export const ParentMessages = ({
   const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
+  const [deleteConversationId, setDeleteConversationId] = useState<string | null>(null);
   const [viewMessage, setViewMessage] = useState<Message | null>(null);
 
   // Filter messages based on status and search
@@ -230,6 +231,43 @@ export const ParentMessages = ({
     }
   };
 
+  const handleDeleteConversation = async () => {
+    if (!deleteConversationId) return;
+    
+    // Get all message IDs from this sender
+    const messagesToDelete = receivedMessages
+      .filter(m => m.sender_id === deleteConversationId)
+      .map(m => m.id);
+    
+    if (messagesToDelete.length === 0) return;
+    
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .in('id', messagesToDelete);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم الحذف",
+        description: `تم حذف ${messagesToDelete.length} رسالة بنجاح`,
+      });
+      setDeleteConversationId(null);
+      
+      // Clear notifications from status bar
+      await clearAllDeliveredNotifications();
+      
+      onMessageSent();
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف المحادثة",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleViewMessage = async (message: Message) => {
     setViewMessage(message);
     if (!message.is_read) {
@@ -362,6 +400,7 @@ export const ParentMessages = ({
               defaultOpen={index === 0 && group.unreadCount > 0}
               onMarkAsRead={handleMarkAsRead}
               onDelete={(id) => setDeleteMessageId(id)}
+              onDeleteAll={() => setDeleteConversationId(group.senderId)}
             />
           ))}
         </div>
@@ -395,6 +434,27 @@ export const ParentMessages = ({
               onClick={handleDeleteMessage}
             >
               حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Conversation Confirmation Dialog */}
+      <AlertDialog open={!!deleteConversationId} onOpenChange={(open) => !open && setDeleteConversationId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف المحادثة بالكامل</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف جميع الرسائل في هذه المحادثة؟ سيتم حذف {receivedMessages.filter(m => m.sender_id === deleteConversationId).length} رسالة. لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteConversation}
+            >
+              حذف الكل
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
