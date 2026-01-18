@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { mediumHaptic, heavyHaptic } from './haptics';
 
 // Dynamically import LocalNotifications to avoid issues on web
 let LocalNotifications: any = null;
@@ -67,6 +68,9 @@ export const showLocalNotification = async (
     
     const notificationId = options?.id || Math.floor(Math.random() * 100000);
     
+    // Trigger haptic feedback for all notifications
+    await heavyHaptic();
+    
     await notifications.schedule({
       notifications: [
         {
@@ -91,6 +95,44 @@ export const showLocalNotification = async (
   } catch (error) {
     console.error('Error showing local notification:', error);
     return false;
+  }
+};
+
+/**
+ * Clear all delivered notifications from the status bar
+ */
+export const clearAllDeliveredNotifications = async (): Promise<void> => {
+  try {
+    const notifications = await loadLocalNotifications();
+    if (!notifications) return;
+    
+    // Get all delivered notifications
+    const delivered = await notifications.getDeliveredNotifications();
+    if (delivered.notifications && delivered.notifications.length > 0) {
+      // Remove all delivered notifications
+      const ids = delivered.notifications.map((n: any) => n.id);
+      await notifications.removeDeliveredNotifications({ notifications: ids.map((id: number) => ({ id })) });
+      console.log('Cleared delivered notifications:', ids);
+    }
+  } catch (error) {
+    console.error('Error clearing delivered notifications:', error);
+  }
+};
+
+/**
+ * Clear a specific notification from the status bar by ID
+ */
+export const clearNotificationById = async (notificationId: number): Promise<void> => {
+  try {
+    const notifications = await loadLocalNotifications();
+    if (!notifications) return;
+    
+    await notifications.removeDeliveredNotifications({ 
+      notifications: [{ id: notificationId }] 
+    });
+    console.log('Cleared notification:', notificationId);
+  } catch (error) {
+    console.error('Error clearing notification:', error);
   }
 };
 
