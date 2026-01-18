@@ -153,13 +153,15 @@ const LoginAdmin = () => {
             </CardDescription>
           </CardHeader>
           
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleLogin} autoComplete="on">
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="pin" className="font-cairo text-lg">الرقم السري</Label>
                 <Input
                   id="pin"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="أدخل الرقم السري"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}

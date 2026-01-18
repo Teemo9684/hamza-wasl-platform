@@ -195,13 +195,15 @@ const LoginParent = () => {
             </CardDescription>
           </CardHeader>
           
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleLogin} autoComplete="on">
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="font-cairo">البريد الإلكتروني</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="example@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -214,7 +216,9 @@ const LoginParent = () => {
                 <Label htmlFor="password" className="font-cairo">كلمة المرور</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
