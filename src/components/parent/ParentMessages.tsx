@@ -14,6 +14,7 @@ import { messageSchema } from "@/lib/validations";
 import { sendMessageNotification } from "@/utils/sendPushNotification";
 import { MessagesHeader } from "@/components/shared/MessagesHeader";
 import { ConversationGroup } from "@/components/shared/ConversationGroup";
+import { setAppBadge } from "@/utils/appBadge";
 
 interface Message {
   id: string;
@@ -179,6 +180,20 @@ export const ParentMessages = ({
         .eq('id', messageId);
 
       if (error) throw error;
+      
+      // Recalculate unread count and update app badge immediately
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('recipient_id', user.id)
+          .eq('is_read', false);
+        
+        // Update app badge with new count
+        setAppBadge(count || 0);
+      }
+      
       onMessageSent();
     } catch (error: any) {
       console.error("Error marking message as read:", error);

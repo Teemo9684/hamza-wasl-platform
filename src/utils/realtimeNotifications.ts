@@ -4,6 +4,7 @@ import { playNotificationSound } from './pushNotifications';
 import { setAppBadge } from './appBadge';
 import { realtimeManager } from './realtimeManager';
 import { mediumHaptic, warningHaptic } from './haptics';
+import { showLocalNotification, isLocalNotificationsSupported } from './localNotifications';
 
 // App logo URL for notifications
 const APP_ICON_URL = '/icon-192.png';
@@ -94,7 +95,13 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
         const browserBody = newMessage.subject 
           ? `${senderDescription}\nالموضوع: ${newMessage.subject}`
           : senderDescription;
-        showBrowserNotification('📩 رسالة جديدة', browserBody);
+        
+        // Use local notification on Android/iOS for guaranteed delivery with sound
+        if (isLocalNotificationsSupported()) {
+          await showLocalNotification('📩 رسالة جديدة', browserBody, { channelId: 'messages' });
+        } else {
+          showBrowserNotification('📩 رسالة جديدة', browserBody);
+        }
       }
     )
     .subscribe((status) => {
@@ -109,7 +116,7 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
   const announcementCleanup = realtimeManager.subscribe(
     `global-announcements-${userId}`,
     'news_ticker',
-    (payload) => {
+    async (payload) => {
       // Skip REFRESH events
       if (payload.eventType === 'REFRESH') return;
       
@@ -142,7 +149,13 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
           const browserBody = announcementContent 
             ? `${announcementTitle}\n${announcementContent.substring(0, 100)}${announcementContent.length > 100 ? '...' : ''}`
             : announcementTitle;
-          showBrowserNotification('📢 إعلان جديد', browserBody);
+          
+          // Use local notification on Android/iOS for guaranteed delivery with sound
+          if (isLocalNotificationsSupported()) {
+            await showLocalNotification('📢 إعلان جديد', browserBody, { channelId: 'announcements' });
+          } else {
+            showBrowserNotification('📢 إعلان جديد', browserBody);
+          }
         }
       }
     }

@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { initializePushNotifications, isPushNotificationsAvailable, unlockAudio, registerPushTokenForUser } from "@/utils/pushNotifications";
 import { setupRealtimeNotifications, requestBrowserNotificationPermission } from "@/utils/realtimeNotifications";
+import { initializeLocalNotifications, createNotificationChannels, isLocalNotificationsSupported } from "@/utils/localNotifications";
 import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
@@ -142,8 +143,16 @@ const App = () => {
       document.removeEventListener('keydown', handleUserInteraction);
     }, 30000); // Keep listeners for 30 seconds
 
+    // Initialize push notifications and local notifications for native platforms
     if (isPushNotificationsAvailable()) {
       initializePushNotifications();
+    }
+    
+    // Initialize local notifications for Android/iOS (for guaranteed in-app notifications)
+    if (isLocalNotificationsSupported()) {
+      initializeLocalNotifications().then(() => {
+        createNotificationChannels();
+      });
     }
 
     requestBrowserNotificationPermission();
