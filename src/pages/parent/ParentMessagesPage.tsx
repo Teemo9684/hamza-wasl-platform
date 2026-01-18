@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ParentMessages } from "@/components/parent/ParentMessages";
 import { useParentDashboard } from "@/components/ParentDashboardLayout";
@@ -8,6 +8,7 @@ import { playNotificationSound } from "@/utils/pushNotifications";
 import { mediumHaptic } from "@/utils/haptics";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { showError, showSuccess } from "@/utils/errorMessages";
+import { clearAllDeliveredNotifications } from "@/utils/localNotifications";
 
 export const ParentMessagesContent = () => {
   const { children } = useParentDashboard();
@@ -20,6 +21,22 @@ export const ParentMessagesContent = () => {
   useEffect(() => {
     fetchParentData();
   }, []);
+
+  // Handle optimistic delete - update local state immediately
+  const handleLocalDelete = useCallback((messageIds: string[]) => {
+    setReceivedMessages(prev => {
+      const updated = prev.filter(m => !messageIds.includes(m.id));
+      const unreadCount = updated.filter(m => !m.is_read).length;
+      setAppBadge(unreadCount);
+      return updated;
+    });
+    
+    // Also update the notification context
+    refreshCounts();
+    
+    // Clear status bar notifications
+    clearAllDeliveredNotifications();
+  }, [refreshCounts]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -41,11 +58,15 @@ export const ParentMessagesContent = () => {
           const unreadCount = messagesData.filter(m => !m.is_read).length;
           setAppBadge(unreadCount);
         }
+        refreshCounts();
         return;
       }
 
       if (payload.eventType === 'INSERT') {
         const newMessage = payload.new as any;
+        
+        // Skip if this was sent by the current user
+        if (newMessage.sender_id === currentUserId) return;
         
         const { data: senderData } = await supabase
           .from('profiles')
@@ -94,6 +115,19 @@ export const ParentMessagesContent = () => {
           return updated;
         });
         refreshCounts();
+      }
+
+      if (payload.eventType === 'DELETE') {
+        const deletedMessage = payload.old as any;
+        if (deletedMessage?.id) {
+          setReceivedMessages(prev => {
+            const updated = prev.filter(m => m.id !== deletedMessage.id);
+            const unreadCount = updated.filter(m => !m.is_read).length;
+            setAppBadge(unreadCount);
+            return updated;
+          });
+          refreshCounts();
+        }
       }
     };
 
@@ -146,6 +180,10 @@ export const ParentMessagesContent = () => {
 
       if (messagesError) throw messagesError;
       setReceivedMessages(messagesData || []);
+      
+      // Update badge with initial count
+      const unreadCount = (messagesData || []).filter(m => !m.is_read).length;
+      setAppBadge(unreadCount);
     } catch (error: any) {
       showError(error);
     }
@@ -157,6 +195,7 @@ export const ParentMessagesContent = () => {
       receivedMessages={receivedMessages}
       children={children}
       onMessageSent={fetchParentData}
+      onLocalDelete={handleLocalDelete}
     />
   );
 };

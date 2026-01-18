@@ -42,6 +42,7 @@ interface ParentMessagesProps {
   receivedMessages: Message[];
   children: any[];
   onMessageSent: () => void;
+  onLocalDelete?: (messageIds: string[]) => void;
 }
 
 export const ParentMessages = ({
@@ -49,6 +50,7 @@ export const ParentMessages = ({
   receivedMessages,
   children,
   onMessageSent,
+  onLocalDelete,
 }: ParentMessagesProps) => {
   const { toast } = useToast();
   const [newMessage, setNewMessage] = useState({
@@ -220,11 +222,17 @@ export const ParentMessages = ({
   const handleDeleteMessage = async () => {
     if (!deleteMessageId) return;
     
+    const messageIdToDelete = deleteMessageId;
+    
+    // Immediately update UI - optimistic update
+    onLocalDelete?.([messageIdToDelete]);
+    setDeleteMessageId(null);
+    
     try {
       const { error } = await supabase
         .from('messages')
         .delete()
-        .eq('id', deleteMessageId);
+        .eq('id', messageIdToDelete);
 
       if (error) throw error;
 
@@ -248,7 +256,8 @@ export const ParentMessages = ({
         title: "تم الحذف",
         description: "تم حذف الرسالة بنجاح",
       });
-      setDeleteMessageId(null);
+      
+      // Refresh to sync with server
       onMessageSent();
     } catch (error: any) {
       toast({
@@ -256,6 +265,8 @@ export const ParentMessages = ({
         description: "فشل في حذف الرسالة",
         variant: "destructive",
       });
+      // Revert by refetching
+      onMessageSent();
     }
   };
 
@@ -268,6 +279,13 @@ export const ParentMessages = ({
       .map(m => m.id);
     
     if (messagesToDelete.length === 0) return;
+    
+    const conversationIdToDelete = deleteConversationId;
+    const messageCount = messagesToDelete.length;
+    
+    // Immediately update UI - optimistic update
+    onLocalDelete?.(messagesToDelete);
+    setDeleteConversationId(null);
     
     try {
       const { error } = await supabase
@@ -295,9 +313,10 @@ export const ParentMessages = ({
 
       toast({
         title: "تم الحذف",
-        description: `تم حذف ${messagesToDelete.length} رسالة بنجاح`,
+        description: `تم حذف ${messageCount} رسالة بنجاح`,
       });
-      setDeleteConversationId(null);
+      
+      // Refresh to sync with server
       onMessageSent();
     } catch (error: any) {
       toast({
@@ -305,6 +324,8 @@ export const ParentMessages = ({
         description: "فشل في حذف المحادثة",
         variant: "destructive",
       });
+      // Revert by refetching
+      onMessageSent();
     }
   };
 

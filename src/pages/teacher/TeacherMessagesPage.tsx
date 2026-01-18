@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TeacherMessages } from "@/components/teacher/TeacherMessages";
 import { messageSchema } from "@/lib/validations";
@@ -7,13 +7,15 @@ import { useNotifications } from "@/contexts/NotificationContext";
 import { showError, showSuccess } from "@/utils/errorMessages";
 import { setAppBadge } from "@/utils/appBadge";
 import { clearAllDeliveredNotifications } from "@/utils/localNotifications";
+import { realtimeManager } from "@/utils/realtimeManager";
 
 export const TeacherMessagesContent = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [teacherName, setTeacherName] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  const { clearSection } = useNotifications();
+  const { clearSection, refreshCounts } = useNotifications();
 
   useEffect(() => {
     fetchTeacherData();
@@ -23,10 +25,112 @@ export const TeacherMessagesContent = () => {
     clearSection('messages');
   }, [clearSection]);
 
+  // Setup realtime subscription for messages
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const handleMessageChange = async (payload: any) => {
+      if (payload.eventType === 'REFRESH') {
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select(`
+            *,
+            sender:profiles!messages_sender_id_fkey(full_name),
+            student:students(full_name)
+          `)
+          .eq('recipient_id', currentUserId)
+          .order('created_at', { ascending: false });
+        
+        if (messagesData) {
+          setMessages(messagesData);
+          const unreadCount = messagesData.filter(m => !m.is_read).length;
+          setAppBadge(unreadCount);
+        }
+        refreshCounts();
+        return;
+      }
+
+      if (payload.eventType === 'INSERT') {
+        const newMessage = payload.new as any;
+        
+        // Skip if sent by current user
+        if (newMessage.sender_id === currentUserId) return;
+        
+        const { data: senderData } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', newMessage.sender_id)
+          .single();
+        
+        let studentData = null;
+        if (newMessage.student_id) {
+          const { data } = await supabase
+            .from('students')
+            .select('full_name')
+            .eq('id', newMessage.student_id)
+            .single();
+          studentData = data;
+        }
+
+        const enrichedMessage = {
+          ...newMessage,
+          sender: senderData,
+          student: studentData
+        };
+
+        setMessages(prev => {
+          const updated = [enrichedMessage, ...prev];
+          const unreadCount = updated.filter(m => !m.is_read).length;
+          setAppBadge(unreadCount);
+          return updated;
+        });
+        
+        refreshCounts();
+      }
+
+      if (payload.eventType === 'UPDATE') {
+        const updatedMessage = payload.new as any;
+        setMessages(prev => {
+          const updated = prev.map(msg => 
+            msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
+          );
+          const unreadCount = updated.filter(m => !m.is_read).length;
+          setAppBadge(unreadCount);
+          return updated;
+        });
+        refreshCounts();
+      }
+
+      if (payload.eventType === 'DELETE') {
+        const deletedMessage = payload.old as any;
+        if (deletedMessage?.id) {
+          setMessages(prev => {
+            const updated = prev.filter(m => m.id !== deletedMessage.id);
+            const unreadCount = updated.filter(m => !m.is_read).length;
+            setAppBadge(unreadCount);
+            return updated;
+          });
+          refreshCounts();
+        }
+      }
+    };
+
+    const cleanup = realtimeManager.subscribe(
+      `teacher-messages-${currentUserId}`,
+      'messages',
+      handleMessageChange,
+      `recipient_id=eq.${currentUserId}`
+    );
+
+    return () => cleanup();
+  }, [currentUserId, refreshCounts]);
+
   const fetchTeacherData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      setCurrentUserId(user.id);
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -48,6 +152,10 @@ export const TeacherMessagesContent = () => {
 
       if (messagesError) throw messagesError;
       setMessages(messagesData || []);
+      
+      // Update badge with initial count
+      const unreadCount = (messagesData || []).filter(m => !m.is_read).length;
+      setAppBadge(unreadCount);
     } catch (error: any) {
       showError(error);
     } finally {
@@ -56,6 +164,16 @@ export const TeacherMessagesContent = () => {
   };
 
   const handleMarkAsRead = async (messageId: string) => {
+    // Optimistic update
+    setMessages(prev => {
+      const updated = prev.map(msg => 
+        msg.id === messageId ? { ...msg, is_read: true } : msg
+      );
+      const unreadCount = updated.filter(m => !m.is_read).length;
+      setAppBadge(unreadCount);
+      return updated;
+    });
+    
     try {
       const { error } = await supabase
         .from('messages')
@@ -64,29 +182,32 @@ export const TeacherMessagesContent = () => {
 
       if (error) throw error;
       
-      // Recalculate unread count and update app badge immediately
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { count } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('recipient_id', user.id)
-          .eq('is_read', false);
-        
-        // Update app badge with new count
-        setAppBadge(count || 0);
-        
-        // Clear notifications from status bar
-        await clearAllDeliveredNotifications();
-      }
+      // Clear notifications from status bar
+      await clearAllDeliveredNotifications();
       
-      fetchTeacherData();
+      refreshCounts();
     } catch (error: any) {
       showError(error);
+      // Revert on error
+      fetchTeacherData();
     }
   };
 
   const handleDeleteMessage = async (messageId: string) => {
+    // Optimistic update - remove immediately from UI
+    setMessages(prev => {
+      const updated = prev.filter(m => m.id !== messageId);
+      const unreadCount = updated.filter(m => !m.is_read).length;
+      setAppBadge(unreadCount);
+      return updated;
+    });
+    
+    // Update notification context
+    refreshCounts();
+    
+    // Clear status bar notifications
+    await clearAllDeliveredNotifications();
+    
     try {
       const { error } = await supabase
         .from('messages')
@@ -95,27 +216,11 @@ export const TeacherMessagesContent = () => {
 
       if (error) throw error;
       
-      // Recalculate unread count and update app badge immediately
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { count } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('recipient_id', user.id)
-          .eq('is_read', false);
-        
-        // Update app badge with new count
-        setAppBadge(count || 0);
-        
-        // Clear notifications from status bar
-        await clearAllDeliveredNotifications();
-      }
-      
       showSuccess("تم الحذف", "تم حذف الرسالة بنجاح");
-      
-      fetchTeacherData();
     } catch (error: any) {
       showError(error);
+      // Revert on error
+      fetchTeacherData();
     }
   };
 
@@ -156,7 +261,6 @@ export const TeacherMessagesContent = () => {
       showSuccess("تم الإرسال", "تم إرسال الرد بنجاح");
 
       await handleMarkAsRead(messageId);
-      fetchTeacherData();
     } catch (error: any) {
       showError(error.errors?.[0]?.message || error);
     }
