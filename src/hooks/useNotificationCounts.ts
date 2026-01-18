@@ -5,6 +5,7 @@ import { setAppBadge } from '@/utils/appBadge';
 import { playNotificationSound } from '@/utils/pushNotifications';
 import { mediumHaptic, successHaptic } from '@/utils/haptics';
 import { toast } from 'sonner';
+import { showLocalNotification, isLocalNotificationsSupported } from '@/utils/localNotifications';
 
 export interface NotificationCounts {
   messages: number;
@@ -26,8 +27,8 @@ export const useNotificationCounts = ({ userId, userRole, childIds = [] }: UseNo
   });
   const [todayAttendanceRecorded, setTodayAttendanceRecorded] = useState<Set<string>>(new Set());
 
-  // Trigger notification with sound + haptic
-  const triggerNotification = useCallback((type: 'message' | 'attendance' | 'homework' | 'announcement', title: string, description: string) => {
+  // Trigger notification with sound + haptic + local notification
+  const triggerNotification = useCallback(async (type: 'message' | 'attendance' | 'homework' | 'announcement', title: string, description: string) => {
     // Play sound
     playNotificationSound(type);
     
@@ -36,6 +37,17 @@ export const useNotificationCounts = ({ userId, userRole, childIds = [] }: UseNo
     
     // Show toast
     toast.success(title, { description });
+    
+    // Show local notification on native platforms for guaranteed delivery
+    if (isLocalNotificationsSupported()) {
+      const channelMap: Record<string, string> = {
+        message: 'messages',
+        attendance: 'attendance',
+        homework: 'homework',
+        announcement: 'announcements'
+      };
+      await showLocalNotification(title, description, { channelId: channelMap[type] });
+    }
   }, []);
 
   // Fetch initial counts

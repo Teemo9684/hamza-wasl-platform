@@ -5,6 +5,7 @@ import { messageSchema } from "@/lib/validations";
 import { sendMessageNotification } from "@/utils/sendPushNotification";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { showError, showSuccess } from "@/utils/errorMessages";
+import { setAppBadge } from "@/utils/appBadge";
 
 export const TeacherMessagesContent = () => {
   const [messages, setMessages] = useState<any[]>([]);
@@ -61,6 +62,20 @@ export const TeacherMessagesContent = () => {
         .eq('id', messageId);
 
       if (error) throw error;
+      
+      // Recalculate unread count and update app badge immediately
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('recipient_id', user.id)
+          .eq('is_read', false);
+        
+        // Update app badge with new count
+        setAppBadge(count || 0);
+      }
+      
       fetchTeacherData();
     } catch (error: any) {
       showError(error);
