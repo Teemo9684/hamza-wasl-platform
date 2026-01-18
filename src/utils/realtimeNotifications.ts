@@ -106,6 +106,28 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
         }
       }
     )
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'messages',
+      },
+      async (payload) => {
+        console.log('Global Direct: Message deleted', payload);
+        
+        // Get current unread count to update badge
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('recipient_id', userId)
+          .eq('is_read', false);
+        
+        // Update app badge (native) and PWA badge (web)
+        setAppBadge(count || 0);
+        setPWABadge(count || 0);
+      }
+    )
     .subscribe((status) => {
       console.log('Global direct messages channel status:', status);
     });

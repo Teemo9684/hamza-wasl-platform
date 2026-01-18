@@ -344,6 +344,14 @@ export const useUnifiedNotifications = ({
         { event: 'UPDATE', schema: 'public', table: 'messages' },
         () => refreshCounts()
       )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'messages' },
+        () => {
+          console.log('[UnifiedNotifications] Message deleted, refreshing counts');
+          refreshCounts();
+        }
+      )
       .subscribe((status) => {
         console.log('[UnifiedNotifications] Messages channel status:', status);
       });

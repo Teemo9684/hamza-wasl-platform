@@ -385,6 +385,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          // When a message is deleted, refresh counts
+          console.log('NotificationContext: Message deleted, refreshing counts');
+          refreshCounts();
+        }
+      )
       .subscribe((status) => {
         console.log('Direct messages channel status:', status);
       });
