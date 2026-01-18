@@ -1,62 +1,90 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   isNativeApp,
+  getCurrentVersion,
   checkForUpdate,
   downloadAndApplyUpdate,
-  getCurrentVersion,
+  UpdateInfo,
+  LiveUpdateState,
   createInitialState,
 } from "@/utils/liveUpdate";
-
-interface UpdateInfo {
-  hasUpdate: boolean;
-  version?: string;
-  bundleUrl?: string;
-  isMandatory?: boolean;
-  releaseNotes?: string;
-}
-
-interface LiveUpdateState {
-  isChecking: boolean;
-  isDownloading: boolean;
-  downloadProgress: number;
-  updateInfo: UpdateInfo | null;
-  error: string | null;
-}
 
 // Global state to share between hook instances
 let globalState: LiveUpdateState = createInitialState();
 let globalUpdateCheckInProgress = false;
 let hasPerformedInitialCheck = false;
+
+// Listeners for state updates
 const listeners = new Set<(state: LiveUpdateState) => void>();
-
-// Storage key for tracking the last notified version
-const NOTIFIED_VERSION_KEY = "ota_notified_version";
-
-const getNotifiedVersion = (): string | null => {
-  try {
-    return localStorage.getItem(NOTIFIED_VERSION_KEY);
-  } catch {
-    return null;
-  }
-};
-
-const setNotifiedVersion = (version: string): void => {
-  try {
-    localStorage.setItem(NOTIFIED_VERSION_KEY, version);
-  } catch (error) {
-    console.error("Error saving notified version:", error);
-  }
-};
 
 const notifyListeners = (newState: LiveUpdateState) => {
   globalState = newState;
   listeners.forEach((listener) => listener(newState));
 };
 
+// Store pending update info to show message after reload
+const PENDING_UPDATE_KEY = "ota_pending_update";
+const UPDATE_APPLIED_KEY = "ota_update_applied";
+
+export const setPendingUpdate = (updateInfo: UpdateInfo): void => {
+  try {
+    localStorage.setItem(PENDING_UPDATE_KEY, JSON.stringify({
+      version: updateInfo.version,
+      releaseNotes: updateInfo.releaseNotes,
+      appliedAt: Date.now()
+    }));
+  } catch (error) {
+    console.error("Error saving pending update:", error);
+  }
+};
+
+export const getAppliedUpdate = (): { version: string; releaseNotes?: string; appliedAt: number } | null => {
+  try {
+    const data = localStorage.getItem(UPDATE_APPLIED_KEY);
+    if (data) {
+      const parsed = JSON.parse(data);
+      // Only return if applied within last 30 seconds
+      if (Date.now() - parsed.appliedAt < 30000) {
+        return parsed;
+      }
+      localStorage.removeItem(UPDATE_APPLIED_KEY);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+export const clearAppliedUpdate = (): void => {
+  try {
+    localStorage.removeItem(UPDATE_APPLIED_KEY);
+  } catch (error) {
+    console.error("Error clearing applied update:", error);
+  }
+};
+
+// Check for pending update on app load and convert to applied
+export const checkAndConvertPendingUpdate = (): void => {
+  try {
+    const pendingData = localStorage.getItem(PENDING_UPDATE_KEY);
+    if (pendingData) {
+      const pending = JSON.parse(pendingData);
+      localStorage.setItem(UPDATE_APPLIED_KEY, JSON.stringify({
+        ...pending,
+        appliedAt: Date.now()
+      }));
+      localStorage.removeItem(PENDING_UPDATE_KEY);
+      console.log("Converted pending update to applied:", pending.version);
+    }
+  } catch (error) {
+    console.error("Error checking pending update:", error);
+  }
+};
+
 export const useLiveUpdate = (autoCheck: boolean = true) => {
   const [state, setState] = useState<LiveUpdateState>(globalState);
-  const hasCheckedRef = useRef(false);
   const isNative = isNativeApp();
+  const hasCheckedRef = useRef(false);
 
   // Subscribe to global state changes
   useEffect(() => {
@@ -64,8 +92,6 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
       setState(newState);
     };
     listeners.add(listener);
-    // Sync with current global state
-    setState(globalState);
     return () => {
       listeners.delete(listener);
     };
@@ -90,16 +116,19 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     try {
       const updateInfo = await checkForUpdate();
       
-      // Check if we already notified about this version
-      const notifiedVersion = getNotifiedVersion();
-      if (updateInfo.hasUpdate && updateInfo.version === notifiedVersion) {
-        console.log("Already notified about this version, skipping notification");
-        notifyListeners({ ...globalState, isChecking: false, updateInfo: null });
+      console.log("Update info received:", updateInfo);
+
+      if (updateInfo.hasUpdate && updateInfo.bundleUrl) {
+        console.log("Update available! Starting automatic download...");
+        notifyListeners({ ...globalState, isChecking: false, updateInfo });
         globalUpdateCheckInProgress = false;
-        return { hasUpdate: false };
+        
+        // Auto apply update immediately
+        await applyUpdateInternal(updateInfo);
+        return updateInfo;
       }
 
-      notifyListeners({ ...globalState, isChecking: false, updateInfo });
+      notifyListeners({ ...globalState, isChecking: false, updateInfo: null });
       globalUpdateCheckInProgress = false;
 
       return updateInfo;
@@ -112,25 +141,22 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
     }
   }, [isNative]);
 
-  // Apply the update
-  const applyUpdate = useCallback(async () => {
-    if (!globalState.updateInfo?.bundleUrl) {
+  // Internal apply update function
+  const applyUpdateInternal = async (updateInfo: UpdateInfo) => {
+    if (!updateInfo?.bundleUrl) {
       return false;
     }
 
-    // IMPORTANT: Save the version BEFORE starting download/apply
-    // This prevents re-notification after app reloads
-    if (globalState.updateInfo.version) {
-      setNotifiedVersion(globalState.updateInfo.version);
-    }
+    // Save the update info before starting download
+    setPendingUpdate(updateInfo);
 
-    notifyListeners({ ...globalState, isDownloading: true, downloadProgress: 0 });
+    notifyListeners({ ...globalState, isDownloading: true, downloadProgress: 0, updateInfo });
 
     try {
       const success = await downloadAndApplyUpdate(
-        globalState.updateInfo.bundleUrl,
+        updateInfo.bundleUrl,
         (progress) => {
-          notifyListeners({ ...globalState, isDownloading: true, downloadProgress: progress });
+          notifyListeners({ ...globalState, isDownloading: true, downloadProgress: progress, updateInfo });
         }
       );
 
@@ -152,13 +178,23 @@ export const useLiveUpdate = (autoCheck: boolean = true) => {
       console.error("Update failed:", error);
       return false;
     }
+  };
+
+  // Apply the update (public function)
+  const applyUpdate = useCallback(async () => {
+    if (!globalState.updateInfo) {
+      return false;
+    }
+    return applyUpdateInternal(globalState.updateInfo);
   }, []);
 
-  // Auto-check for updates on mount - only once globally
+  // Auto check for updates when component mounts
   useEffect(() => {
     if (autoCheck && isNative && !hasCheckedRef.current && !hasPerformedInitialCheck) {
       hasCheckedRef.current = true;
       hasPerformedInitialCheck = true;
+      
+      // Check for updates after 3 seconds
       const timer = setTimeout(() => {
         checkUpdate();
       }, 3000);
