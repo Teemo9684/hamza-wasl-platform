@@ -120,7 +120,7 @@ const RegisterParent = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} autoComplete="on" className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="font-cairo text-foreground">
                   الاسم الكامل
@@ -129,7 +129,9 @@ const RegisterParent = () => {
                   <User className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="fullName"
+                    name="name"
                     type="text"
+                    autoComplete="name"
                     placeholder="أدخل الاسم الكامل"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -147,7 +149,9 @@ const RegisterParent = () => {
                   <Mail className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="example@email.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -165,7 +169,9 @@ const RegisterParent = () => {
                   <Phone className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="phone"
+                    name="tel"
                     type="tel"
+                    autoComplete="tel"
                     placeholder="0555 123456"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -201,7 +207,9 @@ const RegisterParent = () => {
                   <Lock className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="password"
+                    name="password"
                     type="password"
+                    autoComplete="new-password"
                     placeholder="••••••"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -218,7 +226,9 @@ const RegisterParent = () => {
                   <Lock className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
+                    name="confirmPassword"
                     type="password"
+                    autoComplete="new-password"
                     placeholder="••••••"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
