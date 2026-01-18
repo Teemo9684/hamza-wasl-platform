@@ -118,7 +118,8 @@ export const useUnifiedNotifications = ({
     if (!userId || !userRole) return;
     
     const newMessage = payload.new;
-    if (newMessage.recipient_id !== userId) return;
+    // Only process if this message is for current user AND not sent by current user
+    if (newMessage.recipient_id !== userId || newMessage.sender_id === userId) return;
 
     console.log('[UnifiedNotifications] New message received:', newMessage);
 
