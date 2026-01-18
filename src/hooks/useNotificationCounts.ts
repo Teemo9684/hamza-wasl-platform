@@ -138,6 +138,9 @@ export const useNotificationCounts = ({ userId, userRole, childIds = [] }: UseNo
         if (payload.eventType === 'INSERT') {
           const newMessage = payload.new as any;
           
+          // Skip if sent by current user (shouldn't happen due to filter, but double check)
+          if (newMessage.sender_id === userId) return;
+          
           // Get sender info
           const { data: senderData } = await supabase
             .from('profiles')

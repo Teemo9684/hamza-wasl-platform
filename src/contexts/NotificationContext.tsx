@@ -330,9 +330,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           console.log('Direct channel: New message received', payload);
           const newMessage = payload.new as any;
           
-          // Only process if this message is for current user
-          if (newMessage.recipient_id !== userId) {
-            console.log('Message not for current user, ignoring');
+          // Only process if this message is for current user AND not sent by current user
+          if (newMessage.recipient_id !== userId || newMessage.sender_id === userId) {
+            console.log('Message not for current user or sent by current user, ignoring');
             return;
           }
           
