@@ -26,19 +26,26 @@ export const setAppBadge = async (count: number): Promise<void> => {
   try {
     const badge = await loadBadge();
     if (badge) {
+      // Native app badge (Android/iOS)
       if (count > 0) {
         await badge.set({ count });
-        console.log('App badge set to:', count);
+        console.log('Native app badge set to:', count);
       } else {
         await badge.clear();
-        console.log('App badge cleared');
+        console.log('Native app badge cleared');
       }
     } else if ('setAppBadge' in navigator) {
-      // Web fallback for PWA
-      if (count > 0) {
-        await (navigator as any).setAppBadge(count);
-      } else {
-        await (navigator as any).clearAppBadge();
+      // Web fallback for PWA - this updates the icon badge in browser
+      try {
+        if (count > 0) {
+          await (navigator as any).setAppBadge(count);
+          console.log('PWA badge set to:', count);
+        } else {
+          await (navigator as any).clearAppBadge();
+          console.log('PWA badge cleared');
+        }
+      } catch (e) {
+        console.warn('PWA badge not supported:', e);
       }
     }
   } catch (error) {

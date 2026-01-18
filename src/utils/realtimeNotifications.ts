@@ -5,6 +5,7 @@ import { setAppBadge } from './appBadge';
 import { realtimeManager } from './realtimeManager';
 import { mediumHaptic, warningHaptic } from './haptics';
 import { showLocalNotification, isLocalNotificationsSupported } from './localNotifications';
+import { setPWABadge } from './notificationService';
 
 // App logo URL for notifications
 const APP_ICON_URL = '/icon-192.png';
@@ -67,9 +68,10 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
           .eq('recipient_id', userId)
           .eq('is_read', false);
         
-        // Update app badge
+        // Update app badge (native) and PWA badge (web)
         if (count !== null) {
           setAppBadge(count);
+          setPWABadge(count); // Also update PWA badge for web browsers
         }
         
         // Play notification sound
@@ -185,34 +187,69 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
   };
 };
 
-// Show browser notification with app icon
+// Show browser notification with app icon (works in browser status bar)
 const showBrowserNotification = (title: string, body: string) => {
-  if ('Notification' in window && Notification.permission === 'granted') {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    console.log('Browser notifications not supported');
+    return false;
+  }
+
+  if (Notification.permission === 'granted') {
     try {
-      new Notification(title, {
+      const notification = new Notification(title, {
         body,
         icon: APP_ICON_URL,
         badge: APP_ICON_URL,
-        tag: 'hamza-wasl-notification',
+        tag: `hamza-wasl-${Date.now()}`,
         requireInteraction: false,
+        silent: false, // Allow browser sound
       });
+
+      // Auto close after 5 seconds
+      setTimeout(() => notification.close(), 5000);
+
+      // Handle click to focus the app
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+
+      console.log('Browser notification shown:', title);
+      return true;
     } catch (error) {
       console.warn('Failed to show browser notification:', error);
-    }
-  }
-};
-
-// Request browser notification permission
-export const requestBrowserNotificationPermission = async () => {
-  if ('Notification' in window) {
-    try {
-      const permission = await Notification.requestPermission();
-      console.log('Browser notification permission:', permission);
-      return permission === 'granted';
-    } catch (error) {
-      console.warn('Failed to request notification permission:', error);
       return false;
     }
   }
+  
   return false;
+};
+
+// Request browser notification permission
+export const requestBrowserNotificationPermission = async (): Promise<boolean> => {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    console.log('Browser notifications not supported');
+    return false;
+  }
+
+  try {
+    // Check current permission
+    if (Notification.permission === 'granted') {
+      console.log('Browser notification permission already granted');
+      return true;
+    }
+
+    if (Notification.permission === 'denied') {
+      console.log('Browser notification permission was denied');
+      return false;
+    }
+
+    // Request permission
+    const permission = await Notification.requestPermission();
+    console.log('Browser notification permission:', permission);
+    return permission === 'granted';
+  } catch (error) {
+    console.warn('Failed to request notification permission:', error);
+    return false;
+  }
 };
