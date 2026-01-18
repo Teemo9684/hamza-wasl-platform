@@ -1,26 +1,26 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useEffect, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { Upload, Package, Trash2, RefreshCw, CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { formatDate } from "@/utils/formatters";
+import { Upload, Trash2, CheckCircle, XCircle, Package, AlertCircle, Loader2 } from "lucide-react";
+import { APP_VERSION } from "@/config/version";
 
 interface AppVersion {
   id: string;
   version: string;
   bundle_id: string;
   bundle_url: string;
-  min_app_version: string;
+  min_app_version: string | null;
   release_notes: string | null;
-  is_mandatory: boolean;
-  is_active: boolean;
+  is_mandatory: boolean | null;
+  is_active: boolean | null;
   created_at: string;
 }
 
@@ -28,13 +28,13 @@ export const OTAUpdatesManager = () => {
   const [versions, setVersions] = useState<AppVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  
-  // Form state
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [newVersion, setNewVersion] = useState("");
   const [minAppVersion, setMinAppVersion] = useState("1.0.0");
   const [releaseNotes, setReleaseNotes] = useState("");
   const [isMandatory, setIsMandatory] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchVersions();
@@ -51,7 +51,7 @@ export const OTAUpdatesManager = () => {
       setVersions(data || []);
     } catch (error) {
       console.error("Error fetching versions:", error);
-      toast.error("فشل تحميل الإصدارات");
+      toast.error("فشل في تحميل الإصدارات");
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,7 @@ export const OTAUpdatesManager = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.name.endsWith(".zip")) {
-        toast.error("يجب أن يكون الملف بصيغة ZIP");
+        toast.error("يرجى اختيار ملف ZIP فقط");
         return;
       }
       setSelectedFile(file);
@@ -70,33 +70,66 @@ export const OTAUpdatesManager = () => {
 
   const uploadBundle = async () => {
     if (!selectedFile || !newVersion) {
-      toast.error("يرجى إدخال رقم الإصدار واختيار ملف التحديث");
-      return;
-    }
-
-    // Validate version format
-    const versionRegex = /^\d+\.\d+\.\d+$/;
-    if (!versionRegex.test(newVersion)) {
-      toast.error("صيغة الإصدار غير صحيحة (مثال: 1.0.0)");
+      toast.error("يرجى اختيار ملف وتحديد رقم الإصدار");
       return;
     }
 
     setUploading(true);
+    setUploadProgress(0);
 
     try {
       // Generate unique bundle ID
       const bundleId = `bundle-${newVersion}-${Date.now()}`;
       const filePath = `${bundleId}/${selectedFile.name}`;
+      
+      // Get file size for progress calculation
+      const fileSize = selectedFile.size;
+      const chunkSize = 256 * 1024; // 256KB chunks for progress tracking
+      const totalChunks = Math.ceil(fileSize / chunkSize);
+      
+      // Create a custom upload with progress tracking using XMLHttpRequest
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      
+      // Get the storage URL and token
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      
+      if (!accessToken) {
+        throw new Error("غير مصرح");
+      }
 
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("app-updates")
-        .upload(filePath, selectedFile, {
-          cacheControl: "3600",
-          upsert: false,
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const uploadUrl = `${supabaseUrl}/storage/v1/object/app-updates/${filePath}`;
+
+      // Upload with progress tracking
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percentComplete);
+          }
         });
 
-      if (uploadError) throw uploadError;
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`Upload failed: ${xhr.statusText}`));
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('Upload failed'));
+        });
+
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+        xhr.setRequestHeader('x-upsert', 'false');
+        xhr.send(selectedFile);
+      });
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
@@ -124,6 +157,10 @@ export const OTAUpdatesManager = () => {
       setReleaseNotes("");
       setIsMandatory(false);
       setSelectedFile(null);
+      setUploadProgress(0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       
       // Refresh list
       fetchVersions();
@@ -143,75 +180,81 @@ export const OTAUpdatesManager = () => {
         .eq("id", id);
 
       if (error) throw error;
-      
-      toast.success(currentStatus ? "تم تعطيل الإصدار" : "تم تفعيل الإصدار");
+
+      toast.success(currentStatus ? "تم إلغاء تفعيل الإصدار" : "تم تفعيل الإصدار");
       fetchVersions();
     } catch (error) {
       console.error("Error toggling version:", error);
-      toast.error("فشل تحديث حالة الإصدار");
+      toast.error("فشل في تحديث حالة الإصدار");
     }
   };
 
   const deleteVersion = async (id: string, bundleId: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذا الإصدار؟")) return;
-
     try {
       // Delete from storage
-      const { data: files } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from("app-updates")
-        .list(bundleId);
+        .remove([`${bundleId}/`]);
 
-      if (files && files.length > 0) {
-        const filePaths = files.map((file) => `${bundleId}/${file.name}`);
-        await supabase.storage.from("app-updates").remove(filePaths);
-      }
-
-      // Delete record
-      const { error } = await supabase
+      // Delete from database
+      const { error: dbError } = await supabase
         .from("app_versions")
         .delete()
         .eq("id", id);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
 
-      toast.success("تم حذف الإصدار بنجاح");
+      toast.success("تم حذف الإصدار");
       fetchVersions();
     } catch (error) {
       console.error("Error deleting version:", error);
-      toast.error("فشل حذف الإصدار");
+      toast.error("فشل في حذف الإصدار");
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Current Version Info */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" />
+              <span className="font-medium">الإصدار الحالي للتطبيق</span>
+            </div>
+            <Badge variant="secondary" className="text-lg px-4 py-1">
+              {APP_VERSION}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Upload New Version */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            رفع تحديث جديد (OTA)
+            رفع إصدار جديد (OTA)
           </CardTitle>
-          <CardDescription>
-            قم برفع ملف ZIP يحتوي على محتوى مجلد dist بعد البناء
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="version">رقم الإصدار *</Label>
+              <Label htmlFor="version">رقم الإصدار الجديد *</Label>
               <Input
                 id="version"
                 placeholder="مثال: 1.2.0"
                 value={newVersion}
                 onChange={(e) => setNewVersion(e.target.value)}
+                disabled={uploading}
               />
             </div>
             <div className="space-y-2">
@@ -221,51 +264,81 @@ export const OTAUpdatesManager = () => {
                 placeholder="مثال: 1.0.0"
                 value={minAppVersion}
                 onChange={(e) => setMinAppVersion(e.target.value)}
+                disabled={uploading}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="releaseNotes">ملاحظات الإصدار</Label>
+            <Label htmlFor="notes">ملاحظات الإصدار</Label>
             <Textarea
-              id="releaseNotes"
-              placeholder="ما الجديد في هذا الإصدار..."
+              id="notes"
+              placeholder="اكتب هنا ما الجديد في هذا الإصدار..."
               value={releaseNotes}
               onChange={(e) => setReleaseNotes(e.target.value)}
               rows={3}
+              disabled={uploading}
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Switch
               id="mandatory"
               checked={isMandatory}
               onCheckedChange={setIsMandatory}
+              disabled={uploading}
             />
-            <Label htmlFor="mandatory">تحديث إلزامي</Label>
+            <Label htmlFor="mandatory" className="cursor-pointer">
+              تحديث إجباري (سيتم إجبار المستخدمين على التحديث)
+            </Label>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="bundle">ملف التحديث (ZIP) *</Label>
-            <Input
-              id="bundle"
-              type="file"
-              accept=".zip"
-              onChange={handleFileChange}
-              className="cursor-pointer"
-            />
-            {selectedFile && (
-              <p className="text-sm text-muted-foreground">
-                تم اختيار: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-              </p>
-            )}
+            <div className="flex items-center gap-4">
+              <Input
+                ref={fileInputRef}
+                id="bundle"
+                type="file"
+                accept=".zip"
+                onChange={handleFileChange}
+                className="flex-1"
+                disabled={uploading}
+              />
+              {selectedFile && (
+                <Badge variant="outline" className="whitespace-nowrap">
+                  {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                </Badge>
+              )}
+            </div>
           </div>
 
-          <Button onClick={uploadBundle} disabled={uploading || !selectedFile || !newVersion}>
+          {/* Upload Progress */}
+          {uploading && (
+            <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  جاري رفع الملف...
+                </span>
+                <span className="font-semibold text-primary">{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-3" />
+              <p className="text-xs text-muted-foreground text-center">
+                يرجى عدم إغلاق الصفحة حتى اكتمال الرفع
+              </p>
+            </div>
+          )}
+
+          <Button
+            onClick={uploadBundle}
+            disabled={uploading || !selectedFile || !newVersion}
+            className="w-full"
+          >
             {uploading ? (
               <>
                 <Loader2 className="h-4 w-4 ml-2 animate-spin" />
-                جارٍ الرفع...
+                جاري الرفع... {uploadProgress}%
               </>
             ) : (
               <>
@@ -277,103 +350,97 @@ export const OTAUpdatesManager = () => {
         </CardContent>
       </Card>
 
-      {/* Versions List */}
+      {/* Existing Versions */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              الإصدارات المتوفرة
-            </span>
-            <Button variant="outline" size="sm" onClick={fetchVersions}>
-              <RefreshCw className="h-4 w-4 ml-2" />
-              تحديث
-            </Button>
-          </CardTitle>
+          <CardTitle>الإصدارات المتاحة</CardTitle>
         </CardHeader>
         <CardContent>
           {versions.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              لا توجد إصدارات مرفوعة بعد
-            </p>
+            <div className="text-center py-8 text-muted-foreground">
+              <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>لا توجد إصدارات مرفوعة بعد</p>
+            </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>الإصدار</TableHead>
-                    <TableHead>الحد الأدنى</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>إلزامي</TableHead>
-                    <TableHead>تاريخ الرفع</TableHead>
-                    <TableHead>إجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {versions.map((version) => (
-                    <TableRow key={version.id}>
-                      <TableCell className="font-medium">{version.version}</TableCell>
-                      <TableCell>{version.min_app_version}</TableCell>
-                      <TableCell>
-                        <Badge variant={version.is_active ? "default" : "secondary"}>
-                          {version.is_active ? (
-                            <CheckCircle className="h-3 w-3 ml-1" />
-                          ) : (
-                            <XCircle className="h-3 w-3 ml-1" />
-                          )}
-                          {version.is_active ? "مفعّل" : "معطّل"}
+            <div className="space-y-4">
+              {versions.map((version) => (
+                <div
+                  key={version.id}
+                  className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/30 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-lg">{version.version}</span>
+                      {version.is_active ? (
+                        <Badge variant="default" className="bg-green-500">
+                          <CheckCircle className="h-3 w-3 ml-1" />
+                          نشط
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {version.is_mandatory ? (
-                          <Badge variant="destructive">إلزامي</Badge>
-                        ) : (
-                          <Badge variant="outline">اختياري</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{formatDate(version.created_at)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleVersionActive(version.id, version.is_active)}
-                          >
-                            {version.is_active ? "تعطيل" : "تفعيل"}
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => deleteVersion(version.id, version.bundle_id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      ) : (
+                        <Badge variant="secondary">
+                          <XCircle className="h-3 w-3 ml-1" />
+                          معطل
+                        </Badge>
+                      )}
+                      {version.is_mandatory && (
+                        <Badge variant="destructive">إجباري</Badge>
+                      )}
+                    </div>
+                    {version.release_notes && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {version.release_notes}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(version.created_at).toLocaleDateString("ar-SA", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        toggleVersionActive(version.id, version.is_active || false)
+                      }
+                    >
+                      {version.is_active ? "تعطيل" : "تفعيل"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => deleteVersion(version.id, version.bundle_id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Instructions */}
-      <Card>
+      <Card className="bg-muted/30">
         <CardHeader>
-          <CardTitle>كيفية إنشاء ملف التحديث</CardTitle>
+          <CardTitle className="text-base">كيفية إنشاء ملف التحديث</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <ol className="list-decimal list-inside space-y-2 text-sm">
-            <li>قم بتشغيل أمر البناء: <code className="bg-muted px-2 py-1 rounded">npm run build</code></li>
+        <CardContent className="text-sm text-muted-foreground space-y-2">
+          <ol className="list-decimal list-inside space-y-2 mr-2">
+            <li>قم بتشغيل أمر <code className="bg-muted px-2 py-1 rounded">npm run build</code> في مشروعك</li>
             <li>انتقل إلى مجلد <code className="bg-muted px-2 py-1 rounded">dist</code></li>
-            <li>اضغط جميع الملفات داخل مجلد dist في ملف ZIP (وليس المجلد نفسه)</li>
-            <li>قم برفع ملف ZIP هنا مع تحديد رقم الإصدار</li>
+            <li>اختر جميع الملفات داخل المجلد وقم بضغطها في ملف ZIP</li>
+            <li>ارفع ملف ZIP هنا مع تحديد رقم الإصدار الجديد</li>
           </ol>
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              <strong>ملاحظة:</strong> تأكد من أن ملف ZIP يحتوي على الملفات مباشرة (index.html, assets/, etc.) وليس مجلد dist.
+          <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+            <p className="text-yellow-600 dark:text-yellow-400 font-medium">
+              ⚠️ تأكد من أن رقم الإصدار الجديد أكبر من الإصدار الحالي ({APP_VERSION})
             </p>
           </div>
         </CardContent>
