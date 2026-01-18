@@ -216,6 +216,22 @@ export const ParentMessages = ({
 
       if (error) throw error;
 
+      // Recalculate unread count and update app badge immediately
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('recipient_id', user.id)
+          .eq('is_read', false);
+        
+        // Update app badge with new count
+        setAppBadge(count || 0);
+        
+        // Clear notifications from status bar
+        await clearAllDeliveredNotifications();
+      }
+
       toast({
         title: "تم الحذف",
         description: "تم حذف الرسالة بنجاح",
@@ -249,15 +265,27 @@ export const ParentMessages = ({
 
       if (error) throw error;
 
+      // Recalculate unread count and update app badge immediately
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('recipient_id', user.id)
+          .eq('is_read', false);
+        
+        // Update app badge with new count
+        setAppBadge(count || 0);
+        
+        // Clear notifications from status bar
+        await clearAllDeliveredNotifications();
+      }
+
       toast({
         title: "تم الحذف",
         description: `تم حذف ${messagesToDelete.length} رسالة بنجاح`,
       });
       setDeleteConversationId(null);
-      
-      // Clear notifications from status bar
-      await clearAllDeliveredNotifications();
-      
       onMessageSent();
     } catch (error: any) {
       toast({
