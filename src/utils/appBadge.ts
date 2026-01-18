@@ -10,7 +10,6 @@ const loadBadge = async () => {
     try {
       const module = await import('@capawesome/capacitor-badge');
       Badge = module.Badge;
-      console.log('Badge plugin loaded successfully');
       return Badge;
     } catch (error) {
       console.warn('Badge plugin not available:', error);
@@ -21,67 +20,36 @@ const loadBadge = async () => {
 };
 
 /**
- * Set the app icon badge count (works on both native and PWA)
+ * Set the app icon badge count
  */
 export const setAppBadge = async (count: number): Promise<void> => {
-  console.log('[AppBadge] Setting badge to:', count);
-  
   try {
-    // Try native badge first
     const badge = await loadBadge();
     if (badge) {
+      // Native app badge (Android/iOS)
       if (count > 0) {
         await badge.set({ count });
-        console.log('[AppBadge] Native badge set to:', count);
+        console.log('Native app badge set to:', count);
       } else {
         await badge.clear();
-        console.log('[AppBadge] Native badge cleared');
+        console.log('Native app badge cleared');
       }
-      return;
+    } else if ('setAppBadge' in navigator) {
+      // Web fallback for PWA - this updates the icon badge in browser
+      try {
+        if (count > 0) {
+          await (navigator as any).setAppBadge(count);
+          console.log('PWA badge set to:', count);
+        } else {
+          await (navigator as any).clearAppBadge();
+          console.log('PWA badge cleared');
+        }
+      } catch (e) {
+        console.warn('PWA badge not supported:', e);
+      }
     }
   } catch (error) {
-    console.warn('[AppBadge] Native badge failed:', error);
-  }
-  
-  // PWA Badge API fallback
-  await setPWABadge(count);
-};
-
-/**
- * Set PWA app badge (for web browsers that support it)
- */
-export const setPWABadge = async (count: number): Promise<boolean> => {
-  try {
-    // Check for Badging API support
-    if ('setAppBadge' in navigator) {
-      if (count > 0) {
-        await (navigator as any).setAppBadge(count);
-        console.log('[AppBadge] PWA badge set to:', count);
-      } else {
-        await (navigator as any).clearAppBadge();
-        console.log('[AppBadge] PWA badge cleared');
-      }
-      return true;
-    }
-    
-    // Fallback for older browsers - try experimental API
-    if ('ExperimentalBadge' in window) {
-      const ExperimentalBadge = (window as any).ExperimentalBadge;
-      if (count > 0) {
-        await ExperimentalBadge.set(count);
-        console.log('[AppBadge] Experimental PWA badge set to:', count);
-      } else {
-        await ExperimentalBadge.clear();
-        console.log('[AppBadge] Experimental PWA badge cleared');
-      }
-      return true;
-    }
-    
-    console.log('[AppBadge] PWA badge API not supported in this browser');
-    return false;
-  } catch (error) {
-    console.warn('[AppBadge] Failed to set PWA badge:', error);
-    return false;
+    console.warn('Failed to set app badge:', error);
   }
 };
 
@@ -89,7 +57,17 @@ export const setPWABadge = async (count: number): Promise<boolean> => {
  * Clear the app icon badge
  */
 export const clearAppBadge = async (): Promise<void> => {
-  await setAppBadge(0);
+  try {
+    const badge = await loadBadge();
+    if (badge) {
+      await badge.clear();
+      console.log('App badge cleared');
+    } else if ('clearAppBadge' in navigator) {
+      await (navigator as any).clearAppBadge();
+    }
+  } catch (error) {
+    console.warn('Failed to clear app badge:', error);
+  }
 };
 
 /**
@@ -103,7 +81,7 @@ export const getAppBadge = async (): Promise<number> => {
       return result.count || 0;
     }
   } catch (error) {
-    console.warn('[AppBadge] Failed to get badge count:', error);
+    console.warn('Failed to get app badge:', error);
   }
   return 0;
 };
@@ -118,7 +96,7 @@ export const isBadgeSupported = async (): Promise<boolean> => {
       const result = await badge.isSupported();
       return result.isSupported;
     }
-    return 'setAppBadge' in navigator || 'ExperimentalBadge' in window;
+    return 'setAppBadge' in navigator;
   } catch (error) {
     return false;
   }
