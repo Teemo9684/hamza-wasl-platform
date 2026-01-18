@@ -19,7 +19,10 @@ const config: CapacitorConfig = {
     // For OTA updates, the app loads from local dist folder
     // Updates are downloaded and applied via Capawesome Live Update
     androidScheme: 'https',
-    iosScheme: 'https'
+    iosScheme: 'https',
+    // Enable autofill by using a proper hostname instead of localhost
+    // This allows password managers to recognize the domain
+    hostname: 'hamza-wasl-platform.lovable.app'
   },
   plugins: {
     PushNotifications: {
