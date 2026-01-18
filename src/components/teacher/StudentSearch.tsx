@@ -2,9 +2,21 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MessageSquare, User, Phone, Calendar, IdCard } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Search, MessageSquare, User, Phone, Calendar, IdCard, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { sendMessageNotification } from "@/utils/sendPushNotification";
+import { lightHaptic, successHaptic, errorHaptic } from "@/utils/haptics";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface StudentSearchProps {
   students: any[];
@@ -16,6 +28,10 @@ export const StudentSearch = ({ students, onSendMessage }: StudentSearchProps) =
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [parentInfo, setParentInfo] = useState<any>(null);
   const [showResults, setShowResults] = useState(false);
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageContent, setMessageContent] = useState("");
+  const [sending, setSending] = useState(false);
   const { toast } = useToast();
 
   const filteredStudents = students.filter((student) =>
@@ -27,6 +43,7 @@ export const StudentSearch = ({ students, onSendMessage }: StudentSearchProps) =
     setSelectedStudent(student);
     setSearchQuery("");
     setShowResults(false);
+    lightHaptic();
 
     // Fetch parent information
     try {
@@ -51,9 +68,80 @@ export const StudentSearch = ({ students, onSendMessage }: StudentSearchProps) =
     }
   };
 
-  const handleContactParent = () => {
+  const handleOpenMessageDialog = () => {
     if (parentInfo && selectedStudent) {
-      onSendMessage(parentInfo.parent_id, selectedStudent.id);
+      setMessageSubject(`بخصوص التلميذ: ${selectedStudent.full_name}`);
+      setMessageContent("");
+      setShowMessageDialog(true);
+      lightHaptic();
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageSubject.trim() || !messageContent.trim()) {
+      errorHaptic();
+      toast({
+        title: "خطأ",
+        description: "يرجى ملء جميع الحقول",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!parentInfo || !selectedStudent) return;
+
+    setSending(true);
+    lightHaptic();
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("يجب تسجيل الدخول أولاً");
+
+      // Get teacher name
+      const { data: teacherProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      // Insert message
+      const { error: insertError } = await supabase
+        .from('messages')
+        .insert({
+          sender_id: user.id,
+          recipient_id: parentInfo.parent_id,
+          subject: messageSubject,
+          content: messageContent,
+          student_id: selectedStudent.id,
+        });
+
+      if (insertError) throw insertError;
+
+      // Send push notification
+      await sendMessageNotification(
+        [parentInfo.parent_id],
+        teacherProfile?.full_name || 'معلم',
+        messageSubject
+      );
+
+      successHaptic();
+      toast({
+        title: "تم الإرسال",
+        description: "تم إرسال الرسالة بنجاح إلى ولي الأمر",
+      });
+
+      setShowMessageDialog(false);
+      setMessageSubject("");
+      setMessageContent("");
+    } catch (error: any) {
+      errorHaptic();
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل إرسال الرسالة",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -69,7 +157,7 @@ export const StudentSearch = ({ students, onSendMessage }: StudentSearchProps) =
         <CardContent>
           <div className="relative">
             <Input
-              placeholder="ابحث باسم التلميذ أو الرقم الوطني..."
+              placeholder="ابحث باسم التلميذ أو الرقم المدرسي..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -126,7 +214,7 @@ export const StudentSearch = ({ students, onSendMessage }: StudentSearchProps) =
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <IdCard className="h-4 w-4" />
-                  <span className="text-sm font-medium">الرقم الوطني</span>
+                  <span className="text-sm font-medium">الرقم المدرسي</span>
                 </div>
                 <div className="text-lg font-bold">{selectedStudent.national_school_id}</div>
               </div>
@@ -198,12 +286,12 @@ export const StudentSearch = ({ students, onSendMessage }: StudentSearchProps) =
 
                 <div className="mt-6">
                   <Button
-                    onClick={handleContactParent}
+                    onClick={handleOpenMessageDialog}
                     className="w-full"
                     size="lg"
                   >
                     <MessageSquare className="ml-2 h-5 w-5" />
-                    التواصل مع ولي الأمر
+                    إرسال رسالة لولي الأمر
                   </Button>
                 </div>
               </div>
@@ -219,6 +307,69 @@ export const StudentSearch = ({ students, onSendMessage }: StudentSearchProps) =
           </CardContent>
         </Card>
       )}
+
+      {/* Dialog for sending message */}
+      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
+        <DialogContent className="sm:max-w-lg" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              إرسال رسالة لولي الأمر
+            </DialogTitle>
+            <DialogDescription>
+              إرسال رسالة إلى {parentInfo?.parent?.full_name} بخصوص {selectedStudent?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="subject">الموضوع</Label>
+              <Input
+                id="subject"
+                value={messageSubject}
+                onChange={(e) => setMessageSubject(e.target.value)}
+                placeholder="موضوع الرسالة"
+                disabled={sending}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="content">محتوى الرسالة</Label>
+              <Textarea
+                id="content"
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+                placeholder="اكتب رسالتك هنا..."
+                rows={5}
+                disabled={sending}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowMessageDialog(false)}
+              disabled={sending}
+            >
+              إلغاء
+            </Button>
+            <Button onClick={handleSendMessage} disabled={sending}>
+              {sending ? (
+                <>
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  جاري الإرسال...
+                </>
+              ) : (
+                <>
+                  <Send className="ml-2 h-4 w-4" />
+                  إرسال
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { sendMessageNotification } from "@/utils/sendPushNotification";
 import { MessagesHeader } from "@/components/shared/MessagesHeader";
 import { ConversationGroup } from "@/components/shared/ConversationGroup";
 import { setAppBadge } from "@/utils/appBadge";
+import { clearAllDeliveredNotifications } from "@/utils/localNotifications";
 
 interface Message {
   id: string;
@@ -192,6 +193,9 @@ export const ParentMessages = ({
         
         // Update app badge with new count
         setAppBadge(count || 0);
+        
+        // Clear notifications from status bar
+        await clearAllDeliveredNotifications();
       }
       
       onMessageSent();

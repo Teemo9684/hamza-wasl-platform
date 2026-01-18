@@ -66,12 +66,12 @@ export const TeacherStudents = ({
                 />
               </div>
               <div>
-                <Label htmlFor="national_school_id">الرقم الوطني للمدرسة</Label>
+                <Label htmlFor="national_school_id">الرقم المدرسي</Label>
                 <Input
                   id="national_school_id"
                   value={newStudent.national_school_id}
                   onChange={(e) => setNewStudent({ ...newStudent, national_school_id: e.target.value })}
-                  placeholder="أدخل الرقم الوطني"
+                  placeholder="أدخل الرقم المدرسي"
                 />
               </div>
               <div>
@@ -131,7 +131,7 @@ export const TeacherStudents = ({
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <span className="text-sm text-muted-foreground">الرقم الوطني: </span>
+                  <span className="text-sm text-muted-foreground">الرقم المدرسي: </span>
                   <span className="text-sm font-medium">{student.national_school_id}</span>
                 </div>
                 <div>

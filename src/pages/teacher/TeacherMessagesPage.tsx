@@ -6,6 +6,7 @@ import { sendMessageNotification } from "@/utils/sendPushNotification";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { showError, showSuccess } from "@/utils/errorMessages";
 import { setAppBadge } from "@/utils/appBadge";
+import { clearAllDeliveredNotifications } from "@/utils/localNotifications";
 
 export const TeacherMessagesContent = () => {
   const [messages, setMessages] = useState<any[]>([]);
@@ -74,6 +75,9 @@ export const TeacherMessagesContent = () => {
         
         // Update app badge with new count
         setAppBadge(count || 0);
+        
+        // Clear notifications from status bar
+        await clearAllDeliveredNotifications();
       }
       
       fetchTeacherData();
