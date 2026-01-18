@@ -1,8 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
-import { setAppBadge } from './appBadge';
+import { setAppBadge, setPWABadge } from './appBadge';
 import { playNotificationSound, NotificationType } from './pushNotifications';
-import { mediumHaptic, warningHaptic, successHaptic } from './haptics';
+import { mediumHaptic, warningHaptic, successHaptic, notificationHaptic } from './haptics';
 import { toast } from 'sonner';
+import { showLocalNotification, isLocalNotificationsSupported } from './localNotifications';
 
 // App logo URL for notifications
 const APP_ICON_URL = '/icon-192.png';
@@ -15,7 +16,7 @@ export interface NotificationPayload {
   showToast?: boolean;
   showBrowserNotification?: boolean;
   updateBadge?: boolean;
-  hapticType?: 'medium' | 'success' | 'warning';
+  hapticType?: 'medium' | 'success' | 'warning' | 'notification';
 }
 
 export interface UnreadCounts {
@@ -59,7 +60,8 @@ export const showBrowserNotification = (title: string, body: string, tag?: strin
         tag: tag || `hamza-wasl-${Date.now()}`,
         requireInteraction: false,
         silent: false, // Allow browser to play default sound
-      });
+        vibrate: [100, 50, 100], // Vibration pattern for supported browsers
+      } as NotificationOptions);
 
       // Auto close after 5 seconds
       setTimeout(() => notification.close(), 5000);
@@ -85,42 +87,28 @@ export const showBrowserNotification = (title: string, body: string, tag?: strin
   return false;
 };
 
-// Set PWA app badge (works on supported browsers)
-export const setPWABadge = async (count: number): Promise<boolean> => {
-  try {
-    if ('setAppBadge' in navigator) {
-      if (count > 0) {
-        await (navigator as any).setAppBadge(count);
-        console.log('[NotificationService] PWA badge set to:', count);
-      } else {
-        await (navigator as any).clearAppBadge();
-        console.log('[NotificationService] PWA badge cleared');
-      }
-      return true;
-    }
-  } catch (error) {
-    console.warn('[NotificationService] Failed to set PWA badge:', error);
-  }
-  return false;
-};
-
 // Trigger a notification with all effects (sound, vibration, toast, browser notification)
-export const triggerNotification = (payload: NotificationPayload): void => {
+export const triggerNotification = async (payload: NotificationPayload): Promise<void> => {
   console.log('[NotificationService] Triggering notification:', payload);
 
   // Play sound (works on both native and web)
   playNotificationSound(payload.type);
 
-  // Trigger haptic feedback (native only, will be ignored on web)
-  switch (payload.hapticType || 'medium') {
+  // Trigger haptic feedback
+  const hapticType = payload.hapticType || 'notification';
+  switch (hapticType) {
     case 'success':
-      successHaptic();
+      await successHaptic();
       break;
     case 'warning':
-      warningHaptic();
+      await warningHaptic();
       break;
+    case 'medium':
+      await mediumHaptic();
+      break;
+    case 'notification':
     default:
-      mediumHaptic();
+      await notificationHaptic();
   }
 
   // Show toast notification (in-app)
@@ -132,8 +120,13 @@ export const triggerNotification = (payload: NotificationPayload): void => {
     });
   }
 
-  // Show browser notification (for web - shows in browser status bar)
-  if (payload.showBrowserNotification !== false) {
+  // For native platforms, use local notifications
+  if (isLocalNotificationsSupported()) {
+    await showLocalNotification(payload.title, payload.body, {
+      channelId: payload.type === 'announcement' ? 'announcements' : 'messages'
+    });
+  } else if (payload.showBrowserNotification !== false) {
+    // Show browser notification for web
     showBrowserNotification(payload.title, payload.body, payload.type);
   }
 };

@@ -19,6 +19,7 @@ import { LiveUpdateChecker } from "@/components/LiveUpdateChecker";
 import { SchoolScheduleAlert } from "@/components/SchoolScheduleAlert";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import SplashScreen from "@/components/SplashScreen";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import RegisterParent from "./pages/RegisterParent";
@@ -238,6 +239,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <SchoolScheduleAlert />
+                <PWAInstallPrompt />
                 <BrowserRouter>
                   <BackButtonHandler />
                   <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
