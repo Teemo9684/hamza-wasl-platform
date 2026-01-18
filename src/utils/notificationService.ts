@@ -26,29 +26,6 @@ export interface UnreadCounts {
   total: number;
 }
 
-// Show browser notification with app icon
-export const showBrowserNotification = (title: string, body: string, tag?: string): boolean => {
-  if ('Notification' in window && Notification.permission === 'granted') {
-    try {
-      new Notification(title, {
-        body,
-        icon: APP_ICON_URL,
-        badge: APP_ICON_URL,
-        tag: tag || `hamza-wasl-${Date.now()}`,
-        requireInteraction: false,
-        silent: false,
-      });
-      console.log('[NotificationService] Browser notification shown:', title);
-      return true;
-    } catch (error) {
-      console.warn('[NotificationService] Failed to show browser notification:', error);
-      return false;
-    }
-  }
-  console.log('[NotificationService] Browser notifications not available or not permitted');
-  return false;
-};
-
 // Request browser notification permission
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if ('Notification' in window) {
@@ -64,14 +41,77 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   return false;
 };
 
-// Trigger a notification with all effects
+// Show browser notification with app icon (works on web browsers)
+export const showBrowserNotification = (title: string, body: string, tag?: string): boolean => {
+  // Check if we're in a browser environment that supports notifications
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    console.log('[NotificationService] Browser notifications not supported');
+    return false;
+  }
+
+  // Check permission status
+  if (Notification.permission === 'granted') {
+    try {
+      const notification = new Notification(title, {
+        body,
+        icon: APP_ICON_URL,
+        badge: APP_ICON_URL,
+        tag: tag || `hamza-wasl-${Date.now()}`,
+        requireInteraction: false,
+        silent: false, // Allow browser to play default sound
+      });
+
+      // Auto close after 5 seconds
+      setTimeout(() => notification.close(), 5000);
+
+      // Handle click to focus the app
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+
+      console.log('[NotificationService] Browser notification shown:', title);
+      return true;
+    } catch (error) {
+      console.warn('[NotificationService] Failed to show browser notification:', error);
+      return false;
+    }
+  } else if (Notification.permission === 'default') {
+    // Request permission if not yet decided
+    requestNotificationPermission();
+  }
+
+  console.log('[NotificationService] Browser notifications not permitted, permission:', Notification.permission);
+  return false;
+};
+
+// Set PWA app badge (works on supported browsers)
+export const setPWABadge = async (count: number): Promise<boolean> => {
+  try {
+    if ('setAppBadge' in navigator) {
+      if (count > 0) {
+        await (navigator as any).setAppBadge(count);
+        console.log('[NotificationService] PWA badge set to:', count);
+      } else {
+        await (navigator as any).clearAppBadge();
+        console.log('[NotificationService] PWA badge cleared');
+      }
+      return true;
+    }
+  } catch (error) {
+    console.warn('[NotificationService] Failed to set PWA badge:', error);
+  }
+  return false;
+};
+
+// Trigger a notification with all effects (sound, vibration, toast, browser notification)
 export const triggerNotification = (payload: NotificationPayload): void => {
   console.log('[NotificationService] Triggering notification:', payload);
 
-  // Play sound
+  // Play sound (works on both native and web)
   playNotificationSound(payload.type);
 
-  // Trigger haptic feedback
+  // Trigger haptic feedback (native only, will be ignored on web)
   switch (payload.hapticType || 'medium') {
     case 'success':
       successHaptic();
@@ -83,7 +123,7 @@ export const triggerNotification = (payload: NotificationPayload): void => {
       mediumHaptic();
   }
 
-  // Show toast notification
+  // Show toast notification (in-app)
   if (payload.showToast !== false) {
     const toastMethod = payload.type === 'announcement' ? toast.info : toast.success;
     toastMethod(payload.title, {
@@ -92,7 +132,7 @@ export const triggerNotification = (payload: NotificationPayload): void => {
     });
   }
 
-  // Show browser notification
+  // Show browser notification (for web - shows in browser status bar)
   if (payload.showBrowserNotification !== false) {
     showBrowserNotification(payload.title, payload.body, payload.type);
   }
@@ -170,8 +210,9 @@ export const fetchUnreadCounts = async (
     // Calculate total
     counts.total = counts.messages + counts.attendance + counts.homework + counts.documents;
 
-    // Update app badge with messages only (most important)
+    // Update app badge (native) and PWA badge (web) with messages count
     setAppBadge(counts.messages);
+    setPWABadge(counts.messages);
 
     console.log('[NotificationService] Fetched unread counts:', counts);
     return counts;

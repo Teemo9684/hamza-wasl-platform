@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +64,18 @@ export const ParentMessages = ({
   const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
   const [deleteConversationId, setDeleteConversationId] = useState<string | null>(null);
   const [viewMessage, setViewMessage] = useState<Message | null>(null);
+  
+  // Reply state
+  const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
+  const [replyMessage, setReplyMessage] = useState({
+    messageId: "",
+    recipientId: "",
+    recipientName: "",
+    originalSubject: "",
+    studentId: "",
+    content: "",
+  });
+  const [isReplying, setIsReplying] = useState(false);
 
   // Filter messages based on status and search
   const filteredMessages = useMemo(() => {
@@ -303,6 +315,92 @@ export const ParentMessages = ({
     }
   };
 
+  // Handle reply
+  const handleOpenReply = (message: Message) => {
+    setReplyMessage({
+      messageId: message.id,
+      recipientId: message.sender_id,
+      recipientName: message.sender?.full_name || 'غير معروف',
+      originalSubject: message.subject,
+      studentId: message.student_id || "",
+      content: "",
+    });
+    setIsReplyDialogOpen(true);
+  };
+
+  const handleSendReply = async () => {
+    if (!replyMessage.content.trim()) {
+      toast({
+        title: "تنبيه",
+        description: "يرجى كتابة محتوى الرد",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsReplying(true);
+    try {
+      messageSchema.parse({
+        subject: `رد: ${replyMessage.originalSubject}`,
+        content: replyMessage.content,
+      });
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("المستخدم غير مسجل الدخول");
+
+      const { error } = await supabase.from('messages').insert({
+        sender_id: user.id,
+        recipient_id: replyMessage.recipientId,
+        subject: `رد: ${replyMessage.originalSubject}`,
+        content: replyMessage.content,
+        student_id: replyMessage.studentId || null,
+      });
+
+      if (error) throw error;
+
+      // Get parent name for notification
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      // Send notification to teacher
+      await sendMessageNotification(
+        [replyMessage.recipientId],
+        profile?.full_name || 'ولي أمر',
+        `رد: ${replyMessage.originalSubject}`
+      );
+
+      toast({
+        title: "تم إرسال الرد",
+        description: "تم إرسال ردك بنجاح",
+      });
+
+      // Mark original message as read
+      await handleMarkAsRead(replyMessage.messageId);
+
+      setReplyMessage({
+        messageId: "",
+        recipientId: "",
+        recipientName: "",
+        originalSubject: "",
+        studentId: "",
+        content: "",
+      });
+      setIsReplyDialogOpen(false);
+      onMessageSent();
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.errors?.[0]?.message || error.message || "فشل في إرسال الرد",
+        variant: "destructive",
+      });
+    } finally {
+      setIsReplying(false);
+    }
+  };
+
   const totalUnread = receivedMessages.filter(m => !m.is_read).length;
 
   return (
@@ -426,6 +524,7 @@ export const ParentMessages = ({
               unreadCount={group.unreadCount}
               lastMessageDate={group.lastMessageDate}
               defaultOpen={index === 0 && group.unreadCount > 0}
+              onReply={handleOpenReply}
               onMarkAsRead={handleMarkAsRead}
               onDelete={(id) => setDeleteMessageId(id)}
               onDeleteAll={() => setDeleteConversationId(group.senderId)}
@@ -518,6 +617,53 @@ export const ParentMessages = ({
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Reply Dialog */}
+      <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>الرد على الرسالة</DialogTitle>
+            <DialogDescription>
+              إلى: {replyMessage.recipientName}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-3 rounded-lg bg-muted/50 text-sm">
+              <span className="text-muted-foreground">الموضوع: </span>
+              <span className="font-medium">رد: {replyMessage.originalSubject}</span>
+            </div>
+            <Textarea
+              value={replyMessage.content}
+              onChange={(e) => setReplyMessage({ ...replyMessage, content: e.target.value })}
+              placeholder="اكتب ردك هنا..."
+              rows={6}
+              className="resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsReplyDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button 
+              onClick={handleSendReply} 
+              disabled={isReplying || !replyMessage.content.trim()}
+              className="gap-2"
+            >
+              {isReplying ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  جاري الإرسال...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  إرسال الرد
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
