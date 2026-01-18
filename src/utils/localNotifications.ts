@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { mediumHaptic, heavyHaptic } from './haptics';
+import { notificationHaptic } from './haptics';
 
 // Dynamically import LocalNotifications to avoid issues on web
 let LocalNotifications: any = null;
@@ -11,6 +11,7 @@ const loadLocalNotifications = async () => {
     try {
       const module = await import('@capacitor/local-notifications');
       LocalNotifications = module.LocalNotifications;
+      console.log('LocalNotifications plugin loaded successfully');
       return LocalNotifications;
     } catch (error) {
       console.warn('LocalNotifications plugin not available:', error);
@@ -26,16 +27,21 @@ const loadLocalNotifications = async () => {
 export const initializeLocalNotifications = async (): Promise<boolean> => {
   try {
     const notifications = await loadLocalNotifications();
-    if (!notifications) return false;
+    if (!notifications) {
+      console.log('Local notifications not available on this platform');
+      return false;
+    }
     
     let permStatus = await notifications.checkPermissions();
+    console.log('Initial notification permission status:', permStatus);
     
     if (permStatus.display === 'prompt' || permStatus.display === 'prompt-with-rationale') {
       permStatus = await notifications.requestPermissions();
+      console.log('After request, permission status:', permStatus);
     }
     
     if (permStatus.display !== 'granted') {
-      console.warn('Local notification permission not granted');
+      console.warn('Local notification permission not granted:', permStatus.display);
       return false;
     }
     
@@ -62,35 +68,41 @@ export const showLocalNotification = async (
   try {
     const notifications = await loadLocalNotifications();
     if (!notifications) {
-      console.log('Local notifications not available, falling back to web notification');
+      console.log('Local notifications not available, skipping');
       return false;
     }
     
     const notificationId = options?.id || Math.floor(Math.random() * 100000);
     
-    // Trigger haptic feedback for all notifications
-    await heavyHaptic();
+    // Trigger strong haptic feedback for all notifications
+    console.log('Triggering notification haptic...');
+    await notificationHaptic();
+    
+    const notificationConfig = {
+      id: notificationId,
+      title,
+      body,
+      sound: options?.sound || 'default',
+      channelId: options?.channelId || 'messages',
+      smallIcon: 'ic_notification',
+      largeIcon: 'ic_launcher',
+      iconColor: '#4F46E5',
+      schedule: { at: new Date(Date.now() + 100) }, // Show almost immediately
+      extra: {
+        timestamp: Date.now()
+      },
+      // Android specific - ensure vibration
+      ongoing: false,
+      autoCancel: true,
+    };
+    
+    console.log('Scheduling local notification:', notificationConfig);
     
     await notifications.schedule({
-      notifications: [
-        {
-          id: notificationId,
-          title,
-          body,
-          sound: options?.sound || 'default',
-          channelId: options?.channelId || 'messages',
-          smallIcon: 'ic_notification',
-          largeIcon: 'ic_launcher',
-          iconColor: '#4F46E5',
-          schedule: { at: new Date(Date.now() + 100) }, // Show almost immediately
-          extra: {
-            timestamp: Date.now()
-          }
-        }
-      ]
+      notifications: [notificationConfig]
     });
     
-    console.log('Local notification scheduled:', { id: notificationId, title, body });
+    console.log('Local notification scheduled successfully:', { id: notificationId, title, body });
     return true;
   } catch (error) {
     console.error('Error showing local notification:', error);

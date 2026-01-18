@@ -1,11 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { playNotificationSound } from './pushNotifications';
-import { setAppBadge } from './appBadge';
+import { setAppBadge, setPWABadge } from './appBadge';
 import { realtimeManager } from './realtimeManager';
-import { mediumHaptic, warningHaptic } from './haptics';
+import { mediumHaptic, warningHaptic, notificationHaptic } from './haptics';
 import { showLocalNotification, isLocalNotificationsSupported } from './localNotifications';
-import { setPWABadge } from './notificationService';
 
 // App logo URL for notifications
 const APP_ICON_URL = '/icon-192.png';
@@ -77,8 +76,8 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
         // Play notification sound
         playNotificationSound('message');
         
-        // Trigger haptic vibration
-        mediumHaptic();
+        // Trigger strong haptic vibration for notifications
+        await notificationHaptic();
         
         const senderName = senderData?.full_name || 'مستخدم';
         const senderDescription = userRole === 'teacher' 
@@ -131,8 +130,8 @@ export const setupRealtimeNotifications = async (userId: string, userRole: 'admi
           // Play notification sound
           playNotificationSound('announcement');
           
-          // Trigger haptic vibration for announcements
-          warningHaptic();
+          // Trigger strong haptic vibration for announcements
+          await notificationHaptic();
           
           const announcementTitle = announcement.title || 'إعلان جديد';
           const announcementContent = announcement.content || '';
