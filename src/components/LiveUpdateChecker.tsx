@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLiveUpdate, checkAndConvertPendingUpdate, getAppliedUpdate, clearAppliedUpdate } from "@/hooks/useLiveUpdate";
-import { markBundleAsReady, isNativeApp as checkNativeApp, syncBundleVersion, getCurrentVersion } from "@/utils/liveUpdate";
+import { markBundleAsReady, isNativeApp as checkNativeApp, syncBundleVersion, initializeVersion, getCurrentVersion } from "@/utils/liveUpdate";
 import { toast } from "sonner";
 
 interface LiveUpdateCheckerProps {
@@ -26,11 +26,14 @@ export const LiveUpdateChecker = ({
     if (!checkNativeApp() || hasInitialized) return;
 
     const initializeUpdate = async () => {
-      // Sync bundle version first
+      // Initialize version first
+      await initializeVersion();
+      
+      // Sync bundle version
       await syncBundleVersion();
       
       // Convert pending update to applied
-      checkAndConvertPendingUpdate();
+      await checkAndConvertPendingUpdate();
       
       setHasInitialized(true);
       console.log("LiveUpdateChecker initialized, current version:", getCurrentVersion());
@@ -44,8 +47,8 @@ export const LiveUpdateChecker = ({
     if (!checkNativeApp() || !hasInitialized) return;
 
     // Check if we just completed an update
-    const timer = setTimeout(() => {
-      const appliedUpdate = getAppliedUpdate();
+    const showUpdateSuccess = async () => {
+      const appliedUpdate = await getAppliedUpdate();
       if (appliedUpdate && !hasShownUpdateSuccess) {
         setHasShownUpdateSuccess(true);
         
@@ -69,10 +72,12 @@ export const LiveUpdateChecker = ({
         );
 
         // Clear the applied update flag after showing
-        clearAppliedUpdate();
+        await clearAppliedUpdate();
         console.log("Showed update success message for version:", appliedUpdate.version);
       }
-    }, 1500);
+    };
+
+    const timer = setTimeout(showUpdateSuccess, 1500);
 
     return () => clearTimeout(timer);
   }, [hasShownUpdateSuccess, hasInitialized]);

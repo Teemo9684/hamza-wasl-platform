@@ -5,17 +5,19 @@ import {
   downloadAndApplyUpdate,
   getCurrentVersion,
   syncBundleVersion,
+  initializeVersion,
   type UpdateInfo,
 } from "@/utils/liveUpdate";
+import { getItem, setItem, removeItem } from "@/utils/nativeStorage";
 
-// Keys for localStorage
+// Keys for native storage
 const PENDING_UPDATE_KEY = "ota_pending_update";
 const UPDATE_APPLIED_KEY = "ota_update_applied";
 
 // Store pending update info to show message after reload
-export const setPendingUpdate = (updateInfo: UpdateInfo): void => {
+export const setPendingUpdate = async (updateInfo: UpdateInfo): Promise<void> => {
   try {
-    localStorage.setItem(PENDING_UPDATE_KEY, JSON.stringify({
+    await setItem(PENDING_UPDATE_KEY, JSON.stringify({
       version: updateInfo.version,
       releaseNotes: updateInfo.releaseNotes,
       appliedAt: Date.now()
@@ -27,9 +29,9 @@ export const setPendingUpdate = (updateInfo: UpdateInfo): void => {
 };
 
 // Get pending update info
-export const getPendingUpdate = (): { version: string; releaseNotes?: string; appliedAt: number } | null => {
+export const getPendingUpdate = async (): Promise<{ version: string; releaseNotes?: string; appliedAt: number } | null> => {
   try {
-    const data = localStorage.getItem(PENDING_UPDATE_KEY);
+    const data = await getItem(PENDING_UPDATE_KEY);
     return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error("Error reading pending update:", error);
@@ -38,16 +40,16 @@ export const getPendingUpdate = (): { version: string; releaseNotes?: string; ap
 };
 
 // Convert pending update to applied (called after app restart)
-export const checkAndConvertPendingUpdate = (): void => {
+export const checkAndConvertPendingUpdate = async (): Promise<void> => {
   try {
-    const pendingData = localStorage.getItem(PENDING_UPDATE_KEY);
+    const pendingData = await getItem(PENDING_UPDATE_KEY);
     if (pendingData) {
       const pending = JSON.parse(pendingData);
-      localStorage.setItem(UPDATE_APPLIED_KEY, JSON.stringify({
+      await setItem(UPDATE_APPLIED_KEY, JSON.stringify({
         ...pending,
         appliedAt: Date.now()
       }));
-      localStorage.removeItem(PENDING_UPDATE_KEY);
+      await removeItem(PENDING_UPDATE_KEY);
       console.log("Converted pending update to applied:", pending.version);
     }
   } catch (error) {
@@ -56,9 +58,9 @@ export const checkAndConvertPendingUpdate = (): void => {
 };
 
 // Get applied update info (for showing success message)
-export const getAppliedUpdate = (): { version: string; releaseNotes?: string; appliedAt: number } | null => {
+export const getAppliedUpdate = async (): Promise<{ version: string; releaseNotes?: string; appliedAt: number } | null> => {
   try {
-    const data = localStorage.getItem(UPDATE_APPLIED_KEY);
+    const data = await getItem(UPDATE_APPLIED_KEY);
     return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error("Error reading applied update:", error);
@@ -67,9 +69,9 @@ export const getAppliedUpdate = (): { version: string; releaseNotes?: string; ap
 };
 
 // Clear applied update (after showing message)
-export const clearAppliedUpdate = (): void => {
+export const clearAppliedUpdate = async (): Promise<void> => {
   try {
-    localStorage.removeItem(UPDATE_APPLIED_KEY);
+    await removeItem(UPDATE_APPLIED_KEY);
   } catch (error) {
     console.error("Error clearing applied update:", error);
   }
@@ -93,6 +95,8 @@ let globalState: UpdateState = {
 };
 
 let globalUpdateCheckInProgress = false;
+let versionInitialized = false;
+
 const listeners: Set<(state: UpdateState) => void> = new Set();
 
 const notifyListeners = (newState: UpdateState) => {
@@ -102,6 +106,7 @@ const notifyListeners = (newState: UpdateState) => {
 
 export const useLiveUpdate = (autoCheck: boolean = false) => {
   const [state, setState] = useState<UpdateState>(globalState);
+  const [currentVersion, setCurrentVersion] = useState<string>(getCurrentVersion());
   const isNative = isNativeApp();
 
   // Subscribe to global state changes
@@ -116,10 +121,17 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
     };
   }, []);
 
-  // Sync bundle version on mount
+  // Initialize version on mount
   useEffect(() => {
-    if (isNative) {
-      syncBundleVersion();
+    if (isNative && !versionInitialized) {
+      const init = async () => {
+        await initializeVersion();
+        await syncBundleVersion();
+        setCurrentVersion(getCurrentVersion());
+        versionInitialized = true;
+        console.log("Live update initialized, version:", getCurrentVersion());
+      };
+      init();
     }
   }, [isNative]);
 
@@ -134,7 +146,7 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
 
     try {
       // Save pending update info BEFORE applying
-      setPendingUpdate(updateInfo);
+      await setPendingUpdate(updateInfo);
 
       const success = await downloadAndApplyUpdate(
         updateInfo.bundleUrl,
@@ -146,14 +158,14 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
 
       if (!success) {
         // Clear pending if failed
-        localStorage.removeItem(PENDING_UPDATE_KEY);
+        await removeItem(PENDING_UPDATE_KEY);
         notifyListeners({ ...globalState, isDownloading: false, downloadProgress: 0, error: "فشل تطبيق التحديث" });
       }
 
       return success;
     } catch (error) {
       console.error("Error applying update:", error);
-      localStorage.removeItem(PENDING_UPDATE_KEY);
+      await removeItem(PENDING_UPDATE_KEY);
       notifyListeners({ 
         ...globalState, 
         isDownloading: false, 
@@ -211,7 +223,7 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
 
   // Initial check on mount if autoCheck is enabled
   useEffect(() => {
-    if (isNative && autoCheck && !globalUpdateCheckInProgress) {
+    if (isNative && autoCheck && !globalUpdateCheckInProgress && versionInitialized) {
       // Delay initial check to allow app to fully load
       const timer = setTimeout(() => {
         checkUpdate();
@@ -225,6 +237,6 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
     ...state,
     checkUpdate,
     isNativeApp: isNative,
-    currentVersion: getCurrentVersion(),
+    currentVersion,
   };
 };
