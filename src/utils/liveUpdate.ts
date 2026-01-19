@@ -2,42 +2,71 @@ import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/config/version";
 
-// Update information from server
 export interface UpdateInfo {
   hasUpdate: boolean;
   version?: string;
   bundleUrl?: string;
   isMandatory?: boolean;
   releaseNotes?: string;
+  bundleId?: string;
 }
 
-// Live update state
-export interface LiveUpdateState {
-  isChecking: boolean;
-  isDownloading: boolean;
-  downloadProgress: number;
-  updateInfo: UpdateInfo | null;
-  error: string | null;
-}
+// Key for storing the current applied bundle version
+const APPLIED_BUNDLE_VERSION_KEY = "ota_applied_bundle_version";
+const APPLIED_BUNDLE_ID_KEY = "ota_applied_bundle_id";
 
-// Check if running in native app
+// Check if running in a native app
 export const isNativeApp = (): boolean => {
   return Capacitor.isNativePlatform();
 };
 
-// Get current app version
+// Get current app version - prioritize the applied bundle version over the base APP_VERSION
 export const getCurrentVersion = (): string => {
+  try {
+    const appliedVersion = localStorage.getItem(APPLIED_BUNDLE_VERSION_KEY);
+    if (appliedVersion) {
+      console.log("Using applied bundle version:", appliedVersion);
+      return appliedVersion;
+    }
+  } catch (error) {
+    console.error("Error reading applied version:", error);
+  }
+  console.log("Using base APP_VERSION:", APP_VERSION);
   return APP_VERSION;
+};
+
+// Save the applied bundle version
+export const setAppliedBundleVersion = (version: string, bundleId?: string): void => {
+  try {
+    localStorage.setItem(APPLIED_BUNDLE_VERSION_KEY, version);
+    if (bundleId) {
+      localStorage.setItem(APPLIED_BUNDLE_ID_KEY, bundleId);
+    }
+    console.log("Saved applied bundle version:", version);
+  } catch (error) {
+    console.error("Error saving applied version:", error);
+  }
+};
+
+// Get the applied bundle ID
+export const getAppliedBundleId = (): string | null => {
+  try {
+    return localStorage.getItem(APPLIED_BUNDLE_ID_KEY);
+  } catch (error) {
+    console.error("Error reading applied bundle ID:", error);
+    return null;
+  }
 };
 
 // Check for updates
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
   try {
-    console.log("Checking for update, current version:", getCurrentVersion());
+    const currentVersion = getCurrentVersion();
+    console.log("Checking for update, current version:", currentVersion);
     
     const { data, error } = await supabase.functions.invoke("check-app-update", {
       body: {
-        currentVersion: getCurrentVersion(),
+        currentVersion: currentVersion,
         platform: Capacitor.getPlatform(),
       },
     });
@@ -55,9 +84,10 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
   }
 };
 
-// Download and apply update with progress callback
+// Download and apply update with progress tracking
 export const downloadAndApplyUpdate = async (
   bundleUrl: string,
+  version: string,
   onProgress?: (progress: number) => void
 ): Promise<boolean> => {
   if (!isNativeApp()) {
@@ -66,13 +96,13 @@ export const downloadAndApplyUpdate = async (
   }
 
   try {
-    console.log("Starting update download from:", bundleUrl);
+    console.log("Starting update download from:", bundleUrl, "version:", version);
     
     // Dynamically import the live update plugin
     const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
 
-    // Generate a unique bundle ID based on timestamp
-    const bundleId = `update-${Date.now()}`;
+    // Generate a unique bundle ID based on version and timestamp
+    const bundleId = `update-${version}-${Date.now()}`;
 
     // Track download progress
     let lastProgress = 0;
@@ -100,10 +130,13 @@ export const downloadAndApplyUpdate = async (
       bundleId: bundleId,
     });
 
-    onProgress?.(100);
-    console.log("Bundle set, reloading app...");
+    // Save the version BEFORE reload so we know what version we're running after restart
+    setAppliedBundleVersion(version, bundleId);
 
-    // Small delay before reload to ensure UI updates
+    onProgress?.(100);
+    console.log("Bundle set, version saved, reloading app...");
+
+    // Small delay before reload to ensure everything is saved
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Reload the app to apply the update
@@ -116,93 +149,79 @@ export const downloadAndApplyUpdate = async (
   }
 };
 
-// Get current bundle info
-export const getCurrentBundleInfo = async (): Promise<any | null> => {
-  if (!isNativeApp()) {
-    return null;
-  }
-
-  try {
-    const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
-    const result = await LiveUpdate.getCurrentBundle();
-    return result;
-  } catch (error) {
-    console.error("Error getting bundle info:", error);
-    return null;
-  }
-};
-
-// Mark bundle as ready - prevents rollback to previous version
-export const markBundleAsReady = async (): Promise<boolean> => {
-  if (!isNativeApp()) {
-    return false;
-  }
+// Mark bundle as ready to prevent rollback
+export const markBundleAsReady = async (): Promise<void> => {
+  if (!isNativeApp()) return;
 
   try {
     const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
     await LiveUpdate.ready();
-    console.log("Bundle marked as ready - update confirmed");
-    return true;
+    console.log("Bundle marked as ready - rollback prevention enabled");
   } catch (error) {
     console.error("Error marking bundle as ready:", error);
-    return false;
   }
 };
 
-// Reset to the original bundle (factory reset)
-export const resetToOriginalBundle = async (): Promise<boolean> => {
+// Get current bundle info
+export const getCurrentBundleInfo = async (): Promise<{ bundleId: string | null; version: string }> => {
   if (!isNativeApp()) {
-    return false;
+    return { bundleId: null, version: getCurrentVersion() };
   }
+
+  try {
+    const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
+    const bundle = await LiveUpdate.getCurrentBundle();
+    return {
+      bundleId: bundle?.bundleId || null,
+      version: getCurrentVersion()
+    };
+  } catch (error) {
+    console.error("Error getting current bundle:", error);
+    return { bundleId: null, version: getCurrentVersion() };
+  }
+};
+
+// Reset to default bundle (for troubleshooting)
+export const resetToDefaultBundle = async (): Promise<boolean> => {
+  if (!isNativeApp()) return false;
 
   try {
     const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
     await LiveUpdate.reset();
-    await LiveUpdate.reload();
+    
+    // Clear the stored applied version
+    localStorage.removeItem(APPLIED_BUNDLE_VERSION_KEY);
+    localStorage.removeItem(APPLIED_BUNDLE_ID_KEY);
+    
+    console.log("Reset to default bundle");
     return true;
   } catch (error) {
-    console.error("Error resetting to original bundle:", error);
+    console.error("Error resetting bundle:", error);
     return false;
   }
 };
 
-// Delete a specific bundle
-export const deleteBundle = async (bundleId: string): Promise<boolean> => {
-  if (!isNativeApp()) {
-    return false;
-  }
+// Sync bundle version with actual bundle (for recovery)
+export const syncBundleVersion = async (): Promise<void> => {
+  if (!isNativeApp()) return;
 
   try {
     const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
-    await LiveUpdate.deleteBundle({ bundleId });
-    return true;
+    const bundle = await LiveUpdate.getCurrentBundle();
+    
+    if (!bundle?.bundleId) {
+      // Running default bundle, clear any stored version
+      localStorage.removeItem(APPLIED_BUNDLE_VERSION_KEY);
+      localStorage.removeItem(APPLIED_BUNDLE_ID_KEY);
+      console.log("Synced: Running default bundle");
+    } else {
+      // We have a bundle, make sure we have the version stored
+      const storedBundleId = getAppliedBundleId();
+      if (storedBundleId !== bundle.bundleId) {
+        console.log("Bundle ID mismatch detected, version may be out of sync");
+      }
+    }
   } catch (error) {
-    console.error("Error deleting bundle:", error);
-    return false;
+    console.error("Error syncing bundle version:", error);
   }
 };
-
-// Get all downloaded bundles
-export const getAllBundles = async (): Promise<string[]> => {
-  if (!isNativeApp()) {
-    return [];
-  }
-
-  try {
-    const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
-    const result = await LiveUpdate.getBundles();
-    return result.bundleIds || [];
-  } catch (error) {
-    console.error("Error getting bundles:", error);
-    return [];
-  }
-};
-
-// Create initial state
-export const createInitialState = (): LiveUpdateState => ({
-  isChecking: false,
-  isDownloading: false,
-  downloadProgress: 0,
-  updateInfo: null,
-  error: null,
-});
