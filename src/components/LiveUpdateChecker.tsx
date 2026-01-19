@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLiveUpdate, checkAndConvertPendingUpdate, getAppliedUpdate, clearAppliedUpdate } from "@/hooks/useLiveUpdate";
-import { markBundleAsReady, isNativeApp as checkNativeApp } from "@/utils/liveUpdate";
+import { markBundleAsReady, isNativeApp as checkNativeApp, syncBundleVersion, getCurrentVersion } from "@/utils/liveUpdate";
 import { toast } from "sonner";
 
 interface LiveUpdateCheckerProps {
@@ -17,15 +17,31 @@ export const LiveUpdateChecker = ({
   autoCheck = true,
   checkInterval = 30 * 60 * 1000,
 }: LiveUpdateCheckerProps) => {
-  const { checkUpdate, isNativeApp, isDownloading, downloadProgress } = useLiveUpdate(autoCheck);
+  const { checkUpdate, isNativeApp, isDownloading, downloadProgress, currentVersion } = useLiveUpdate(autoCheck);
   const [hasShownUpdateSuccess, setHasShownUpdateSuccess] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Initialize and sync bundle version on app start
+  useEffect(() => {
+    if (!checkNativeApp() || hasInitialized) return;
+
+    const initializeUpdate = async () => {
+      // Sync bundle version first
+      await syncBundleVersion();
+      
+      // Convert pending update to applied
+      checkAndConvertPendingUpdate();
+      
+      setHasInitialized(true);
+      console.log("LiveUpdateChecker initialized, current version:", getCurrentVersion());
+    };
+
+    initializeUpdate();
+  }, [hasInitialized]);
 
   // Check for pending update and show success message
   useEffect(() => {
-    if (!checkNativeApp()) return;
-
-    // Convert pending update to applied on app start
-    checkAndConvertPendingUpdate();
+    if (!checkNativeApp() || !hasInitialized) return;
 
     // Check if we just completed an update
     const timer = setTimeout(() => {
@@ -54,34 +70,37 @@ export const LiveUpdateChecker = ({
 
         // Clear the applied update flag after showing
         clearAppliedUpdate();
+        console.log("Showed update success message for version:", appliedUpdate.version);
       }
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [hasShownUpdateSuccess]);
+  }, [hasShownUpdateSuccess, hasInitialized]);
 
   // Mark bundle as ready on app start - this prevents rollback to previous version
   useEffect(() => {
-    if (!checkNativeApp()) return;
+    if (!checkNativeApp() || !hasInitialized) return;
     
     // Give the app a moment to fully load before confirming the bundle
     const timer = setTimeout(() => {
       markBundleAsReady();
+      console.log("Bundle marked as ready");
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [hasInitialized]);
 
   // Periodic update check
   useEffect(() => {
-    if (!isNativeApp || !autoCheck) return;
+    if (!isNativeApp || !autoCheck || !hasInitialized) return;
 
     const intervalId = setInterval(() => {
+      console.log("Periodic update check, current version:", currentVersion);
       checkUpdate();
     }, checkInterval);
 
     return () => clearInterval(intervalId);
-  }, [isNativeApp, autoCheck, checkInterval, checkUpdate]);
+  }, [isNativeApp, autoCheck, checkInterval, checkUpdate, hasInitialized, currentVersion]);
 
   // Show download progress toast when downloading
   useEffect(() => {
