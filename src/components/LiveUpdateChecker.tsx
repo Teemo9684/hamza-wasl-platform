@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLiveUpdate, checkAndConvertPendingUpdate, getAppliedUpdate, clearAppliedUpdate } from "@/hooks/useLiveUpdate";
 import { markBundleAsReady, isNativeApp as checkNativeApp, syncBundleVersion, initializeVersion, getCurrentVersion } from "@/utils/liveUpdate";
+import { UpdateSuccessToast } from "@/components/UpdateSuccessToast";
 import { toast } from "sonner";
 
 interface LiveUpdateCheckerProps {
@@ -20,6 +21,8 @@ export const LiveUpdateChecker = ({
   const { checkUpdate, isNativeApp, isDownloading, downloadProgress, currentVersion } = useLiveUpdate(autoCheck);
   const [hasShownUpdateSuccess, setHasShownUpdateSuccess] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [showUpdateToast, setShowUpdateToast] = useState(false);
+  const [appliedUpdateInfo, setAppliedUpdateInfo] = useState<{ version: string; releaseNotes?: string } | null>(null);
 
   // Initialize and sync bundle version on app start
   useEffect(() => {
@@ -51,25 +54,16 @@ export const LiveUpdateChecker = ({
       const appliedUpdate = await getAppliedUpdate();
       if (appliedUpdate && !hasShownUpdateSuccess) {
         setHasShownUpdateSuccess(true);
-        
-        // Show success toast with update info
-        toast.success(
-          <div className="text-right" dir="rtl">
-            <div className="font-bold text-base mb-1">✅ تم التحديث بنجاح!</div>
-            <div className="text-sm text-muted-foreground mb-1">
-              الإصدار الجديد: <span className="font-semibold text-primary">{appliedUpdate.version}</span>
-            </div>
-            {appliedUpdate.releaseNotes && (
-              <div className="text-xs text-muted-foreground mt-1 border-t pt-1">
-                {appliedUpdate.releaseNotes}
-              </div>
-            )}
-          </div>,
-          {
-            duration: 5000,
-            position: "top-center",
-          }
-        );
+        setAppliedUpdateInfo({
+          version: appliedUpdate.version,
+          releaseNotes: appliedUpdate.releaseNotes,
+        });
+        setShowUpdateToast(true);
+
+        // Auto dismiss after 5 seconds
+        setTimeout(() => {
+          setShowUpdateToast(false);
+        }, 5000);
 
         // Clear the applied update flag after showing
         await clearAppliedUpdate();
@@ -131,5 +125,16 @@ export const LiveUpdateChecker = ({
     }
   }, [isDownloading, downloadProgress]);
 
-  return null;
+  return (
+    <>
+      {appliedUpdateInfo && (
+        <UpdateSuccessToast
+          version={appliedUpdateInfo.version}
+          releaseNotes={appliedUpdateInfo.releaseNotes}
+          isVisible={showUpdateToast}
+          onDismiss={() => setShowUpdateToast(false)}
+        />
+      )}
+    </>
+  );
 };

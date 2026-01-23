@@ -7,6 +7,7 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { FloatingQuickNotification } from "@/components/FloatingQuickNotification";
 
 // Context to share data between layout and pages
 interface TeacherDashboardContextType {
@@ -151,6 +152,9 @@ export const TeacherDashboardLayout = () => {
             messages: counts.messages,
           }}
         />
+
+        {/* إشعارات عائمة */}
+        <FloatingQuickNotification userRole="teacher" />
       </div>
     </TeacherDashboardContext.Provider>
   );
