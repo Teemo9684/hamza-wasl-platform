@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, ArrowRight, Mail, Lock, User, Phone, Hash, Eye, EyeOff, Info, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Users, ArrowRight, Mail, Lock, User, Phone, Hash, Eye, EyeOff, Info, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { parentRegistrationSchema } from "@/lib/validations";
 import { showError, showSuccess, showWarning } from "@/utils/errorMessages";
@@ -107,9 +107,93 @@ const RegisterParent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Student validation state
+  const [studentValidation, setStudentValidation] = useState<{
+    isChecking: boolean;
+    isValid: boolean | null;
+    studentName: string | null;
+    error: string | null;
+  }>({
+    isChecking: false,
+    isValid: null,
+    studentName: null,
+    error: null,
+  });
 
   const passwordStrength = checkPasswordStrength(formData.password);
   const passwordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword.length > 0;
+
+  // Debounced student ID validation
+  const validateStudentId = useCallback(async (schoolId: string) => {
+    if (!schoolId || schoolId.length < 10) {
+      setStudentValidation({
+        isChecking: false,
+        isValid: null,
+        studentName: null,
+        error: schoolId.length > 0 && schoolId.length < 10 ? "الرقم المدرسي يجب أن يكون 16 رقم" : null,
+      });
+      return;
+    }
+
+    setStudentValidation(prev => ({ ...prev, isChecking: true, error: null }));
+
+    try {
+      const { data: studentData, error: studentError } = await supabase
+        .rpc('check_student_exists', { _national_school_id: schoolId.trim() });
+
+      if (studentError) {
+        setStudentValidation({
+          isChecking: false,
+          isValid: false,
+          studentName: null,
+          error: "حدث خطأ أثناء التحقق",
+        });
+        return;
+      }
+
+      if (!studentData || studentData.length === 0) {
+        setStudentValidation({
+          isChecking: false,
+          isValid: false,
+          studentName: null,
+          error: "لم يتم العثور على تلميذ بهذا الرقم",
+        });
+      } else {
+        setStudentValidation({
+          isChecking: false,
+          isValid: true,
+          studentName: studentData[0].student_name,
+          error: null,
+        });
+      }
+    } catch (error) {
+      setStudentValidation({
+        isChecking: false,
+        isValid: false,
+        studentName: null,
+        error: "حدث خطأ أثناء التحقق",
+      });
+    }
+  }, []);
+
+  // Debounce effect for student ID validation
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (formData.nationalSchoolId) {
+        validateStudentId(formData.nationalSchoolId);
+      } else {
+        setStudentValidation({
+          isChecking: false,
+          isValid: null,
+          studentName: null,
+          error: null,
+        });
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.nationalSchoolId, validateStudentId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,12 +278,12 @@ const RegisterParent = () => {
         <div className="max-w-md w-full">
           {/* Back Button */}
           <Button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/")}
             variant="ghost"
             className="mb-6 text-white hover:bg-white/10 font-cairo"
           >
             <ArrowRight className="ml-2 h-4 w-4" />
-            العودة
+            العودة للرئيسية
           </Button>
 
           {/* Registration Form */}
@@ -326,18 +410,56 @@ const RegisterParent = () => {
                     type="text"
                     placeholder="**************** (16 رقم)"
                     value={formData.nationalSchoolId}
-                    onChange={(e) => setFormData({ ...formData, nationalSchoolId: e.target.value })}
-                    className="pr-10 font-cairo h-10 text-left"
+                    onChange={(e) => setFormData({ ...formData, nationalSchoolId: e.target.value.replace(/\D/g, '') })}
+                    className={`pr-10 pl-10 font-cairo h-10 text-left ${
+                      studentValidation.isValid === true 
+                        ? 'border-green-500 focus-visible:ring-green-500' 
+                        : studentValidation.isValid === false 
+                        ? 'border-red-500 focus-visible:ring-red-500' 
+                        : ''
+                    }`}
                     dir="ltr"
                     maxLength={16}
                     required
                   />
+                  {/* Validation indicator */}
+                  <div className="absolute left-3 top-2.5">
+                    {studentValidation.isChecking ? (
+                      <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                    ) : studentValidation.isValid === true ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    ) : studentValidation.isValid === false ? (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    ) : null}
+                  </div>
                 </div>
-                {/* Helper text */}
-                <p className="text-xs text-muted-foreground font-cairo flex items-center gap-1">
-                  <Info className="w-3 h-3" />
-                  موجود في كشف النقاط أو الشهادة المدرسية
-                </p>
+                
+                {/* Validation message */}
+                {studentValidation.isValid === true && studentValidation.studentName && (
+                  <div className="flex items-center gap-2 p-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    <p className="text-green-700 dark:text-green-400 text-sm font-cairo">
+                      تم العثور على: <span className="font-semibold">{studentValidation.studentName}</span>
+                    </p>
+                  </div>
+                )}
+                
+                {studentValidation.error && (
+                  <div className="flex items-center gap-2 p-2 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <XCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                    <p className="text-red-700 dark:text-red-400 text-sm font-cairo">
+                      {studentValidation.error}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Helper text - only show when no validation state */}
+                {studentValidation.isValid === null && !studentValidation.error && (
+                  <p className="text-xs text-muted-foreground font-cairo flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    موجود في كشف النقاط أو الشهادة المدرسية
+                  </p>
+                )}
               </div>
 
               {/* Password with visibility toggle */}
