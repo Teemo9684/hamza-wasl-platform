@@ -9,6 +9,7 @@ import { showError, showSuccess } from '@/utils/errorMessages';
 import { Plus, Trash2, ArrowUp, ArrowDown, Image, X, Loader2 } from 'lucide-react';
 import { formatDateOnly } from '@/utils/formatters';
 import { realtimeManager } from '@/utils/realtimeManager';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -325,62 +326,75 @@ export const PostersManager = () => {
           </Card>
         ) : (
           posters.map((poster, index) => (
-            <Card key={poster.id} className={!poster.is_active ? 'opacity-60' : ''}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={poster.image_url}
-                    alt={poster.title}
-                    className="w-24 h-16 object-cover rounded-lg"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{poster.title || <span className="text-muted-foreground italic">بدون عنوان</span>}</h3>
-                    <p className="text-sm text-muted-foreground">
+            <Card key={poster.id} className={cn("overflow-hidden", !poster.is_active && 'opacity-60')}>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  {/* صورة الملصق */}
+                  <div className="flex-shrink-0">
+                    <img
+                      src={poster.image_url}
+                      alt={poster.title}
+                      className="w-full sm:w-20 h-28 sm:h-14 object-cover rounded-lg"
+                    />
+                  </div>
+                  
+                  {/* معلومات الملصق */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm sm:text-base truncate">
+                      {poster.title || <span className="text-muted-foreground italic">بدون عنوان</span>}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {formatDateOnly(poster.created_at)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  
+                  {/* أزرار التحكم */}
+                  <div className="flex items-center justify-between sm:justify-end gap-1 sm:gap-2 flex-shrink-0">
                     <Switch
                       checked={poster.is_active}
                       onCheckedChange={() => toggleActive(poster)}
                     />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleMove(poster.id, 'up')}
-                      disabled={index === 0}
-                    >
-                      <ArrowUp className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleMove(poster.id, 'down')}
-                      disabled={index === posters.length - 1}
-                    >
-                      <ArrowDown className="w-4 h-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>حذف الملصق</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            هل أنت متأكد من حذف هذا الملصق؟ لا يمكن التراجع عن هذا الإجراء.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(poster)}>
-                            حذف
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleMove(poster.id, 'up')}
+                        disabled={index === 0}
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleMove(poster.id, 'down')}
+                        disabled={index === posters.length - 1}
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>حذف الملصق</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              هل أنت متأكد من حذف هذا الملصق؟ لا يمكن التراجع عن هذا الإجراء.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(poster)}>
+                              حذف
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 </div>
               </CardContent>
