@@ -428,25 +428,27 @@ const Index = () => {
         </div>
       )}
 
-      {/* Date and Time Display - Below News Ticker */}
+      {/* Date and Time Display - Below News Ticker with visible gap */}
       <motion.div 
-        className="fixed top-12 left-0 right-0 z-40 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
+        className="fixed top-[52px] left-0 right-0 z-40 mt-1"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
       >
-        <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
-          {/* Date */}
-          <div className="font-medium">
-            {formatDateWithWeekday(currentTime)}
-          </div>
-          
-          {/* Separator */}
-          <div className="w-px h-4 bg-white/30"></div>
-          
-          {/* Time */}
-          <div className="font-mono font-medium" dir="ltr">
-            {format(currentTime, "HH:mm:ss")}
+        <div className="bg-gradient-to-r from-white/10 via-white/15 to-white/10 backdrop-blur-md border-t border-b border-white/20 py-2.5 shadow-lg">
+          <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
+            {/* Date */}
+            <div className="font-medium">
+              {formatDateWithWeekday(currentTime)}
+            </div>
+            
+            {/* Separator */}
+            <div className="w-px h-4 bg-white/30"></div>
+            
+            {/* Time */}
+            <div className="font-mono font-medium" dir="ltr">
+              {format(currentTime, "HH:mm:ss")}
+            </div>
           </div>
         </div>
       </motion.div>
