@@ -38,8 +38,8 @@ export const DateTimeBar = () => {
   const hijriDate = getHijriDate(currentTime);
 
   return (
-    <div className="w-full bg-primary/5 backdrop-blur-sm border-b border-primary/10">
-      <div className="py-2 px-4 flex justify-center items-center gap-6 flex-wrap text-sm font-cairo">
+    <div className="w-full bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 backdrop-blur-sm border-t border-b border-primary/20 shadow-sm mt-1">
+      <div className="py-2.5 px-4 flex justify-center items-center gap-6 flex-wrap text-sm font-cairo">
         <span className="text-foreground/80 flex items-center gap-2">
           <span className="text-primary font-bold">⏰</span>
           {time}
