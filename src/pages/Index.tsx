@@ -497,7 +497,7 @@ const Index = () => {
         </motion.div>
 
         {/* Account Type Selection Title */}
-        <motion.div className="mt-8 text-center" variants={itemVariants}>
+        <motion.div className="my-12 text-center" variants={itemVariants}>
           <p className="text-white/70 font-cairo text-lg">
             اختر نوع الحساب للدخول إلى المنصة
           </p>
