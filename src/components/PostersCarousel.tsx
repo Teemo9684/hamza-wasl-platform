@@ -358,15 +358,19 @@ export const PostersCarousel = () => {
                           }}
                           draggable={false}
                         />
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
+                        {/* Gradient Overlay - only show if title exists */}
+                        {poster.title && (
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
+                        )}
                         
-                        {/* Title */}
-                        <div className="absolute inset-x-0 bottom-0 p-3 pointer-events-none">
-                          <h3 className="text-white text-sm md:text-base font-semibold text-right drop-shadow-lg line-clamp-2">
-                            {poster.title}
-                          </h3>
-                        </div>
+                        {/* Title - only show if exists */}
+                        {poster.title && (
+                          <div className="absolute inset-x-0 bottom-0 p-3 pointer-events-none">
+                            <h3 className="text-white text-sm md:text-base font-semibold text-right drop-shadow-lg line-clamp-2">
+                              {poster.title}
+                            </h3>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -403,7 +407,7 @@ export const PostersCarousel = () => {
       {/* Fullscreen Dialog with smooth animation */}
       <Dialog open={!!selectedPoster} onOpenChange={() => setSelectedPoster(null)}>
         <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden bg-black/95 border-0 data-[state=open]:animate-[dialog-zoom-in_0.3s_ease-out] data-[state=closed]:animate-[dialog-zoom-out_0.2s_ease-in]">
-          <DialogTitle className="sr-only">{selectedPoster?.title}</DialogTitle>
+          <DialogTitle className="sr-only">{selectedPoster?.title || 'ملصق'}</DialogTitle>
           <button
             onClick={() => setSelectedPoster(null)}
             className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors backdrop-blur-sm"
@@ -414,14 +418,16 @@ export const PostersCarousel = () => {
             <div className="relative animate-fade-in">
               <img
                 src={selectedPoster.image_url}
-                alt={selectedPoster.title}
+                alt={selectedPoster.title || 'ملصق'}
                 className="w-full h-auto max-h-[90vh] object-contain transition-transform duration-300"
               />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6 animate-[slide-up_0.3s_ease-out_0.1s_both]">
-                <h2 className="text-white text-xl md:text-3xl font-bold text-right">
-                  {selectedPoster.title}
-                </h2>
-              </div>
+              {selectedPoster.title && (
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6 animate-[slide-up_0.3s_ease-out_0.1s_both]">
+                  <h2 className="text-white text-xl md:text-3xl font-bold text-right">
+                    {selectedPoster.title}
+                  </h2>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
