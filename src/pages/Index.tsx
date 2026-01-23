@@ -498,211 +498,119 @@ const Index = () => {
 
         {/* Cards Grid */}
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl"
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl"
           variants={containerVariants}
         >
           {/* Parent Card */}
           <motion.div 
             onClick={() => handleCardClick("parent")}
-            className={`group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 ${
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
               selectedUserType === "parent" 
-                ? "scale-[1.02] ring-4 ring-primary/60 shadow-[0_0_40px_hsl(var(--primary)/0.4)]" 
-                : "hover:scale-[1.02]"
+                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
             }`}
             variants={cardVariants}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
-            {/* Gradient Background - Using Primary Colors */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(270,60%,60%)] via-[hsl(250,55%,58%)] to-[hsl(220,60%,65%)] opacity-95" />
-            
-            {/* Pattern Overlay */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
-            </div>
-
-            {/* Content */}
-            <div className="relative p-8 flex flex-col items-center text-center space-y-5">
-              {/* Badge */}
-              <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                <span className="text-white text-xs font-bold font-cairo">للأولياء</span>
-              </div>
-
+            <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
-              <div className="relative mt-4">
-                <div className="absolute inset-0 bg-white/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 scale-150" />
-                <div className="relative bg-white/20 backdrop-blur-md rounded-2xl p-6 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-3 group-hover:scale-110 border border-white/30">
-                  <Users className="w-14 h-14 text-white drop-shadow-lg" strokeWidth={1.5} />
+              <div className="relative icon-float">
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
+                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                  <Users className="w-16 h-16 text-white" strokeWidth={1.5} />
                 </div>
               </div>
               
               {/* Text */}
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-white font-cairo drop-shadow-md">أولياء الأمور</h2>
-                <p className="text-white/90 font-cairo text-sm leading-relaxed max-w-[200px]">
-                  تابع مستوى أبنائك الدراسي والحضور والواجبات
-                </p>
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">أولياء الأمور</h2>
+                <p className="text-white/80 font-cairo">تابع مستوى أبنائك الدراسي</p>
               </div>
 
-              {/* Features List */}
-              <div className="flex flex-wrap justify-center gap-2 mt-2">
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-xs font-cairo">متابعة الحضور</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-xs font-cairo">الواجبات</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-xs font-cairo">التواصل</span>
+              {/* Arrow Icon */}
+              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </div>
-
-              {/* CTA Button */}
-              <div className={`mt-4 transition-all duration-300 ${selectedUserType === "parent" ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100"}`}>
-                <div className="bg-white/25 backdrop-blur-sm rounded-full px-6 py-2.5 border border-white/40 flex items-center gap-2">
-                  <span className="text-white font-bold font-cairo text-sm">الدخول الآن</span>
-                  <ArrowRight className="w-4 h-4 text-white rotate-180" />
-                </div>
-              </div>
-
-              {/* Selected Indicator */}
-              {selectedUserType === "parent" && (
-                <motion.div 
-                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-white rounded-full"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
-              )}
             </div>
           </motion.div>
 
           {/* Teacher Card */}
           <motion.div 
             onClick={() => handleCardClick("teacher")}
-            className={`group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 ${
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
               selectedUserType === "teacher" 
-                ? "scale-[1.02] ring-4 ring-secondary/60 shadow-[0_0_40px_hsl(var(--secondary)/0.4)]" 
-                : "hover:scale-[1.02]"
+                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
             }`}
             variants={cardVariants}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
-            {/* Gradient Background - Using Secondary Colors */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,60%,65%)] via-[hsl(210,65%,62%)] to-[hsl(200,70%,58%)] opacity-95" />
-            
-            {/* Pattern Overlay */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 -translate-x-1/2" />
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-white rounded-full translate-y-1/2 translate-x-1/2" />
-            </div>
-
-            {/* Content */}
-            <div className="relative p-8 flex flex-col items-center text-center space-y-5">
-              {/* Badge */}
-              <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                <span className="text-white text-xs font-bold font-cairo">للمعلمين</span>
-              </div>
-
+            <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
-              <div className="relative mt-4">
-                <div className="absolute inset-0 bg-white/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 scale-150" />
-                <div className="relative bg-white/20 backdrop-blur-md rounded-2xl p-6 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-3 group-hover:scale-110 border border-white/30">
-                  <GraduationCap className="w-14 h-14 text-white drop-shadow-lg" strokeWidth={1.5} />
+              <div className="relative icon-float" style={{ animationDelay: "0.5s" }}>
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
+                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                  <GraduationCap className="w-16 h-16 text-white" strokeWidth={1.5} />
                 </div>
               </div>
               
               {/* Text */}
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-white font-cairo drop-shadow-md">المعلمين</h2>
-                <p className="text-white/90 font-cairo text-sm leading-relaxed max-w-[200px]">
-                  إدارة الأقسام والتلاميذ والتواصل مع الأولياء
-                </p>
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">المعلمين</h2>
+                <p className="text-white/80 font-cairo">إدارة الأقسام والتلاميذ</p>
               </div>
 
-              {/* Features List */}
-              <div className="flex flex-wrap justify-center gap-2 mt-2">
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-xs font-cairo">تسجيل الحضور</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-xs font-cairo">الواجبات</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-xs font-cairo">المراسلة</span>
+              {/* Arrow Icon */}
+              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </div>
-
-              {/* CTA Button */}
-              <div className={`mt-4 transition-all duration-300 ${selectedUserType === "teacher" ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100"}`}>
-                <div className="bg-white/25 backdrop-blur-sm rounded-full px-6 py-2.5 border border-white/40 flex items-center gap-2">
-                  <span className="text-white font-bold font-cairo text-sm">الدخول الآن</span>
-                  <ArrowRight className="w-4 h-4 text-white rotate-180" />
-                </div>
-              </div>
-
-              {/* Selected Indicator */}
-              {selectedUserType === "teacher" && (
-                <motion.div 
-                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-white rounded-full"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
-              )}
             </div>
           </motion.div>
-        </motion.div>
 
-        {/* Admin Card - Separate section, only visible on web */}
-        {!Capacitor.isNativePlatform() && (
-          <motion.div 
-            className="w-full max-w-4xl mt-6"
-            variants={itemVariants}
-          >
+          {/* Admin Card - Hidden on native app, only visible on web */}
+          {!Capacitor.isNativePlatform() && (
             <motion.div 
               onClick={() => handleCardClick("admin")}
-              className={`group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 ${
+              className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
                 selectedUserType === "admin" 
-                  ? "scale-[1.01] ring-4 ring-accent/60 shadow-[0_0_40px_hsl(var(--accent)/0.4)]" 
-                  : "hover:scale-[1.01]"
+                  ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                  : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
               }`}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              variants={cardVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
             >
-              {/* Gradient Background - Using Accent Colors */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[hsl(210,70%,60%)] via-[hsl(240,60%,58%)] to-[hsl(270,55%,55%)] opacity-95" />
-              
-              {/* Pattern Overlay */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 right-1/4 w-32 h-32 bg-white rounded-full -translate-y-1/2" />
-                <div className="absolute bottom-0 left-1/4 w-24 h-24 bg-white rounded-full translate-y-1/2" />
-              </div>
-
-              {/* Content - Horizontal Layout */}
-              <div className="relative p-6 flex items-center justify-between gap-6">
-                <div className="flex items-center gap-5">
-                  {/* Icon */}
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-white/30 rounded-xl blur-lg scale-125" />
-                    <div className="relative bg-white/20 backdrop-blur-md rounded-xl p-4 border border-white/30 group-hover:rotate-3 transition-all duration-300">
-                      <Shield className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={1.5} />
-                    </div>
-                  </div>
-                  
-                  {/* Text */}
-                  <div className="text-right">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h2 className="text-xl font-bold text-white font-cairo drop-shadow-md">لوحة الإدارة</h2>
-                      <span className="bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-[10px] font-bold font-cairo">للمشرفين</span>
-                    </div>
-                    <p className="text-white/90 font-cairo text-sm">
-                      إدارة المستخدمين والإعلانات والتقارير
-                    </p>
+              <div className="flex flex-col items-center text-center space-y-6">
+                {/* Icon Container */}
+                <div className="relative icon-float" style={{ animationDelay: "1s" }}>
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
+                  <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                    <Shield className="w-16 h-16 text-white" strokeWidth={1.5} />
                   </div>
                 </div>
+                
+                {/* Text */}
+                <div>
+                  <h2 className="text-3xl font-bold text-white mb-2 font-cairo">الإدارة</h2>
+                  <p className="text-white/80 font-cairo">لوحة التحكم الإدارية</p>
+                </div>
 
-                {/* CTA */}
-                <div className={`transition-all duration-300 ${selectedUserType === "admin" ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100"}`}>
-                  <div className="bg-white/25 backdrop-blur-sm rounded-full px-5 py-2 border border-white/40 flex items-center gap-2">
-                    <span className="text-white font-bold font-cairo text-sm">دخول</span>
-                    <ArrowRight className="w-4 h-4 text-white rotate-180" />
-                  </div>
+                {/* Arrow Icon */}
+                <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </div>
               </div>
             </motion.div>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
 
 
         {/* Footer */}
