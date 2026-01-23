@@ -9,16 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Upload, Trash2, CheckCircle, XCircle, Package, AlertCircle, Loader2, Wand2, RefreshCw, Globe } from "lucide-react";
+import { Upload, Trash2, CheckCircle, XCircle, Package, AlertCircle, Loader2 } from "lucide-react";
 import { APP_VERSION } from "@/config/version";
-
-interface PublishedVersion {
-  version: string;
-  buildTime: string;
-  mandatory?: boolean;
-  minVersion?: string;
-  releaseNotes?: string;
-}
 
 interface AppVersion {
   id: string;
@@ -36,71 +28,17 @@ export const OTAUpdatesManager = () => {
   const [versions, setVersions] = useState<AppVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [generating, setGenerating] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [newVersion, setNewVersion] = useState("");
   const [minAppVersion, setMinAppVersion] = useState("1.0.0");
   const [releaseNotes, setReleaseNotes] = useState("");
   const [isMandatory, setIsMandatory] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [publishedVersion, setPublishedVersion] = useState<PublishedVersion | null>(null);
-  const [checkingPublished, setCheckingPublished] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchVersions();
-    checkPublishedVersion();
   }, []);
-
-  const checkPublishedVersion = async () => {
-    setCheckingPublished(true);
-    try {
-      const response = await fetch(`https://hamza-wasl-platform.lovable.app/version.json?t=${Date.now()}`);
-      if (response.ok) {
-        const data = await response.json();
-        setPublishedVersion(data);
-      }
-    } catch (error) {
-      console.error("Error checking published version:", error);
-    } finally {
-      setCheckingPublished(false);
-    }
-  };
-
-  const generateBundleAuto = async () => {
-    if (!publishedVersion) {
-      toast.error("لا يوجد إصدار منشور للتوليد منه");
-      return;
-    }
-
-    // Check if bundle already exists
-    const existingBundle = versions.find(v => v.version === publishedVersion.version && v.bundle_url);
-    if (existingBundle) {
-      toast.info("البندل موجود مسبقاً لهذا الإصدار");
-      return;
-    }
-
-    setGenerating(true);
-    const toastId = toast.loading("جاري توليد البندل تلقائياً من الإصدار المنشور...");
-
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-bundle");
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast.success(data.message, { id: toastId });
-        fetchVersions();
-      } else {
-        throw new Error(data.error || "فشل في توليد البندل");
-      }
-    } catch (error: any) {
-      console.error("Error generating bundle:", error);
-      toast.error(error.message || "فشل في توليد البندل", { id: toastId });
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   const fetchVersions = async () => {
     try {
@@ -282,16 +220,12 @@ export const OTAUpdatesManager = () => {
     );
   }
 
-  const hasBundleForPublished = publishedVersion 
-    ? versions.some(v => v.version === publishedVersion.version && v.bundle_url)
-    : false;
-
   return (
     <div className="space-y-6">
       {/* Current Version Info */}
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" />
               <span className="font-medium">الإصدار الحالي للتطبيق</span>
@@ -300,90 +234,6 @@ export const OTAUpdatesManager = () => {
               {APP_VERSION}
             </Badge>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Auto Generate Bundle Section */}
-      <Card className="border-2 border-dashed border-primary/40 bg-gradient-to-br from-primary/5 to-primary/10">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-primary">
-            <Wand2 className="h-5 w-5" />
-            توليد البندل تلقائياً ✨
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            يمكنك توليد ورفع البندل تلقائياً من الإصدار المنشور على الموقع بدون الحاجة للرفع اليدوي.
-          </p>
-          
-          {/* Published Version Info */}
-          <div className="flex items-center justify-between p-4 bg-background/80 rounded-lg border">
-            <div className="flex items-center gap-3">
-              <Globe className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">الإصدار المنشور</p>
-                {checkingPublished ? (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span className="text-xs">جاري الفحص...</span>
-                  </div>
-                ) : publishedVersion ? (
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="font-mono">
-                      {publishedVersion.version}
-                    </Badge>
-                    {hasBundleForPublished && (
-                      <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
-                        <CheckCircle className="h-3 w-3 ml-1" />
-                        البندل موجود
-                      </Badge>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-xs text-destructive">غير متاح</span>
-                )}
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={checkPublishedVersion}
-              disabled={checkingPublished}
-            >
-              <RefreshCw className={`h-4 w-4 ${checkingPublished ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-
-          {/* Generate Button */}
-          <Button
-            onClick={generateBundleAuto}
-            disabled={generating || !publishedVersion || hasBundleForPublished}
-            className="w-full h-12 text-base gap-2"
-            size="lg"
-          >
-            {generating ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                جاري توليد البندل...
-              </>
-            ) : hasBundleForPublished ? (
-              <>
-                <CheckCircle className="h-5 w-5" />
-                البندل موجود للإصدار المنشور
-              </>
-            ) : (
-              <>
-                <Wand2 className="h-5 w-5" />
-                توليد ورفع البندل تلقائياً
-              </>
-            )}
-          </Button>
-
-          {publishedVersion && !hasBundleForPublished && (
-            <p className="text-xs text-center text-muted-foreground">
-              سيتم تحميل ملفات الموقع المنشور وتجميعها في ملف ZIP ورفعها تلقائياً
-            </p>
-          )}
         </CardContent>
       </Card>
 
