@@ -109,12 +109,8 @@ export const PostersCarousel = () => {
     
     if (diffX > dragThreshold || diffY > dragThreshold) {
       hasDraggedRef.current = true;
-      // Pause auto-play only when actually dragging
-      if (!isPaused) {
-        pauseAndResume();
-      }
     }
-  }, [isPaused, pauseAndResume]);
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDraggingRef.current) return;
@@ -122,10 +118,10 @@ export const PostersCarousel = () => {
     
     const diffX = touchStartRef.current.x - touchEndRef.current.x;
     const swipeThreshold = 50;
-    const timeDiff = Date.now() - touchStartRef.current.time;
     
     // If it was a swipe (moved enough horizontally)
     if (Math.abs(diffX) > swipeThreshold && hasDraggedRef.current) {
+      pauseAndResume();
       if (diffX > 0) {
         goToNext();
       } else {
@@ -137,7 +133,7 @@ export const PostersCarousel = () => {
     setTimeout(() => {
       hasDraggedRef.current = false;
     }, 50);
-  }, [goToNext, goToPrev]);
+  }, [goToNext, goToPrev, pauseAndResume]);
 
   // Mouse drag handlers - improved
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -157,11 +153,8 @@ export const PostersCarousel = () => {
     
     if (diffX > dragThreshold) {
       hasDraggedRef.current = true;
-      if (!isPaused) {
-        pauseAndResume();
-      }
     }
-  }, [isPaused, pauseAndResume]);
+  }, []);
 
   const handleMouseUp = useCallback(() => {
     if (!isDraggingRef.current) return;
@@ -171,6 +164,7 @@ export const PostersCarousel = () => {
     const swipeThreshold = 50;
     
     if (Math.abs(diffX) > swipeThreshold && hasDraggedRef.current) {
+      pauseAndResume();
       if (diffX > 0) {
         goToNext();
       } else {
@@ -181,7 +175,7 @@ export const PostersCarousel = () => {
     setTimeout(() => {
       hasDraggedRef.current = false;
     }, 50);
-  }, [goToNext, goToPrev]);
+  }, [goToNext, goToPrev, pauseAndResume]);
 
   const handleMouseLeave = useCallback(() => {
     if (isDraggingRef.current) {
@@ -406,9 +400,9 @@ export const PostersCarousel = () => {
         </div>
       </div>
 
-      {/* Fullscreen Dialog */}
+      {/* Fullscreen Dialog with smooth animation */}
       <Dialog open={!!selectedPoster} onOpenChange={() => setSelectedPoster(null)}>
-        <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden bg-black/95 border-0">
+        <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden bg-black/95 border-0 data-[state=open]:animate-[dialog-zoom-in_0.3s_ease-out] data-[state=closed]:animate-[dialog-zoom-out_0.2s_ease-in]">
           <DialogTitle className="sr-only">{selectedPoster?.title}</DialogTitle>
           <button
             onClick={() => setSelectedPoster(null)}
@@ -417,13 +411,13 @@ export const PostersCarousel = () => {
             <X className="h-6 w-6" />
           </button>
           {selectedPoster && (
-            <div className="relative">
+            <div className="relative animate-fade-in">
               <img
                 src={selectedPoster.image_url}
                 alt={selectedPoster.title}
-                className="w-full h-auto max-h-[90vh] object-contain"
+                className="w-full h-auto max-h-[90vh] object-contain transition-transform duration-300"
               />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6 animate-[slide-up_0.3s_ease-out_0.1s_both]">
                 <h2 className="text-white text-xl md:text-3xl font-bold text-right">
                   {selectedPoster.title}
                 </h2>
