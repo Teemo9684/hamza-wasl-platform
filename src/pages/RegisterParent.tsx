@@ -190,7 +190,7 @@ const RegisterParent = () => {
       <div className="absolute inset-0 animated-bg opacity-90" />
 
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
+      <div className="relative z-10 container mx-auto px-4 py-6 flex flex-col items-center justify-start min-h-screen pt-4">
         <div className="max-w-md w-full">
           {/* Back Button */}
           <Button
@@ -297,20 +297,24 @@ const RegisterParent = () => {
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="nationalSchoolId" className="font-cairo text-foreground text-sm">
-                    الرقم الوطني المدرسي للتلميذ
+                    الرقم المدرسي للتلميذ
                   </Label>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <button type="button" className="text-primary hover:text-primary/80">
+                      <button 
+                        type="button" 
+                        className="text-primary hover:text-primary/80 p-1 rounded-full hover:bg-primary/10 transition-colors"
+                        onClick={(e) => e.preventDefault()}
+                      >
                         <Info className="w-4 h-4" />
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-xs p-3 font-cairo text-right">
-                      <p className="text-sm">
-                        الرقم الوطني المدرسي موجود في:
-                        <br />• كشف النقاط
-                        <br />• الشهادة المدرسية
-                        <br />• يمكنك طلبه من إدارة المدرسة
+                    <TooltipContent side="top" align="center" className="max-w-xs p-3 font-cairo text-right z-50">
+                      <p className="text-sm leading-relaxed">
+                        <span className="font-semibold text-primary">الرقم المدرسي</span> موجود في:
+                        <br />• 📄 كشف النقاط
+                        <br />• 📜 الشهادة المدرسية
+                        <br />• 🏫 يمكنك طلبه من إدارة المدرسة
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -320,11 +324,12 @@ const RegisterParent = () => {
                   <Input
                     id="nationalSchoolId"
                     type="text"
-                    placeholder="أدخل الرقم المدرسي"
+                    placeholder="**************** (16 رقم)"
                     value={formData.nationalSchoolId}
                     onChange={(e) => setFormData({ ...formData, nationalSchoolId: e.target.value })}
                     className="pr-10 font-cairo h-10 text-left"
                     dir="ltr"
+                    maxLength={16}
                     required
                   />
                 </div>
