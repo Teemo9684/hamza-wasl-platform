@@ -28,9 +28,11 @@ export const PostersCarousel = () => {
   const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Touch/drag state
-  const touchStartRef = useRef<number>(0);
-  const touchEndRef = useRef<number>(0);
+  const touchStartRef = useRef<{ x: number; y: number; time: number }>({ x: 0, y: 0, time: 0 });
+  const touchEndRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isDraggingRef = useRef<boolean>(false);
+  const hasDraggedRef = useRef<boolean>(false); // Track if actual drag occurred
+  const dragThreshold = 10; // Minimum pixels to consider it a drag vs tap
 
   // Pause rotation and resume after 2 seconds
   const pauseAndResume = useCallback(() => {
@@ -82,65 +84,120 @@ export const PostersCarousel = () => {
     setCurrentIndex(index);
   }, []);
 
-  // Touch handlers
+  // Touch handlers - improved to distinguish tap from swipe
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartRef.current = e.touches[0].clientX;
+    touchStartRef.current = { 
+      x: e.touches[0].clientX, 
+      y: e.touches[0].clientY,
+      time: Date.now()
+    };
+    touchEndRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     isDraggingRef.current = true;
-    pauseAndResume();
-  }, [pauseAndResume]);
+    hasDraggedRef.current = false;
+  }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDraggingRef.current) return;
-    touchEndRef.current = e.touches[0].clientX;
-  }, []);
+    
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    touchEndRef.current = { x: currentX, y: currentY };
+    
+    // Check if movement exceeds drag threshold
+    const diffX = Math.abs(currentX - touchStartRef.current.x);
+    const diffY = Math.abs(currentY - touchStartRef.current.y);
+    
+    if (diffX > dragThreshold || diffY > dragThreshold) {
+      hasDraggedRef.current = true;
+      // Pause auto-play only when actually dragging
+      if (!isPaused) {
+        pauseAndResume();
+      }
+    }
+  }, [isPaused, pauseAndResume]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
     
-    const diff = touchStartRef.current - touchEndRef.current;
-    const threshold = 50;
+    const diffX = touchStartRef.current.x - touchEndRef.current.x;
+    const swipeThreshold = 50;
+    const timeDiff = Date.now() - touchStartRef.current.time;
     
-    if (Math.abs(diff) > threshold) {
-      if (diff > 0) {
+    // If it was a swipe (moved enough horizontally)
+    if (Math.abs(diffX) > swipeThreshold && hasDraggedRef.current) {
+      if (diffX > 0) {
         goToNext();
       } else {
         goToPrev();
       }
     }
+    
+    // Reset drag state after a small delay to allow click handler to check it
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 50);
   }, [goToNext, goToPrev]);
 
-  // Mouse drag handlers
+  // Mouse drag handlers - improved
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    touchStartRef.current = e.clientX;
+    touchStartRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+    touchEndRef.current = { x: e.clientX, y: e.clientY };
     isDraggingRef.current = true;
-    pauseAndResume();
-  }, [pauseAndResume]);
+    hasDraggedRef.current = false;
+  }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDraggingRef.current) return;
-    touchEndRef.current = e.clientX;
-  }, []);
+    
+    const currentX = e.clientX;
+    touchEndRef.current = { x: currentX, y: e.clientY };
+    
+    const diffX = Math.abs(currentX - touchStartRef.current.x);
+    
+    if (diffX > dragThreshold) {
+      hasDraggedRef.current = true;
+      if (!isPaused) {
+        pauseAndResume();
+      }
+    }
+  }, [isPaused, pauseAndResume]);
 
   const handleMouseUp = useCallback(() => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
     
-    const diff = touchStartRef.current - touchEndRef.current;
-    const threshold = 50;
+    const diffX = touchStartRef.current.x - touchEndRef.current.x;
+    const swipeThreshold = 50;
     
-    if (Math.abs(diff) > threshold) {
-      if (diff > 0) {
+    if (Math.abs(diffX) > swipeThreshold && hasDraggedRef.current) {
+      if (diffX > 0) {
         goToNext();
       } else {
         goToPrev();
       }
     }
+    
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 50);
   }, [goToNext, goToPrev]);
 
   const handleMouseLeave = useCallback(() => {
-    isDraggingRef.current = false;
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      hasDraggedRef.current = false;
+    }
   }, []);
+
+  // Handle poster click - only if not dragging
+  const handlePosterClick = useCallback((poster: Poster, isCurrent: boolean) => {
+    // Only open if it's the current poster and user didn't drag
+    if (isCurrent && !hasDraggedRef.current) {
+      pauseAndResume();
+      setSelectedPoster(poster);
+    }
+  }, [pauseAndResume]);
 
   // Setup realtime subscription
   useEffect(() => {
@@ -287,12 +344,7 @@ export const PostersCarousel = () => {
                       ...style,
                       transformStyle: 'preserve-3d',
                     }}
-                    onClick={() => {
-                      if (isCurrent && !isDraggingRef.current) {
-                        pauseAndResume();
-                        setSelectedPoster(poster);
-                      }
-                    }}
+                    onClick={() => handlePosterClick(poster, isCurrent)}
                     onMouseEnter={() => isCurrent && setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
                   >
