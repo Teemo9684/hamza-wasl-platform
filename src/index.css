@@ -981,4 +981,19 @@
   .splash-particle {
     animation: splash-particle 0.8s ease-out forwards;
   }
+
+  /* Gradient X Animation for News Ticker */
+  @keyframes gradient-x {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 8s ease infinite;
+  }
 }
