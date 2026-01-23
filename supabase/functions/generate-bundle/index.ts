@@ -255,7 +255,7 @@ serve(async (req) => {
           is_active: true,
           release_notes: versionInfo.releaseNotes || existingVersion.release_notes,
           is_mandatory: versionInfo.mandatory ?? existingVersion.is_mandatory,
-          min_supported_version: versionInfo.minVersion || existingVersion.min_supported_version,
+          min_app_version: versionInfo.minVersion || existingVersion.min_app_version,
         })
         .eq('id', existingVersion.id);
 
@@ -267,11 +267,12 @@ serve(async (req) => {
         .from('app_versions')
         .insert({
           version: versionInfo.version,
+          bundle_id: `bundle-${versionInfo.version}-${Date.now()}`,
           bundle_url: bundleUrl,
           is_active: true,
           release_notes: versionInfo.releaseNotes || '',
           is_mandatory: versionInfo.mandatory ?? false,
-          min_supported_version: versionInfo.minVersion || '1.0.0',
+          min_app_version: versionInfo.minVersion || '1.0.0',
         });
 
       if (insertError) {
