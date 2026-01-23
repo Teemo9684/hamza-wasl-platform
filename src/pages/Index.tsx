@@ -496,6 +496,13 @@ const Index = () => {
           <PostersCarousel />
         </motion.div>
 
+        {/* Account Type Selection Title */}
+        <motion.div variants={itemVariants} className="text-center my-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-white font-cairo">
+            اختر نوع الحساب للدخول إلى المنصة
+          </h2>
+        </motion.div>
+
         {/* Cards Grid */}
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl"
