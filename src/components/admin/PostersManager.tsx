@@ -90,11 +90,6 @@ export const PostersManager = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.title.trim()) {
-      showError('يرجى إدخال عنوان الملصق');
-      return;
-    }
 
     if (!formData.imageFile) {
       showError('يرجى اختيار صورة للملصق');
@@ -127,11 +122,12 @@ export const PostersManager = () => {
         ? Math.max(...posters.map(p => p.display_order)) + 1 
         : 0;
 
-      // Insert poster
+      // Insert poster with optional title
+      const posterTitle = formData.title.trim() || `ملصق ${new Date().toLocaleDateString('ar-SA')}`;
       const { error: insertError } = await supabase
         .from('school_posters')
         .insert({
-          title: formData.title.trim(),
+          title: posterTitle,
           image_url: urlData.publicUrl,
           display_order: maxOrder,
         });
@@ -262,12 +258,12 @@ export const PostersManager = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">عنوان الملصق</Label>
+                <Label htmlFor="title">عنوان الملصق <span className="text-muted-foreground text-sm">(اختياري)</span></Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="أدخل عنوان الملصق"
+                  placeholder="أدخل عنوان الملصق (اختياري)"
                   dir="rtl"
                 />
               </div>

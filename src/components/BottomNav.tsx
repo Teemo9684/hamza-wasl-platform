@@ -177,9 +177,9 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
             {canScrollLeft && (
               <button
                 onClick={() => scrollToDirection('left')}
-                className="absolute left-0 top-0 bottom-0 z-10 w-8 flex items-center justify-center bg-gradient-to-r from-background via-background/80 to-transparent"
+                className="absolute left-0 top-0 bottom-0 z-10 w-10 flex items-center justify-center bg-gradient-to-r from-background via-background/90 to-transparent transition-opacity duration-300"
               >
-                <ChevronLeft className="w-5 h-5 text-muted-foreground animate-pulse" />
+                <ChevronLeft className="w-5 h-5 text-primary/70" />
               </button>
             )}
             
@@ -187,16 +187,16 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
             {canScrollRight && (
               <button
                 onClick={() => scrollToDirection('right')}
-                className="absolute right-0 top-0 bottom-0 z-10 w-8 flex items-center justify-center bg-gradient-to-l from-background via-background/80 to-transparent"
+                className="absolute right-0 top-0 bottom-0 z-10 w-10 flex items-center justify-center bg-gradient-to-l from-background via-background/90 to-transparent transition-opacity duration-300"
               >
-                <ChevronRight className="w-5 h-5 text-muted-foreground animate-pulse" />
+                <ChevronRight className="w-5 h-5 text-primary/70" />
               </button>
             )}
             
             <div 
               ref={scrollContainerRef}
-              className="flex items-center gap-1 h-[64px] px-2 overflow-x-auto scrollbar-hide"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="flex items-center gap-1.5 h-[68px] px-3 overflow-x-auto scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
             >
               {items.map((item) => {
                 const Icon = item.icon;
@@ -209,16 +209,16 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
                     data-section={item.id}
                     onClick={() => handleClick(item.id)}
                     className={cn(
-                      "relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[64px] min-h-[56px] flex-shrink-0 active:scale-95 touch-feedback select-none",
+                      "relative flex flex-col items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl transition-all duration-300 ease-out min-w-[68px] min-h-[60px] flex-shrink-0 active:scale-95 touch-feedback select-none",
                       isActive 
-                        ? "bg-primary/15 text-primary shadow-sm" 
+                        ? "bg-primary/15 text-primary shadow-lg shadow-primary/10 scale-105" 
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted/70"
                     )}
                   >
-                    <div className="relative">
+                    <div className="relative transition-transform duration-300 ease-out">
                       <Icon className={cn(
-                        "h-5 w-5 transition-transform duration-200",
-                        isActive && "scale-110"
+                        "transition-all duration-300 ease-out",
+                        isActive ? "h-6 w-6 scale-110" : "h-5 w-5"
                       )} />
                       {notificationCount > 0 && (
                         <Badge 
@@ -229,13 +229,13 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
                       )}
                     </div>
                     <span className={cn(
-                      "text-[10px] font-semibold font-cairo whitespace-nowrap transition-colors",
-                      isActive && "text-primary"
+                      "text-[10px] font-semibold font-cairo whitespace-nowrap transition-all duration-300",
+                      isActive ? "text-primary font-bold" : ""
                     )}>
                       {item.label}
                     </span>
                     {isActive && (
-                      <div className="absolute bottom-1 w-4 h-0.5 rounded-full bg-primary/60" />
+                      <div className="absolute bottom-1.5 w-5 h-1 rounded-full bg-primary/70 animate-fade-in" />
                     )}
                   </button>
                 );
@@ -262,7 +262,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
           )}
         </div>
       ) : (
-        <div className="flex items-center justify-evenly h-[68px] px-2 w-full">
+        <div className="flex items-center justify-evenly h-[70px] px-2 w-full">
           {items.map((item) => {
             const Icon = item.icon;
             const isActive = currentSection === item.id;
@@ -273,16 +273,16 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
                 key={item.id}
                 onClick={() => handleClick(item.id)}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-1 px-1.5 py-1.5 rounded-xl transition-all duration-200 min-w-[44px] min-h-[48px] flex-1 max-w-[60px] active:scale-95 touch-feedback",
+                  "relative flex flex-col items-center justify-center gap-1.5 px-2 py-2 rounded-2xl transition-all duration-300 ease-out min-w-[48px] min-h-[52px] flex-1 max-w-[64px] active:scale-95 touch-feedback",
                   isActive 
-                    ? "bg-primary/15 text-primary shadow-sm" 
+                    ? "bg-primary/15 text-primary shadow-lg shadow-primary/10 scale-105" 
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted/70"
                 )}
               >
-                <div className="relative">
+                <div className="relative transition-transform duration-300 ease-out">
                   <Icon className={cn(
-                    "h-5 w-5 transition-transform duration-200",
-                    isActive && "scale-110"
+                    "transition-all duration-300 ease-out",
+                    isActive ? "h-6 w-6 scale-110" : "h-5 w-5"
                   )} />
                   {notificationCount > 0 && (
                     <Badge 
@@ -293,13 +293,13 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
                   )}
                 </div>
                 <span className={cn(
-                  "text-[9px] font-semibold font-cairo truncate w-full text-center transition-colors",
-                  isActive && "text-primary"
+                  "text-[9px] font-semibold font-cairo truncate w-full text-center transition-all duration-300",
+                  isActive ? "text-primary font-bold" : ""
                 )}>
                   {item.label}
                 </span>
                 {isActive && (
-                  <div className="absolute bottom-0.5 w-4 h-0.5 rounded-full bg-primary/60" />
+                  <div className="absolute bottom-1 w-5 h-1 rounded-full bg-primary/70 animate-fade-in" />
                 )}
               </button>
             );
