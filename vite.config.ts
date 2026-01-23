@@ -1,8 +1,56 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+
+// Plugin لتوليد version.json تلقائياً عند البناء
+function versionPlugin() {
+  return {
+    name: 'version-plugin',
+    buildStart() {
+      try {
+        const versionPath = path.resolve(__dirname, 'src/config/version.ts');
+        const versionContent = fs.readFileSync(versionPath, 'utf-8');
+        
+        const versionMatch = versionContent.match(/APP_VERSION\s*=\s*["']([^"']+)["']/);
+        if (!versionMatch) {
+          console.warn('⚠️ Could not find APP_VERSION');
+          return;
+        }
+        
+        const version = versionMatch[1];
+        
+        // استخراج آخر تحديثات
+        const changesMatch = versionContent.match(/changes:\s*\[([\s\S]*?)\]/);
+        let releaseNotes = '';
+        if (changesMatch) {
+          const changes = changesMatch[1]
+            .match(/"([^"]+)"/g)
+            ?.map((s: string) => s.replace(/"/g, ''))
+            .slice(0, 3)
+            .join('، ');
+          releaseNotes = changes || '';
+        }
+        
+        const versionJson = {
+          version,
+          buildTime: new Date().toISOString(),
+          isMandatory: false,
+          releaseNotes: releaseNotes || `الإصدار ${version}`,
+        };
+        
+        const outputPath = path.resolve(__dirname, 'public/version.json');
+        fs.writeFileSync(outputPath, JSON.stringify(versionJson, null, 2));
+        
+        console.log(`✅ Generated version.json: v${version}`);
+      } catch (error) {
+        console.error('❌ Error generating version.json:', error);
+      }
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -12,6 +60,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    versionPlugin(),
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
