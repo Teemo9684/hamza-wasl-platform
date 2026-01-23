@@ -15,7 +15,7 @@ import { initializeLocalNotifications, createNotificationChannels, isLocalNotifi
 import { startSchoolScheduleNotifications } from "@/utils/schoolScheduleNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
-import { LiveUpdateChecker } from "@/components/LiveUpdateChecker";
+import { SmartUpdateProvider } from "@/components/SmartUpdateProvider";
 import { SchoolScheduleAlert } from "@/components/SchoolScheduleAlert";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import SplashScreen from "@/components/SplashScreen";
@@ -235,14 +235,15 @@ const App = () => {
           <ThemeProvider>
             <NotificationProvider>
               <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <SchoolScheduleAlert />
-                <BrowserRouter>
-                  <BackButtonHandler />
-                  <LiveUpdateChecker autoCheck={true} checkInterval={30 * 60 * 1000} />
-                  <AnimatedRoutes />
-                </BrowserRouter>
+                <SmartUpdateProvider autoCheck={true} checkInterval={30 * 60 * 1000}>
+                  <Toaster />
+                  <Sonner />
+                  <SchoolScheduleAlert />
+                  <BrowserRouter>
+                    <BackButtonHandler />
+                    <AnimatedRoutes />
+                  </BrowserRouter>
+                </SmartUpdateProvider>
               </TooltipProvider>
             </NotificationProvider>
           </ThemeProvider>
