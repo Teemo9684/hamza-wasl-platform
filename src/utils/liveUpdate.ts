@@ -1,7 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/config/version";
-import { getItem, setItem, removeItem } from "@/utils/nativeStorage";
+import { setItem, removeItem, getItem } from "@/utils/nativeStorage";
 
 export interface UpdateInfo {
   hasUpdate: boolean;
@@ -12,15 +12,10 @@ export interface UpdateInfo {
   bundleId?: string;
 }
 
-// Keys for storing update state using native storage
-const APPLIED_BUNDLE_VERSION_KEY = "ota_applied_bundle_version";
+// Keys for storing update state
 const APPLIED_BUNDLE_ID_KEY = "ota_applied_bundle_id";
 const UPDATE_IN_PROGRESS_KEY = "ota_update_in_progress";
 const LAST_UPDATE_CHECK_KEY = "ota_last_update_check";
-
-// In-memory cache for current version (to avoid async calls during comparison)
-let cachedVersion: string | null = null;
-let versionInitialized = false;
 
 // Check if running in a native app
 export const isNativeApp = (): boolean => {
@@ -43,54 +38,25 @@ export const compareVersions = (v1: string, v2: string): number => {
   return 0;
 };
 
-// Initialize version from native storage (call this early in app startup)
+// Initialize version - simply returns APP_VERSION
 export const initializeVersion = async (): Promise<string> => {
-  if (!isNativeApp()) {
-    cachedVersion = APP_VERSION;
-    versionInitialized = true;
-    console.log("[LiveUpdate] Web platform, using APP_VERSION:", APP_VERSION);
-    return APP_VERSION;
-  }
-
-  try {
-    const appliedVersion = await getItem(APPLIED_BUNDLE_VERSION_KEY);
-    if (appliedVersion) {
-      console.log("[LiveUpdate] Loaded applied bundle version from storage:", appliedVersion);
-      cachedVersion = appliedVersion;
-    } else {
-      console.log("[LiveUpdate] No applied version found, using base APP_VERSION:", APP_VERSION);
-      cachedVersion = APP_VERSION;
-    }
-    versionInitialized = true;
-    return cachedVersion;
-  } catch (error) {
-    console.error("[LiveUpdate] Error initializing version:", error);
-    cachedVersion = APP_VERSION;
-    versionInitialized = true;
-    return APP_VERSION;
-  }
-};
-
-// Get current app version (sync, uses cached value)
-export const getCurrentVersion = (): string => {
-  if (cachedVersion) {
-    return cachedVersion;
-  }
+  console.log("[LiveUpdate] Using APP_VERSION:", APP_VERSION);
   return APP_VERSION;
 };
 
-// Save the applied bundle version using native storage
-export const setAppliedBundleVersion = async (version: string, bundleId?: string): Promise<void> => {
+// Get current app version - ALWAYS returns APP_VERSION from the bundle
+// The version is baked into the code during build, not stored externally
+export const getCurrentVersion = (): string => {
+  return APP_VERSION;
+};
+
+// Save the applied bundle ID
+export const setAppliedBundleId = async (bundleId: string): Promise<void> => {
   try {
-    await setItem(APPLIED_BUNDLE_VERSION_KEY, version);
-    if (bundleId) {
-      await setItem(APPLIED_BUNDLE_ID_KEY, bundleId);
-    }
-    // Update cached version immediately
-    cachedVersion = version;
-    console.log("[LiveUpdate] Saved applied bundle version:", version, "bundleId:", bundleId);
+    await setItem(APPLIED_BUNDLE_ID_KEY, bundleId);
+    console.log("[LiveUpdate] Saved applied bundleId:", bundleId);
   } catch (error) {
-    console.error("[LiveUpdate] Error saving applied version:", error);
+    console.error("[LiveUpdate] Error saving bundle ID:", error);
   }
 };
 
@@ -104,7 +70,7 @@ export const getAppliedBundleId = async (): Promise<string | null> => {
   }
 };
 
-// Mark that an update is in progress (to prevent re-downloads after reload)
+// Mark that an update is in progress
 export const setUpdateInProgress = async (version: string | null): Promise<void> => {
   try {
     if (version) {
@@ -145,30 +111,25 @@ const logUpdateCheck = async (version: string, serverVersion: string | undefined
   }
 };
 
-// Check for updates
+// Check for updates - compares APP_VERSION with server version
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
   try {
-    // Make sure version is initialized
-    if (!versionInitialized) {
-      await initializeVersion();
-    }
-
-    const currentVersion = getCurrentVersion();
+    // APP_VERSION is the version baked into this bundle
+    const currentVersion = APP_VERSION;
+    
     console.log("[LiveUpdate] ====== UPDATE CHECK START ======");
-    console.log("[LiveUpdate] Current version:", currentVersion);
-    console.log("[LiveUpdate] APP_VERSION (base):", APP_VERSION);
+    console.log("[LiveUpdate] Current APP_VERSION:", currentVersion);
     console.log("[LiveUpdate] Platform:", Capacitor.getPlatform());
     
-    // Check if this version was already being updated (to prevent loops)
+    // Check if update is already in progress
     const updateInProgress = await getUpdateInProgress();
-    console.log("[LiveUpdate] Update in progress:", updateInProgress);
-    
     if (updateInProgress) {
-      // Check if the in-progress version matches current - means update completed
-      const storedVersion = await getItem(APPLIED_BUNDLE_VERSION_KEY);
-      if (storedVersion === updateInProgress) {
-        console.log("[LiveUpdate] Update to", updateInProgress, "completed, clearing flag");
+      // If the in-progress version is the same as current, update was applied
+      if (updateInProgress === currentVersion) {
+        console.log("[LiveUpdate] Update to", currentVersion, "completed");
         await setUpdateInProgress(null);
+      } else {
+        console.log("[LiveUpdate] Update to", updateInProgress, "still in progress");
       }
     }
     
@@ -188,44 +149,33 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
 
     console.log("[LiveUpdate] Server response:", JSON.stringify(data));
     
-    // If server says update available
+    // Check if server indicates update available
     if (data?.hasUpdate && data?.version && data?.bundleUrl) {
-      console.log("[LiveUpdate] Server indicates update available to version:", data.version);
+      console.log("[LiveUpdate] Server indicates update to version:", data.version);
       
-      // Use semantic version comparison
+      // Compare versions: server version must be GREATER than current
       const comparison = compareVersions(data.version, currentVersion);
-      console.log("[LiveUpdate] Version comparison result:", comparison, "(1=newer, 0=same, -1=older)");
+      console.log("[LiveUpdate] Comparison:", data.version, "vs", currentVersion, "=", comparison);
       
       if (comparison <= 0) {
-        console.log("[LiveUpdate] Already on version", currentVersion, "which is >= server version", data.version);
+        console.log("[LiveUpdate] Already on latest version or newer");
         await logUpdateCheck(currentVersion, data.version, "already_up_to_date");
         return { hasUpdate: false };
       }
       
-      // Double check - if the server version matches our stored version, no update needed
-      const storedVersion = await getItem(APPLIED_BUNDLE_VERSION_KEY);
-      console.log("[LiveUpdate] Stored version:", storedVersion);
-      
-      if (storedVersion === data.version) {
-        console.log("[LiveUpdate] Already on version", data.version, "- no update needed");
-        await logUpdateCheck(currentVersion, data.version, "already_applied");
-        return { hasUpdate: false };
-      }
-      
       // Check if we're currently updating to this version
-      const inProgress = await getUpdateInProgress();
-      if (inProgress === data.version) {
-        console.log("[LiveUpdate] Update to version", data.version, "already in progress");
+      if (updateInProgress === data.version) {
+        console.log("[LiveUpdate] Already updating to", data.version);
         await logUpdateCheck(currentVersion, data.version, "in_progress");
         return { hasUpdate: false };
       }
       
-      console.log("[LiveUpdate] ✅ UPDATE AVAILABLE:", data.version);
+      console.log("[LiveUpdate] ✅ UPDATE AVAILABLE:", currentVersion, "->", data.version);
       await logUpdateCheck(currentVersion, data.version, "update_available");
       return data as UpdateInfo;
     }
     
-    console.log("[LiveUpdate] No update available from server");
+    console.log("[LiveUpdate] No update available");
     await logUpdateCheck(currentVersion, data?.version, "no_update");
     console.log("[LiveUpdate] ====== UPDATE CHECK END ======");
     return { hasUpdate: false };
@@ -235,7 +185,7 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
   }
 };
 
-// Download and apply update with progress tracking
+// Download and apply update
 export const downloadAndApplyUpdate = async (
   bundleUrl: string,
   version: string,
@@ -247,21 +197,20 @@ export const downloadAndApplyUpdate = async (
   }
 
   try {
-    console.log("[LiveUpdate] ====== STARTING UPDATE DOWNLOAD ======");
+    console.log("[LiveUpdate] ====== STARTING UPDATE ======");
     console.log("[LiveUpdate] URL:", bundleUrl);
-    console.log("[LiveUpdate] Version:", version);
+    console.log("[LiveUpdate] Target version:", version);
+    console.log("[LiveUpdate] Current version:", APP_VERSION);
     
-    // Mark update in progress FIRST
+    // Mark update in progress
     await setUpdateInProgress(version);
     
-    // Dynamically import the live update plugin
     const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
 
-    // Generate a unique bundle ID based on version and timestamp
     const bundleId = `update-${version}-${Date.now()}`;
-    console.log("[LiveUpdate] Generated bundle ID:", bundleId);
+    console.log("[LiveUpdate] Bundle ID:", bundleId);
 
-    // Track download progress
+    // Simulate progress
     let lastProgress = 0;
     const progressInterval = setInterval(() => {
       if (lastProgress < 90) {
@@ -270,8 +219,8 @@ export const downloadAndApplyUpdate = async (
       }
     }, 500);
 
-    // Download the bundle
-    console.log("[LiveUpdate] Starting download...");
+    // Download bundle
+    console.log("[LiveUpdate] Downloading...");
     await LiveUpdate.downloadBundle({
       url: bundleUrl,
       bundleId: bundleId,
@@ -281,29 +230,27 @@ export const downloadAndApplyUpdate = async (
     onProgress?.(95);
     console.log("[LiveUpdate] Download complete!");
 
-    // Set the downloaded bundle as the next bundle to use
+    // Set as next bundle
     console.log("[LiveUpdate] Setting next bundle...");
     await LiveUpdate.setNextBundle({
       bundleId: bundleId,
     });
 
-    // Save the version BEFORE reload using native storage
-    await setAppliedBundleVersion(version, bundleId);
+    // Save bundle ID
+    await setAppliedBundleId(bundleId);
 
     onProgress?.(100);
-    console.log("[LiveUpdate] Bundle set, version saved. Preparing to reload...");
+    console.log("[LiveUpdate] Ready to reload...");
 
-    // Small delay before reload to ensure everything is saved
+    // Small delay before reload
     await new Promise(resolve => setTimeout(resolve, 500));
 
     console.log("[LiveUpdate] Reloading app...");
-    // Reload the app to apply the update
     await LiveUpdate.reload();
 
     return true;
   } catch (error) {
-    console.error("[LiveUpdate] Error downloading/applying update:", error);
-    // Clear update in progress on failure
+    console.error("[LiveUpdate] Update failed:", error);
     await setUpdateInProgress(null);
     return false;
   }
@@ -316,11 +263,8 @@ export const markBundleAsReady = async (): Promise<void> => {
   try {
     const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
     await LiveUpdate.ready();
-    
-    // Clear update in progress flag after successful ready
     await setUpdateInProgress(null);
-    
-    console.log("[LiveUpdate] Bundle marked as ready - rollback prevention enabled");
+    console.log("[LiveUpdate] Bundle marked as ready");
   } catch (error) {
     console.error("[LiveUpdate] Error marking bundle as ready:", error);
   }
@@ -329,7 +273,7 @@ export const markBundleAsReady = async (): Promise<void> => {
 // Get current bundle info
 export const getCurrentBundleInfo = async (): Promise<{ bundleId: string | null; version: string }> => {
   if (!isNativeApp()) {
-    return { bundleId: null, version: getCurrentVersion() };
+    return { bundleId: null, version: APP_VERSION };
   }
 
   try {
@@ -337,15 +281,15 @@ export const getCurrentBundleInfo = async (): Promise<{ bundleId: string | null;
     const bundle = await LiveUpdate.getCurrentBundle();
     return {
       bundleId: bundle?.bundleId || null,
-      version: getCurrentVersion()
+      version: APP_VERSION
     };
   } catch (error) {
     console.error("[LiveUpdate] Error getting current bundle:", error);
-    return { bundleId: null, version: getCurrentVersion() };
+    return { bundleId: null, version: APP_VERSION };
   }
 };
 
-// Reset to default bundle (for troubleshooting)
+// Reset to default bundle
 export const resetToDefaultBundle = async (): Promise<boolean> => {
   if (!isNativeApp()) return false;
 
@@ -353,14 +297,9 @@ export const resetToDefaultBundle = async (): Promise<boolean> => {
     const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
     await LiveUpdate.reset();
     
-    // Clear the stored applied version using native storage
-    await removeItem(APPLIED_BUNDLE_VERSION_KEY);
     await removeItem(APPLIED_BUNDLE_ID_KEY);
     await removeItem(UPDATE_IN_PROGRESS_KEY);
     await removeItem(LAST_UPDATE_CHECK_KEY);
-    
-    // Reset cached version
-    cachedVersion = APP_VERSION;
     
     console.log("[LiveUpdate] Reset to default bundle");
     return true;
@@ -370,7 +309,7 @@ export const resetToDefaultBundle = async (): Promise<boolean> => {
   }
 };
 
-// Sync bundle version with actual bundle (for recovery)
+// Sync bundle version (simplified)
 export const syncBundleVersion = async (): Promise<void> => {
   if (!isNativeApp()) return;
 
@@ -378,40 +317,20 @@ export const syncBundleVersion = async (): Promise<void> => {
     const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
     const bundle = await LiveUpdate.getCurrentBundle();
     
-    console.log("[LiveUpdate] Syncing bundle version, current bundle:", bundle?.bundleId);
+    console.log("[LiveUpdate] Current bundle:", bundle?.bundleId || "default");
+    console.log("[LiveUpdate] APP_VERSION:", APP_VERSION);
     
     if (!bundle?.bundleId) {
-      // Running default bundle, clear any stored version
-      await removeItem(APPLIED_BUNDLE_VERSION_KEY);
+      // Running default bundle
       await removeItem(APPLIED_BUNDLE_ID_KEY);
       await removeItem(UPDATE_IN_PROGRESS_KEY);
-      cachedVersion = APP_VERSION;
-      console.log("[LiveUpdate] Synced: Running default bundle, version:", APP_VERSION);
-    } else {
-      // We have a bundle - read version from storage
-      const storedVersion = await getItem(APPLIED_BUNDLE_VERSION_KEY);
-      const storedBundleId = await getItem(APPLIED_BUNDLE_ID_KEY);
-      
-      console.log("[LiveUpdate] Stored version:", storedVersion, "Stored bundleId:", storedBundleId);
-      
-      if (storedVersion) {
-        cachedVersion = storedVersion;
-        console.log("[LiveUpdate] Synced: Running bundle", bundle.bundleId, "version:", storedVersion);
-      }
-      
-      // If bundle ID matches, clear update in progress
-      if (storedBundleId === bundle.bundleId) {
-        await setUpdateInProgress(null);
-      }
     }
-    
-    versionInitialized = true;
   } catch (error) {
-    console.error("[LiveUpdate] Error syncing bundle version:", error);
+    console.error("[LiveUpdate] Error syncing bundle:", error);
   }
 };
 
-// Get last update check log (for debugging)
+// Get last update check log
 export const getLastUpdateCheckLog = async (): Promise<object | null> => {
   try {
     const log = await getItem(LAST_UPDATE_CHECK_KEY);
