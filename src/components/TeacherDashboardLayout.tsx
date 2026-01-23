@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -7,6 +7,7 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { BottomNav, teacherNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { FloatingQuickNotification, QuickNotificationType } from "@/components/FloatingQuickNotification";
 
 // Context to share data between layout and pages
 interface TeacherDashboardContextType {
@@ -32,6 +33,7 @@ export const TeacherDashboardLayout = () => {
   
   const [loading, setLoading] = useState(true);
   const [teacherName, setTeacherName] = useState<string>("");
+  const [dismissedNotifications, setDismissedNotifications] = useState<Set<QuickNotificationType>>(new Set());
   
   const { counts, clearSection, setUserId, setUserRole } = useNotifications();
 
@@ -82,6 +84,7 @@ export const TeacherDashboardLayout = () => {
   const handleNavigate = (sectionId: string) => {
     if (sectionId === 'messages') {
       clearSection('messages');
+      setDismissedNotifications(prev => new Set([...prev, 'messages']));
     }
     
     if (sectionId === 'overview') {
@@ -90,6 +93,30 @@ export const TeacherDashboardLayout = () => {
       navigate(`/dashboard/teacher/${sectionId}`);
     }
   };
+
+  const handleDismissNotification = useCallback((type: QuickNotificationType) => {
+    setDismissedNotifications(prev => new Set([...prev, type]));
+  }, []);
+
+  // إعادة إظهار الإشعارات عند تغير العدد
+  useEffect(() => {
+    if (counts.messages > 0) {
+      setDismissedNotifications(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('messages');
+        return newSet;
+      });
+    }
+  }, [counts.messages]);
+
+  const floatingNotifications = [
+    { 
+      type: 'messages' as QuickNotificationType, 
+      count: dismissedNotifications.has('messages') ? 0 : counts.messages, 
+      label: 'رسائل جديدة',
+      onClick: () => handleNavigate('messages')
+    },
+  ];
 
   const contextValue: TeacherDashboardContextType = {
     teacherName,
@@ -140,6 +167,13 @@ export const TeacherDashboardLayout = () => {
             <Outlet />
           </div>
         </main>
+
+        {/* الإشعارات العائمة */}
+        <FloatingQuickNotification 
+          notifications={floatingNotifications}
+          onDismiss={handleDismissNotification}
+          position="bottom-left"
+        />
 
         {/* شريط التنقل السفلي */}
         <BottomNav 

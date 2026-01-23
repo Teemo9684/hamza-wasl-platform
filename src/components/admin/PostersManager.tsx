@@ -90,11 +90,6 @@ export const PostersManager = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.title.trim()) {
-      showError('يرجى إدخال عنوان الملصق');
-      return;
-    }
 
     if (!formData.imageFile) {
       showError('يرجى اختيار صورة للملصق');
@@ -127,11 +122,11 @@ export const PostersManager = () => {
         ? Math.max(...posters.map(p => p.display_order)) + 1 
         : 0;
 
-      // Insert poster
+      // Insert poster - العنوان اختياري
       const { error: insertError } = await supabase
         .from('school_posters')
         .insert({
-          title: formData.title.trim(),
+          title: formData.title.trim() || '', // العنوان اختياري
           image_url: urlData.publicUrl,
           display_order: maxOrder,
         });
@@ -262,12 +257,12 @@ export const PostersManager = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">عنوان الملصق</Label>
+                <Label htmlFor="title">عنوان الملصق (اختياري)</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="أدخل عنوان الملصق"
+                  placeholder="اتركه فارغاً لعرض الصورة فقط"
                   dir="rtl"
                 />
               </div>
@@ -339,7 +334,7 @@ export const PostersManager = () => {
                     className="w-24 h-16 object-cover rounded-lg"
                   />
                   <div className="flex-1">
-                    <h3 className="font-semibold">{poster.title}</h3>
+                    <h3 className="font-semibold">{poster.title || <span className="text-muted-foreground italic">بدون عنوان</span>}</h3>
                     <p className="text-sm text-muted-foreground">
                       {formatDateOnly(poster.created_at)}
                     </p>
