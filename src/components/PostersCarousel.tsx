@@ -28,11 +28,9 @@ export const PostersCarousel = () => {
   const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Touch/drag state
-  const touchStartRef = useRef<{ x: number; y: number; time: number }>({ x: 0, y: 0, time: 0 });
-  const touchEndRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const touchStartRef = useRef<number>(0);
+  const touchEndRef = useRef<number>(0);
   const isDraggingRef = useRef<boolean>(false);
-  const hasDraggedRef = useRef<boolean>(false); // Track if actual drag occurred
-  const dragThreshold = 10; // Minimum pixels to consider it a drag vs tap
 
   // Pause rotation and resume after 2 seconds
   const pauseAndResume = useCallback(() => {
@@ -84,114 +82,65 @@ export const PostersCarousel = () => {
     setCurrentIndex(index);
   }, []);
 
-  // Touch handlers - improved to distinguish tap from swipe
+  // Touch handlers
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartRef.current = { 
-      x: e.touches[0].clientX, 
-      y: e.touches[0].clientY,
-      time: Date.now()
-    };
-    touchEndRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    touchStartRef.current = e.touches[0].clientX;
     isDraggingRef.current = true;
-    hasDraggedRef.current = false;
-  }, []);
+    pauseAndResume();
+  }, [pauseAndResume]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDraggingRef.current) return;
-    
-    const currentX = e.touches[0].clientX;
-    const currentY = e.touches[0].clientY;
-    touchEndRef.current = { x: currentX, y: currentY };
-    
-    // Check if movement exceeds drag threshold
-    const diffX = Math.abs(currentX - touchStartRef.current.x);
-    const diffY = Math.abs(currentY - touchStartRef.current.y);
-    
-    if (diffX > dragThreshold || diffY > dragThreshold) {
-      hasDraggedRef.current = true;
-    }
+    touchEndRef.current = e.touches[0].clientX;
   }, []);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
     
-    const diffX = touchStartRef.current.x - touchEndRef.current.x;
-    const swipeThreshold = 50;
+    const diff = touchStartRef.current - touchEndRef.current;
+    const threshold = 50;
     
-    // If it was a swipe (moved enough horizontally)
-    if (Math.abs(diffX) > swipeThreshold && hasDraggedRef.current) {
-      pauseAndResume();
-      if (diffX > 0) {
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
         goToNext();
       } else {
         goToPrev();
       }
     }
-    
-    // Reset drag state after a small delay to allow click handler to check it
-    setTimeout(() => {
-      hasDraggedRef.current = false;
-    }, 50);
-  }, [goToNext, goToPrev, pauseAndResume]);
+  }, [goToNext, goToPrev]);
 
-  // Mouse drag handlers - improved
+  // Mouse drag handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    touchStartRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
-    touchEndRef.current = { x: e.clientX, y: e.clientY };
+    touchStartRef.current = e.clientX;
     isDraggingRef.current = true;
-    hasDraggedRef.current = false;
-  }, []);
+    pauseAndResume();
+  }, [pauseAndResume]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDraggingRef.current) return;
-    
-    const currentX = e.clientX;
-    touchEndRef.current = { x: currentX, y: e.clientY };
-    
-    const diffX = Math.abs(currentX - touchStartRef.current.x);
-    
-    if (diffX > dragThreshold) {
-      hasDraggedRef.current = true;
-    }
+    touchEndRef.current = e.clientX;
   }, []);
 
   const handleMouseUp = useCallback(() => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
     
-    const diffX = touchStartRef.current.x - touchEndRef.current.x;
-    const swipeThreshold = 50;
+    const diff = touchStartRef.current - touchEndRef.current;
+    const threshold = 50;
     
-    if (Math.abs(diffX) > swipeThreshold && hasDraggedRef.current) {
-      pauseAndResume();
-      if (diffX > 0) {
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
         goToNext();
       } else {
         goToPrev();
       }
     }
-    
-    setTimeout(() => {
-      hasDraggedRef.current = false;
-    }, 50);
-  }, [goToNext, goToPrev, pauseAndResume]);
+  }, [goToNext, goToPrev]);
 
   const handleMouseLeave = useCallback(() => {
-    if (isDraggingRef.current) {
-      isDraggingRef.current = false;
-      hasDraggedRef.current = false;
-    }
+    isDraggingRef.current = false;
   }, []);
-
-  // Handle poster click - only if not dragging
-  const handlePosterClick = useCallback((poster: Poster, isCurrent: boolean) => {
-    // Only open if it's the current poster and user didn't drag
-    if (isCurrent && !hasDraggedRef.current) {
-      pauseAndResume();
-      setSelectedPoster(poster);
-    }
-  }, [pauseAndResume]);
 
   // Setup realtime subscription
   useEffect(() => {
@@ -338,7 +287,12 @@ export const PostersCarousel = () => {
                       ...style,
                       transformStyle: 'preserve-3d',
                     }}
-                    onClick={() => handlePosterClick(poster, isCurrent)}
+                    onClick={() => {
+                      if (isCurrent && !isDraggingRef.current) {
+                        pauseAndResume();
+                        setSelectedPoster(poster);
+                      }
+                    }}
                     onMouseEnter={() => isCurrent && setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
                   >
@@ -358,19 +312,15 @@ export const PostersCarousel = () => {
                           }}
                           draggable={false}
                         />
-                        {/* Gradient Overlay - only show if title exists */}
-                        {poster.title && (
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
-                        )}
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
                         
-                        {/* Title - only show if exists */}
-                        {poster.title && (
-                          <div className="absolute inset-x-0 bottom-0 p-3 pointer-events-none">
-                            <h3 className="text-white text-sm md:text-base font-semibold text-right drop-shadow-lg line-clamp-2">
-                              {poster.title}
-                            </h3>
-                          </div>
-                        )}
+                        {/* Title */}
+                        <div className="absolute inset-x-0 bottom-0 p-3 pointer-events-none">
+                          <h3 className="text-white text-sm md:text-base font-semibold text-right drop-shadow-lg line-clamp-2">
+                            {poster.title}
+                          </h3>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -404,10 +354,10 @@ export const PostersCarousel = () => {
         </div>
       </div>
 
-      {/* Fullscreen Dialog with smooth animation */}
+      {/* Fullscreen Dialog */}
       <Dialog open={!!selectedPoster} onOpenChange={() => setSelectedPoster(null)}>
-        <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden bg-black/95 border-0 data-[state=open]:animate-[dialog-zoom-in_0.3s_ease-out] data-[state=closed]:animate-[dialog-zoom-out_0.2s_ease-in]">
-          <DialogTitle className="sr-only">{selectedPoster?.title || 'ملصق'}</DialogTitle>
+        <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden bg-black/95 border-0">
+          <DialogTitle className="sr-only">{selectedPoster?.title}</DialogTitle>
           <button
             onClick={() => setSelectedPoster(null)}
             className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors backdrop-blur-sm"
@@ -415,19 +365,17 @@ export const PostersCarousel = () => {
             <X className="h-6 w-6" />
           </button>
           {selectedPoster && (
-            <div className="relative animate-fade-in">
+            <div className="relative">
               <img
                 src={selectedPoster.image_url}
-                alt={selectedPoster.title || 'ملصق'}
-                className="w-full h-auto max-h-[90vh] object-contain transition-transform duration-300"
+                alt={selectedPoster.title}
+                className="w-full h-auto max-h-[90vh] object-contain"
               />
-              {selectedPoster.title && (
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6 animate-[slide-up_0.3s_ease-out_0.1s_both]">
-                  <h2 className="text-white text-xl md:text-3xl font-bold text-right">
-                    {selectedPoster.title}
-                  </h2>
-                </div>
-              )}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                <h2 className="text-white text-xl md:text-3xl font-bold text-right">
+                  {selectedPoster.title}
+                </h2>
+              </div>
             </div>
           )}
         </DialogContent>

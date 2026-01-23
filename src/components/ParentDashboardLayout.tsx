@@ -7,7 +7,6 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
-import { FloatingQuickNotification } from "@/components/FloatingQuickNotification";
 
 // Context to share data between layout and pages
 interface ParentDashboardContextType {
@@ -187,9 +186,6 @@ export const ParentDashboardLayout = () => {
             documents: counts.documents,
           }}
         />
-
-        {/* إشعارات عائمة */}
-        <FloatingQuickNotification userRole="parent" />
       </div>
     </ParentDashboardContext.Provider>
   );

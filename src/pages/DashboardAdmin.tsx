@@ -132,10 +132,18 @@ const DashboardAdmin = () => {
     const handleProfileChange = async (payload: any) => {
       console.log('Admin profile change received:', payload);
       
-      // Refresh all user statistics on any profile change
-      if (payload.eventType === 'REFRESH' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
-        console.log('Refreshing admin profiles and user stats data...');
-        fetchStatistics();
+      // Handle REFRESH event
+      if (payload.eventType === 'REFRESH') {
+        console.log('Refreshing admin profiles data...');
+        const { count } = await supabase
+          .from("profiles")
+          .select("*", { count: "exact", head: true })
+          .eq("is_approved", false);
+        
+        setStats(prev => ({
+          ...prev,
+          pendingRequests: count || 0
+        }));
         return;
       }
 
@@ -154,9 +162,11 @@ const DashboardAdmin = () => {
             newSet.delete('user');
             return newSet;
           });
+          setStats(prev => ({
+            ...prev,
+            pendingRequests: prev.pendingRequests + 1
+          }));
         }
-        // Refresh statistics to update counts
-        fetchStatistics();
       }
     };
 
@@ -166,59 +176,11 @@ const DashboardAdmin = () => {
       handleProfileChange
     );
 
+    // الإدارة تراقب الرسائل فقط وليست طرفاً فيها
+    // لذا لا نُظهر إشعارات للرسائل الجديدة (هي بين المعلمين والأولياء)
+
     return () => {
       console.log('Cleaning up admin user registrations subscription');
-      cleanup();
-    };
-  }, []);
-
-  // Real-time subscription for user_roles changes
-  useEffect(() => {
-    console.log('Setting up realtime subscription for admin user_roles via realtimeManager');
-
-    const handleRolesChange = async (payload: any) => {
-      console.log('Admin user_roles change received:', payload);
-      // Refresh statistics when roles change (approve/delete user)
-      fetchStatistics();
-    };
-
-    const cleanup = realtimeManager.subscribe(
-      'admin-user-roles',
-      'user_roles',
-      handleRolesChange
-    );
-
-    return () => {
-      console.log('Cleaning up admin user_roles subscription');
-      cleanup();
-    };
-  }, []);
-
-  // Real-time subscription for students changes
-  useEffect(() => {
-    console.log('Setting up realtime subscription for admin students via realtimeManager');
-
-    const handleStudentsChange = async (payload: any) => {
-      console.log('Admin students change received:', payload);
-      // Refresh statistics when students are added/removed
-      const { count: studentsCount } = await supabase
-        .from("students")
-        .select("*", { count: "exact", head: true });
-      
-      setStats(prev => ({
-        ...prev,
-        students: studentsCount || 0
-      }));
-    };
-
-    const cleanup = realtimeManager.subscribe(
-      'admin-students',
-      'students',
-      handleStudentsChange
-    );
-
-    return () => {
-      console.log('Cleaning up admin students subscription');
       cleanup();
     };
   }, []);

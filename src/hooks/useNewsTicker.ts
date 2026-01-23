@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { realtimeManager } from "@/utils/realtimeManager";
 
-const TICKER_HEIGHT = 44; // Height in pixels - matches NewsTicker component
+const TICKER_HEIGHT = 36; // Height in pixels
 
 interface NewsItem {
   id: string;

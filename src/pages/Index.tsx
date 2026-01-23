@@ -388,9 +388,9 @@ const Index = () => {
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 animated-gradient-bg" />
 
-      {/* News Ticker - Sticky */}
+      {/* News Ticker */}
       {newsItems.length > 0 && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
+        <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
           <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
             {/* Repeat items 3 times for seamless scrolling */}
             {[...Array(3)].map((_, repeatIndex) => (
@@ -428,27 +428,25 @@ const Index = () => {
         </div>
       )}
 
-      {/* Date and Time Display - Below News Ticker with visible gap */}
+      {/* Date and Time Display - Below News Ticker */}
       <motion.div 
-        className="fixed top-[52px] left-0 right-0 z-40 mt-1"
+        className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
       >
-        <div className="bg-gradient-to-r from-white/10 via-white/15 to-white/10 backdrop-blur-md border-t border-b border-white/20 py-2.5 shadow-lg">
-          <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
-            {/* Date */}
-            <div className="font-medium">
-              {formatDateWithWeekday(currentTime)}
-            </div>
-            
-            {/* Separator */}
-            <div className="w-px h-4 bg-white/30"></div>
-            
-            {/* Time */}
-            <div className="font-mono font-medium" dir="ltr">
-              {format(currentTime, "HH:mm:ss")}
-            </div>
+        <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
+          {/* Date */}
+          <div className="font-medium">
+            {formatDateWithWeekday(currentTime)}
+          </div>
+          
+          {/* Separator */}
+          <div className="w-px h-4 bg-white/30"></div>
+          
+          {/* Time */}
+          <div className="font-mono font-medium" dir="ltr">
+            {format(currentTime, "HH:mm:ss")}
           </div>
         </div>
       </motion.div>

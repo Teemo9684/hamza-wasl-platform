@@ -1,40 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap');
 
 @tailwind base;
-
-/* Dialog zoom animation for poster preview */
-@keyframes dialog-zoom-in {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.85);
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-@keyframes dialog-zoom-out {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.85);
-  }
-}
-
-@keyframes slide-up {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 @tailwind components;
 @tailwind utilities;
 
@@ -980,20 +946,5 @@
 
   .splash-particle {
     animation: splash-particle 0.8s ease-out forwards;
-  }
-
-  /* Gradient X Animation for News Ticker */
-  @keyframes gradient-x {
-    0%, 100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-
-  .animate-gradient-x {
-    background-size: 200% 200%;
-    animation: gradient-x 8s ease infinite;
   }
 }
