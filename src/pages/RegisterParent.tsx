@@ -3,10 +3,96 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, ArrowRight, Mail, Lock, User, Phone, Hash } from "lucide-react";
+import { Users, ArrowRight, Mail, Lock, User, Phone, Hash, Eye, EyeOff, Info, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { parentRegistrationSchema } from "@/lib/validations";
-import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
+import { showError, showSuccess, showWarning } from "@/utils/errorMessages";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+// Password strength checker
+const checkPasswordStrength = (password: string) => {
+  const checks = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /\d/.test(password),
+  };
+  
+  const passedChecks = Object.values(checks).filter(Boolean).length;
+  
+  return {
+    checks,
+    strength: passedChecks === 4 ? 'strong' : passedChecks >= 2 ? 'medium' : 'weak',
+    passedChecks,
+  };
+};
+
+// Arabic error messages for registration
+const getArabicRegistrationError = (error: any): { title: string; description: string } => {
+  const errorMessage = typeof error === 'string' ? error : error?.message || '';
+  const errorLower = errorMessage.toLowerCase();
+
+  // Zod validation errors
+  if (error?.errors) {
+    const zodError = error.errors[0];
+    if (zodError?.path?.includes('email')) {
+      return { title: "❌ البريد الإلكتروني غير صحيح", description: "تأكد من كتابة البريد بالشكل الصحيح (مثال: name@email.com)" };
+    }
+    if (zodError?.path?.includes('password')) {
+      return { 
+        title: "🔐 كلمة المرور ضعيفة", 
+        description: "كلمة المرور يجب أن تكون 8 أحرف على الأقل وتحتوي على حرف كبير وحرف صغير ورقم" 
+      };
+    }
+    if (zodError?.path?.includes('phone')) {
+      return { title: "📱 رقم الهاتف غير صحيح", description: "تأكد من إدخال رقم هاتف صحيح (10 أرقام على الأقل)" };
+    }
+    if (zodError?.path?.includes('full_name')) {
+      return { title: "👤 الاسم مطلوب", description: "يرجى إدخال الاسم الكامل" };
+    }
+    if (zodError?.path?.includes('national_school_id')) {
+      return { title: "🔢 الرقم المدرسي غير صحيح", description: "الرقم المدرسي يجب أن يحتوي على أحرف وأرقام فقط" };
+    }
+    return { title: "📋 بيانات غير مكتملة", description: zodError?.message || "يرجى التحقق من جميع الحقول" };
+  }
+
+  // Supabase auth errors
+  if (errorLower.includes('user already registered') || errorLower.includes('already been registered')) {
+    return { 
+      title: "👤 البريد مسجل مسبقاً", 
+      description: "هذا البريد الإلكتروني مستخدم بالفعل. جرب تسجيل الدخول أو استخدم بريد آخر" 
+    };
+  }
+  if (errorLower.includes('invalid email')) {
+    return { title: "📧 البريد غير صالح", description: "تأكد من كتابة البريد الإلكتروني بالشكل الصحيح" };
+  }
+  if (errorLower.includes('password')) {
+    return { 
+      title: "🔐 كلمة المرور ضعيفة", 
+      description: "كلمة المرور يجب أن تكون 8 أحرف على الأقل مع حرف كبير وصغير ورقم" 
+    };
+  }
+  if (errorLower.includes('rate limit') || errorLower.includes('too many')) {
+    return { 
+      title: "⏳ انتظر قليلاً", 
+      description: "لقد حاولت كثيراً. انتظر بضع دقائق ثم حاول مجدداً" 
+    };
+  }
+  if (errorLower.includes('network') || errorLower.includes('fetch')) {
+    return { 
+      title: "📡 خطأ في الاتصال", 
+      description: "تحقق من اتصالك بالإنترنت وحاول مجدداً" 
+    };
+  }
+  if (errorLower.includes('student not found') || errorLower.includes('التلميذ غير موجود')) {
+    return { 
+      title: "🔍 التلميذ غير موجود", 
+      description: "لم يتم العثور على تلميذ بهذا الرقم المدرسي. تأكد من صحة الرقم أو تواصل مع إدارة المدرسة" 
+    };
+  }
+
+  return { title: "❌ حدث خطأ", description: errorMessage || "حدث خطأ غير متوقع. حاول مجدداً" };
+};
 
 const RegisterParent = () => {
   const navigate = useNavigate();
@@ -18,9 +104,16 @@ const RegisterParent = () => {
     password: "",
     confirmPassword: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const passwordStrength = checkPasswordStrength(formData.password);
+  const passwordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword.length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       // Validate form data
@@ -33,7 +126,8 @@ const RegisterParent = () => {
       });
 
       if (formData.password !== formData.confirmPassword) {
-        ErrorMessages.PASSWORDS_MISMATCH();
+        showError("passwords do not match");
+        setIsLoading(false);
         return;
       }
 
@@ -57,7 +151,9 @@ const RegisterParent = () => {
           .rpc('check_student_exists', { _national_school_id: formData.nationalSchoolId.trim() });
 
         if (studentError || !studentData || studentData.length === 0) {
-          showError("student not found");
+          const errorInfo = getArabicRegistrationError("student not found");
+          showError(errorInfo.title, errorInfo.description);
+          setIsLoading(false);
           return;
         }
 
@@ -70,7 +166,9 @@ const RegisterParent = () => {
         });
 
         if (linkError) {
-          showError(linkError, "خطأ في الربط");
+          const errorInfo = getArabicRegistrationError(linkError);
+          showError(errorInfo.title, errorInfo.description);
+          setIsLoading(false);
           return;
         }
 
@@ -79,7 +177,10 @@ const RegisterParent = () => {
         navigate("/login/parent");
       }
     } catch (error: any) {
-      showError(error.errors?.[0]?.message || error);
+      const errorInfo = getArabicRegistrationError(error);
+      showError(errorInfo.title, errorInfo.description);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -89,64 +190,72 @@ const RegisterParent = () => {
       <div className="absolute inset-0 animated-bg opacity-90" />
 
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-screen">
+      <div className="relative z-10 container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
         <div className="max-w-md w-full">
           {/* Back Button */}
           <Button
             onClick={() => navigate(-1)}
             variant="ghost"
-            className="mb-8 text-white hover:bg-white/10 font-cairo"
+            className="mb-6 text-white hover:bg-white/10 font-cairo"
           >
             <ArrowRight className="ml-2 h-4 w-4" />
             العودة
           </Button>
 
           {/* Registration Form */}
-          <div className="glass-card p-8 rounded-3xl slide-in-up">
-            <div className="flex flex-col items-center mb-8">
-              <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
-                <Users className="w-10 h-10 text-white" />
+          <div className="glass-card p-6 sm:p-8 rounded-3xl slide-in-up">
+            <div className="flex flex-col items-center mb-6">
+              <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-3">
+                <Users className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-center mb-2 font-cairo text-primary">
+              <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 font-cairo text-primary">
                 تسجيل حساب ولي أمر
               </h1>
-              <p className="text-foreground/80 text-center font-cairo text-sm">
-                أدخل بياناتك لإنشاء حساب جديد
+              <p className="text-foreground/70 text-center font-cairo text-sm">
+                أنشئ حسابك لمتابعة أبنائك
               </p>
-              <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                <p className="text-yellow-700 dark:text-yellow-300 text-center text-sm font-cairo font-medium">
-                  تنبيه: بعد التسجيل، يجب الانتظار حتى تتم الموافقة على حسابك من قبل الإدارة قبل أن تتمكن من تسجيل الدخول
+            </div>
+
+            {/* Important Notice */}
+            <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-amber-700 dark:text-amber-300 text-sm font-cairo">
+                  <span className="font-semibold">تنبيه:</span> بعد التسجيل، يجب الانتظار حتى تتم الموافقة على حسابك من قبل الإدارة
                 </p>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} autoComplete="on" className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="fullName" className="font-cairo text-foreground">
+            <form onSubmit={handleSubmit} autoComplete="on" className="space-y-4">
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <Label htmlFor="fullName" className="font-cairo text-foreground text-sm">
                   الاسم الكامل
                 </Label>
                 <div className="relative">
-                  <User className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <User className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="fullName"
                     name="name"
                     type="text"
                     autoComplete="name"
-                    placeholder="أدخل الاسم الكامل"
+                    placeholder="مثال: محمد أحمد بن علي"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="pr-10 font-cairo"
+                    className="pr-10 font-cairo h-10"
                     dir="rtl"
+                    required
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="font-cairo text-foreground">
+              {/* Email */}
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="font-cairo text-foreground text-sm">
                   البريد الإلكتروني
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Mail className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="email"
                     name="email"
@@ -155,97 +264,207 @@ const RegisterParent = () => {
                     placeholder="example@email.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pr-10 font-cairo"
+                    className="pr-10 font-cairo h-10 text-left"
                     dir="ltr"
+                    required
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="font-cairo text-foreground">
+              {/* Phone */}
+              <div className="space-y-1.5">
+                <Label htmlFor="phone" className="font-cairo text-foreground text-sm">
                   رقم الهاتف
                 </Label>
                 <div className="relative">
-                  <Phone className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Phone className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="phone"
                     name="tel"
                     type="tel"
                     autoComplete="tel"
-                    placeholder="0555 123456"
+                    placeholder="0555123456"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="pr-10 font-cairo"
+                    className="pr-10 font-cairo h-10 text-left"
                     dir="ltr"
+                    required
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="nationalSchoolId" className="font-cairo text-foreground">
-                  الرقم الوطني المدرسي
-                </Label>
+              {/* National School ID with Explanation */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="nationalSchoolId" className="font-cairo text-foreground text-sm">
+                    الرقم الوطني المدرسي للتلميذ
+                  </Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-primary hover:text-primary/80">
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs p-3 font-cairo text-right">
+                      <p className="text-sm">
+                        الرقم الوطني المدرسي موجود في:
+                        <br />• كشف النقاط
+                        <br />• الشهادة المدرسية
+                        <br />• يمكنك طلبه من إدارة المدرسة
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <div className="relative">
-                  <Hash className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Hash className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="nationalSchoolId"
                     type="text"
-                    placeholder="أدخل الرقم الوطني المدرسي"
+                    placeholder="أدخل الرقم المدرسي"
                     value={formData.nationalSchoolId}
                     onChange={(e) => setFormData({ ...formData, nationalSchoolId: e.target.value })}
-                    className="pr-10 font-cairo"
+                    className="pr-10 font-cairo h-10 text-left"
                     dir="ltr"
+                    required
                   />
                 </div>
+                {/* Helper text */}
+                <p className="text-xs text-muted-foreground font-cairo flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  موجود في كشف النقاط أو الشهادة المدرسية
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="font-tajawal text-foreground">
+              {/* Password with visibility toggle */}
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="font-cairo text-foreground text-sm">
                   كلمة المرور
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Lock className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    placeholder="••••••"
+                    placeholder="أدخل كلمة المرور"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="pr-10 font-tajawal"
+                    className="pr-10 pl-10 font-cairo h-10"
+                    required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
+                
+                {/* Password strength indicator */}
+                {formData.password && (
+                  <div className="space-y-2 mt-2">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4].map((level) => (
+                        <div
+                          key={level}
+                          className={`h-1.5 flex-1 rounded-full transition-colors ${
+                            passwordStrength.passedChecks >= level
+                              ? passwordStrength.strength === 'strong'
+                                ? 'bg-green-500'
+                                : passwordStrength.strength === 'medium'
+                                ? 'bg-amber-500'
+                                : 'bg-red-500'
+                              : 'bg-muted'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 text-xs font-cairo">
+                      <div className={`flex items-center gap-1 ${passwordStrength.checks.length ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        {passwordStrength.checks.length ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        8 أحرف على الأقل
+                      </div>
+                      <div className={`flex items-center gap-1 ${passwordStrength.checks.uppercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        {passwordStrength.checks.uppercase ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        حرف كبير (A-Z)
+                      </div>
+                      <div className={`flex items-center gap-1 ${passwordStrength.checks.lowercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        {passwordStrength.checks.lowercase ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        حرف صغير (a-z)
+                      </div>
+                      <div className={`flex items-center gap-1 ${passwordStrength.checks.number ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        {passwordStrength.checks.number ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        رقم (0-9)
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="font-tajawal text-foreground">
+              {/* Confirm Password with visibility toggle */}
+              <div className="space-y-1.5">
+                <Label htmlFor="confirmPassword" className="font-cairo text-foreground text-sm">
                   تأكيد كلمة المرور
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Lock className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    placeholder="••••••"
+                    placeholder="أعد كتابة كلمة المرور"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="pr-10 font-tajawal"
+                    className={`pr-10 pl-10 font-cairo h-10 ${
+                      formData.confirmPassword && (passwordsMatch ? 'border-green-500 focus-visible:ring-green-500' : 'border-red-500 focus-visible:ring-red-500')
+                    }`}
+                    required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute left-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
+                {formData.confirmPassword && (
+                  <p className={`text-xs font-cairo flex items-center gap-1 ${passwordsMatch ? 'text-green-600' : 'text-red-500'}`}>
+                    {passwordsMatch ? (
+                      <>
+                        <CheckCircle2 className="w-3 h-3" />
+                        كلمتا المرور متطابقتان
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-3 h-3" />
+                        كلمتا المرور غير متطابقتين
+                      </>
+                    )}
+                  </p>
+                )}
               </div>
 
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-gradient-primary hover:opacity-90 text-white font-cairo text-lg"
+                disabled={isLoading || !passwordsMatch || passwordStrength.strength === 'weak'}
+                className="w-full bg-gradient-primary hover:opacity-90 text-white font-cairo text-lg mt-6 h-12"
               >
-                إنشاء الحساب
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    جاري التسجيل...
+                  </span>
+                ) : (
+                  "إنشاء الحساب"
+                )}
               </Button>
 
-              <p className="text-center text-sm text-foreground/70 font-cairo">
+              <p className="text-center text-sm text-foreground/70 font-cairo pt-2">
                 لديك حساب بالفعل؟{" "}
                 <button
                   type="button"
