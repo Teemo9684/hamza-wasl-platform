@@ -125,11 +125,12 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
   useEffect(() => {
     if (isNative && !versionInitialized) {
       const init = async () => {
+        console.log("[useLiveUpdate] Initializing...");
         await initializeVersion();
         await syncBundleVersion();
         setCurrentVersion(getCurrentVersion());
         versionInitialized = true;
-        console.log("Live update initialized, version:", getCurrentVersion());
+        console.log("[useLiveUpdate] Initialized, version:", getCurrentVersion());
       };
       init();
     }
@@ -138,10 +139,11 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
   // Apply update
   const applyUpdateInternal = useCallback(async (updateInfo: UpdateInfo): Promise<boolean> => {
     if (!updateInfo.bundleUrl || !updateInfo.version) {
-      console.error("Missing bundleUrl or version in updateInfo");
+      console.error("[useLiveUpdate] Missing bundleUrl or version in updateInfo");
       return false;
     }
 
+    console.log("[useLiveUpdate] Starting update application for version:", updateInfo.version);
     notifyListeners({ ...globalState, isDownloading: true, downloadProgress: 0 });
 
     try {
@@ -160,11 +162,12 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
         // Clear pending if failed
         await removeItem(PENDING_UPDATE_KEY);
         notifyListeners({ ...globalState, isDownloading: false, downloadProgress: 0, error: "فشل تطبيق التحديث" });
+        console.error("[useLiveUpdate] Update application failed");
       }
 
       return success;
     } catch (error) {
-      console.error("Error applying update:", error);
+      console.error("[useLiveUpdate] Error applying update:", error);
       await removeItem(PENDING_UPDATE_KEY);
       notifyListeners({ 
         ...globalState, 
@@ -179,26 +182,27 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
   // Check for update
   const checkUpdate = useCallback(async (): Promise<UpdateInfo | undefined> => {
     if (!isNative) {
-      console.log("Not a native app, skipping update check");
+      console.log("[useLiveUpdate] Not a native app, skipping update check");
       return;
     }
 
     // Prevent multiple simultaneous checks
     if (globalUpdateCheckInProgress) {
-      console.log("Update check already in progress, skipping");
+      console.log("[useLiveUpdate] Update check already in progress, skipping");
       return;
     }
 
+    console.log("[useLiveUpdate] Starting update check...");
     globalUpdateCheckInProgress = true;
     notifyListeners({ ...globalState, isChecking: true, error: null });
 
     try {
       const updateInfo = await checkForUpdate();
       
-      console.log("Update info received:", updateInfo);
+      console.log("[useLiveUpdate] Update check result:", JSON.stringify(updateInfo));
 
       if (updateInfo.hasUpdate && updateInfo.bundleUrl && updateInfo.version) {
-        console.log("Update available! Version:", updateInfo.version, "Starting automatic download...");
+        console.log("[useLiveUpdate] ✅ Update available! Version:", updateInfo.version, "- Starting automatic download...");
         notifyListeners({ ...globalState, isChecking: false, updateInfo });
         globalUpdateCheckInProgress = false;
         
@@ -206,7 +210,7 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
         await applyUpdateInternal(updateInfo);
         return updateInfo;
       } else {
-        console.log("No update available or already on latest version:", getCurrentVersion());
+        console.log("[useLiveUpdate] No update available, current version:", getCurrentVersion());
       }
 
       notifyListeners({ ...globalState, isChecking: false, updateInfo: null });
@@ -217,15 +221,17 @@ export const useLiveUpdate = (autoCheck: boolean = false) => {
       const errorMessage = error instanceof Error ? error.message : "فشل التحقق من التحديثات";
       notifyListeners({ ...globalState, isChecking: false, error: errorMessage });
       globalUpdateCheckInProgress = false;
-      console.error("Update check failed:", error);
+      console.error("[useLiveUpdate] Update check failed:", error);
     }
   }, [isNative, applyUpdateInternal]);
 
   // Initial check on mount if autoCheck is enabled
   useEffect(() => {
     if (isNative && autoCheck && !globalUpdateCheckInProgress && versionInitialized) {
+      console.log("[useLiveUpdate] Auto-check enabled, scheduling initial check...");
       // Delay initial check to allow app to fully load
       const timer = setTimeout(() => {
+        console.log("[useLiveUpdate] Running initial update check");
         checkUpdate();
       }, 5000);
 
