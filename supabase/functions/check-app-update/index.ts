@@ -19,6 +19,13 @@ interface UpdateResponse {
   releaseNotes?: string;
 }
 
+interface PublishedVersion {
+  version: string;
+  buildTime: string;
+  isMandatory?: boolean;
+  releaseNotes?: string;
+}
+
 // Compare semantic versions
 function compareVersions(v1: string, v2: string): number {
   const parts1 = v1.split('.').map(Number);
@@ -35,6 +42,36 @@ function compareVersions(v1: string, v2: string): number {
   return 0;
 }
 
+// Fetch published version from the live website
+async function fetchPublishedVersion(): Promise<PublishedVersion | null> {
+  try {
+    // URL of the published website's version.json
+    const publishedUrl = "https://hamza-wasl-platform.lovable.app/version.json";
+    
+    console.log("Fetching published version from:", publishedUrl);
+    
+    const response = await fetch(publishedUrl, {
+      headers: {
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+      },
+    });
+    
+    if (!response.ok) {
+      console.error("Failed to fetch published version:", response.status, response.statusText);
+      return null;
+    }
+    
+    const data: PublishedVersion = await response.json();
+    console.log("Published version data:", data);
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching published version:", error);
+    return null;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -48,9 +85,96 @@ serve(async (req) => {
 
     const { currentVersion, platform }: UpdateRequest = await req.json();
 
+    console.log("=== UPDATE CHECK START ===");
     console.log("Checking update for:", { currentVersion, platform });
 
-    // Get the latest active version
+    // الأولوية 1: جلب الإصدار من الموقع المنشور
+    const publishedVersion = await fetchPublishedVersion();
+    
+    if (publishedVersion) {
+      console.log("Published website version:", publishedVersion.version);
+      console.log("Client version:", currentVersion);
+      
+      const comparison = compareVersions(publishedVersion.version, currentVersion);
+      const hasUpdate = comparison > 0;
+      
+      console.log("Comparison result:", comparison, "hasUpdate:", hasUpdate);
+      
+      if (hasUpdate) {
+        // البحث عن bundle URL في قاعدة البيانات أو إنشاء رابط للأصول المنشورة
+        // أولاً: البحث في جدول app_versions
+        const { data: dbVersion } = await supabase
+          .from("app_versions")
+          .select("bundle_url, is_mandatory, release_notes")
+          .eq("version", publishedVersion.version)
+          .eq("is_active", true)
+          .single();
+        
+        // إذا وُجد في قاعدة البيانات، استخدم الـ bundle_url منها
+        if (dbVersion?.bundle_url) {
+          console.log("Found bundle in database for version:", publishedVersion.version);
+          
+          const response: UpdateResponse = {
+            hasUpdate: true,
+            version: publishedVersion.version,
+            bundleUrl: dbVersion.bundle_url,
+            isMandatory: dbVersion.is_mandatory || publishedVersion.isMandatory || false,
+            releaseNotes: publishedVersion.releaseNotes || dbVersion.release_notes,
+          };
+          
+          return new Response(
+            JSON.stringify(response),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
+        // إذا لم يوجد bundle، أعلم المستخدم أن هناك تحديث متاح
+        // لكن لا يمكن تطبيقه تلقائياً (يحتاج رفع bundle يدوياً)
+        console.log("No bundle found for version:", publishedVersion.version);
+        console.log("Update available but requires manual bundle upload");
+        
+        // تسجيل الإصدار الجديد تلقائياً (بدون bundle)
+        const { error: insertError } = await supabase
+          .from("app_versions")
+          .upsert({
+            version: publishedVersion.version,
+            bundle_id: `auto-${publishedVersion.version}`,
+            bundle_url: "", // سيتم رفعه لاحقاً
+            is_active: false, // غير مفعّل حتى يُرفع الـ bundle
+            is_mandatory: publishedVersion.isMandatory || false,
+            release_notes: publishedVersion.releaseNotes || `الإصدار ${publishedVersion.version}`,
+          }, {
+            onConflict: "version",
+            ignoreDuplicates: true,
+          });
+        
+        if (insertError) {
+          console.error("Error auto-registering version:", insertError);
+        } else {
+          console.log("Auto-registered version (awaiting bundle):", publishedVersion.version);
+        }
+        
+        // لا نُرجع تحديث لأنه لا يوجد bundle
+        return new Response(
+          JSON.stringify({ 
+            hasUpdate: false,
+            message: "Update available but bundle not uploaded yet",
+            pendingVersion: publishedVersion.version,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      console.log("Client is up to date with published version");
+      return new Response(
+        JSON.stringify({ hasUpdate: false }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // الأولوية 2: إذا فشل جلب الإصدار المنشور، استخدم قاعدة البيانات
+    console.log("Falling back to database check...");
+    
     const { data: latestVersion, error } = await supabase
       .from("app_versions")
       .select("*")
@@ -59,16 +183,8 @@ serve(async (req) => {
       .limit(1)
       .single();
 
-    if (error) {
-      console.error("Error fetching latest version:", error);
-      return new Response(
-        JSON.stringify({ hasUpdate: false, error: "No active version found" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!latestVersion) {
-      console.log("No active version found");
+    if (error || !latestVersion) {
+      console.log("No active version found in database");
       return new Response(
         JSON.stringify({ hasUpdate: false }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -76,13 +192,9 @@ serve(async (req) => {
     }
 
     console.log("Latest version from DB:", latestVersion.version);
-    console.log("Current client version:", currentVersion);
-
-    // Compare versions using semantic versioning
+    
     const comparison = compareVersions(latestVersion.version, currentVersion);
     const hasUpdate = comparison > 0;
-
-    console.log("Version comparison result:", comparison, "hasUpdate:", hasUpdate);
 
     if (hasUpdate) {
       const response: UpdateResponse = {
@@ -93,7 +205,7 @@ serve(async (req) => {
         releaseNotes: latestVersion.release_notes,
       };
       
-      console.log("Sending update response:", response);
+      console.log("Sending update from database:", response);
       
       return new Response(
         JSON.stringify(response),
@@ -101,7 +213,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("No update needed, client is up to date");
+    console.log("=== UPDATE CHECK END: No update needed ===");
     return new Response(
       JSON.stringify({ hasUpdate: false }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
