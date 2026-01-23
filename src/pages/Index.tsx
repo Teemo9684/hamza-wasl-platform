@@ -506,15 +506,15 @@ const Index = () => {
             onClick={() => handleCardClick("parent")}
             className={`group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 ${
               selectedUserType === "parent" 
-                ? "scale-[1.02] ring-4 ring-emerald-400/60 shadow-[0_0_40px_rgba(16,185,129,0.4)]" 
+                ? "scale-[1.02] ring-4 ring-primary/60 shadow-[0_0_40px_hsl(var(--primary)/0.4)]" 
                 : "hover:scale-[1.02]"
             }`}
             variants={cardVariants}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {/* Gradient Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/90 via-teal-500/85 to-cyan-600/90 opacity-95" />
+            {/* Gradient Background - Using Primary Colors */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(270,60%,60%)] via-[hsl(250,55%,58%)] to-[hsl(220,60%,65%)] opacity-95" />
             
             {/* Pattern Overlay */}
             <div className="absolute inset-0 opacity-10">
@@ -577,15 +577,15 @@ const Index = () => {
             onClick={() => handleCardClick("teacher")}
             className={`group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 ${
               selectedUserType === "teacher" 
-                ? "scale-[1.02] ring-4 ring-violet-400/60 shadow-[0_0_40px_rgba(139,92,246,0.4)]" 
+                ? "scale-[1.02] ring-4 ring-secondary/60 shadow-[0_0_40px_hsl(var(--secondary)/0.4)]" 
                 : "hover:scale-[1.02]"
             }`}
             variants={cardVariants}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {/* Gradient Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/90 via-purple-500/85 to-fuchsia-600/90 opacity-95" />
+            {/* Gradient Background - Using Secondary Colors */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,60%,65%)] via-[hsl(210,65%,62%)] to-[hsl(200,70%,58%)] opacity-95" />
             
             {/* Pattern Overlay */}
             <div className="absolute inset-0 opacity-10">
@@ -654,14 +654,14 @@ const Index = () => {
               onClick={() => handleCardClick("admin")}
               className={`group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 ${
                 selectedUserType === "admin" 
-                  ? "scale-[1.01] ring-4 ring-amber-400/60 shadow-[0_0_40px_rgba(245,158,11,0.4)]" 
+                  ? "scale-[1.01] ring-4 ring-accent/60 shadow-[0_0_40px_hsl(var(--accent)/0.4)]" 
                   : "hover:scale-[1.01]"
               }`}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
-              {/* Gradient Background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/90 via-orange-500/85 to-rose-500/90 opacity-95" />
+              {/* Gradient Background - Using Accent Colors */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[hsl(210,70%,60%)] via-[hsl(240,60%,58%)] to-[hsl(270,55%,55%)] opacity-95" />
               
               {/* Pattern Overlay */}
               <div className="absolute inset-0 opacity-10">
