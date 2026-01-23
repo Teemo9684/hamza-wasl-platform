@@ -169,14 +169,18 @@ export const PostersCarousel = () => {
   const touchEndRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const hasDraggedRef = useRef<boolean>(false);
   const isInteractingRef = useRef<boolean>(false);
+  const hasTriggeredPauseRef = useRef<boolean>(false);
 
   // Constants for gesture detection
-  const TAP_THRESHOLD = 10; // pixels - movement less than this is a tap
-  const SWIPE_THRESHOLD = 40; // pixels - movement more than this triggers swipe
-  const TAP_DURATION = 200; // ms - quick taps under this duration
+  const TAP_THRESHOLD = 15; // pixels - movement less than this is a tap
+  const SWIPE_THRESHOLD = 50; // pixels - movement more than this triggers swipe
+  const PAUSE_THRESHOLD = 30; // pixels - horizontal movement needed to pause autoplay
+  const TAP_DURATION = 250; // ms - quick taps under this duration
 
   // Pause rotation and resume after delay (only for actual swipes)
   const pauseAndResume = useCallback(() => {
+    if (hasTriggeredPauseRef.current) return; // Prevent multiple pauses
+    hasTriggeredPauseRef.current = true;
     setIsPaused(true);
     
     if (resumeTimeoutRef.current) {
@@ -233,6 +237,7 @@ export const PostersCarousel = () => {
     touchEndRef.current = { x: touch.clientX, y: touch.clientY };
     hasDraggedRef.current = false;
     isInteractingRef.current = true;
+    hasTriggeredPauseRef.current = false; // Reset pause trigger
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
@@ -244,13 +249,14 @@ export const PostersCarousel = () => {
     const deltaX = Math.abs(touch.clientX - touchStartRef.current.x);
     const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
     
-    // Only mark as dragged if significant horizontal movement
+    // Mark as dragged only if significant movement occurred
     if (deltaX > TAP_THRESHOLD || deltaY > TAP_THRESHOLD) {
       hasDraggedRef.current = true;
-      // Pause only when actual dragging occurs
-      if (deltaX > TAP_THRESHOLD) {
-        pauseAndResume();
-      }
+    }
+    
+    // Pause only when significant HORIZONTAL dragging occurs (not vertical scroll)
+    if (deltaX > PAUSE_THRESHOLD && deltaX > deltaY) {
+      pauseAndResume();
     }
   }, [pauseAndResume]);
 
@@ -259,23 +265,22 @@ export const PostersCarousel = () => {
     isInteractingRef.current = false;
     
     const deltaX = touchStartRef.current.x - touchEndRef.current.x;
-    const duration = Date.now() - touchStartRef.current.time;
+    const deltaY = Math.abs(touchStartRef.current.y - touchEndRef.current.y);
+    const absDeltaX = Math.abs(deltaX);
     
-    // If it's a swipe (significant movement)
-    if (hasDraggedRef.current && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+    // If it's a horizontal swipe (significant horizontal movement, more than vertical)
+    if (hasDraggedRef.current && absDeltaX > SWIPE_THRESHOLD && absDeltaX > deltaY) {
       if (deltaX > 0) {
         goToNext();
       } else {
         goToPrev();
       }
+      pauseAndResume();
     }
-    // If it's a tap (minimal movement and quick)
-    else if (!hasDraggedRef.current || (Math.abs(deltaX) < TAP_THRESHOLD && duration < TAP_DURATION)) {
-      // Tap will be handled by onClick
-    }
-    
+    // Reset for next interaction
     hasDraggedRef.current = false;
-  }, [goToNext, goToPrev]);
+    hasTriggeredPauseRef.current = false;
+  }, [goToNext, goToPrev, pauseAndResume]);
 
   // Mouse drag handlers - improved
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -283,6 +288,7 @@ export const PostersCarousel = () => {
     touchEndRef.current = { x: e.clientX, y: e.clientY };
     hasDraggedRef.current = false;
     isInteractingRef.current = true;
+    hasTriggeredPauseRef.current = false;
   }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -295,9 +301,11 @@ export const PostersCarousel = () => {
     
     if (deltaX > TAP_THRESHOLD || deltaY > TAP_THRESHOLD) {
       hasDraggedRef.current = true;
-      if (deltaX > TAP_THRESHOLD) {
-        pauseAndResume();
-      }
+    }
+    
+    // Pause only on significant horizontal movement
+    if (deltaX > PAUSE_THRESHOLD && deltaX > deltaY) {
+      pauseAndResume();
     }
   }, [pauseAndResume]);
 
@@ -306,27 +314,39 @@ export const PostersCarousel = () => {
     isInteractingRef.current = false;
     
     const deltaX = touchStartRef.current.x - touchEndRef.current.x;
+    const deltaY = Math.abs(touchStartRef.current.y - touchEndRef.current.y);
+    const absDeltaX = Math.abs(deltaX);
     
-    if (hasDraggedRef.current && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+    // Only trigger swipe if horizontal movement is significant and greater than vertical
+    if (hasDraggedRef.current && absDeltaX > SWIPE_THRESHOLD && absDeltaX > deltaY) {
       if (deltaX > 0) {
         goToNext();
       } else {
         goToPrev();
       }
+      pauseAndResume();
     }
     
     hasDraggedRef.current = false;
-  }, [goToNext, goToPrev]);
+    hasTriggeredPauseRef.current = false;
+  }, [goToNext, goToPrev, pauseAndResume]);
 
   const handleMouseLeave = useCallback(() => {
     isInteractingRef.current = false;
     hasDraggedRef.current = false;
+    hasTriggeredPauseRef.current = false;
   }, []);
 
-  // Handle tap on current poster
+  // Handle tap on current poster - improved detection
   const handlePosterTap = useCallback((poster: Poster, index: number) => {
-    // Only open if it's the current poster and wasn't a drag
-    if (index === currentIndex && !hasDraggedRef.current) {
+    const duration = Date.now() - touchStartRef.current.time;
+    const deltaX = Math.abs(touchStartRef.current.x - touchEndRef.current.x);
+    const deltaY = Math.abs(touchStartRef.current.y - touchEndRef.current.y);
+    
+    // Only open preview if it's a genuine tap (minimal movement, quick duration)
+    const isTap = deltaX < TAP_THRESHOLD && deltaY < TAP_THRESHOLD && duration < TAP_DURATION;
+    
+    if (index === currentIndex && (isTap || !hasDraggedRef.current)) {
       setSelectedPoster(poster);
     }
   }, [currentIndex]);
