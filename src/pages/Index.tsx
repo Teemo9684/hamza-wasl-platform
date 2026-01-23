@@ -388,9 +388,9 @@ const Index = () => {
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 animated-gradient-bg" />
 
-      {/* News Ticker */}
+      {/* News Ticker - Sticky */}
       {newsItems.length > 0 && (
-        <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
           <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
             {/* Repeat items 3 times for seamless scrolling */}
             {[...Array(3)].map((_, repeatIndex) => (
@@ -430,7 +430,7 @@ const Index = () => {
 
       {/* Date and Time Display - Below News Ticker */}
       <motion.div 
-        className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
+        className="fixed top-12 left-0 right-0 z-40 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
