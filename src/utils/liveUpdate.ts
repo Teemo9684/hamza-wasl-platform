@@ -16,6 +16,7 @@ export interface UpdateInfo {
 const APPLIED_BUNDLE_ID_KEY = "ota_applied_bundle_id";
 const UPDATE_IN_PROGRESS_KEY = "ota_update_in_progress";
 const LAST_UPDATE_CHECK_KEY = "ota_last_update_check";
+const LAST_APPLIED_VERSION_KEY = "ota_last_applied_version";
 
 // Check if running in a native app
 export const isNativeApp = (): boolean => {
@@ -70,6 +71,26 @@ export const getAppliedBundleId = async (): Promise<string | null> => {
   }
 };
 
+// Save last applied version
+export const setLastAppliedVersion = async (version: string): Promise<void> => {
+  try {
+    await setItem(LAST_APPLIED_VERSION_KEY, version);
+    console.log("[LiveUpdate] Saved last applied version:", version);
+  } catch (error) {
+    console.error("[LiveUpdate] Error saving last applied version:", error);
+  }
+};
+
+// Get last applied version - returns the version that was last successfully applied
+export const getLastAppliedVersion = async (): Promise<string | null> => {
+  try {
+    return await getItem(LAST_APPLIED_VERSION_KEY);
+  } catch (error) {
+    console.error("[LiveUpdate] Error reading last applied version:", error);
+    return null;
+  }
+};
+
 // Mark that an update is in progress
 export const setUpdateInProgress = async (version: string | null): Promise<void> => {
   try {
@@ -111,22 +132,27 @@ const logUpdateCheck = async (version: string, serverVersion: string | undefined
   }
 };
 
-// Check for updates - compares APP_VERSION with server version
+// Check for updates - يقارن مع السيرفر بشكل ذكي
+// يستخدم bundle_id المخزن محلياً أو APP_VERSION للمقارنة
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
   try {
-    // APP_VERSION is the version baked into this bundle
-    const currentVersion = APP_VERSION;
+    // الحصول على الإصدار المُطبق محلياً
+    const lastAppliedVersion = await getLastAppliedVersion();
+    // استخدام الإصدار المُطبق إذا وجد، وإلا استخدام APP_VERSION
+    const effectiveVersion = lastAppliedVersion || APP_VERSION;
     
     console.log("[LiveUpdate] ====== UPDATE CHECK START ======");
-    console.log("[LiveUpdate] Current APP_VERSION:", currentVersion);
+    console.log("[LiveUpdate] APP_VERSION (baked in):", APP_VERSION);
+    console.log("[LiveUpdate] Last applied version:", lastAppliedVersion || "none");
+    console.log("[LiveUpdate] Effective version for check:", effectiveVersion);
     console.log("[LiveUpdate] Platform:", Capacitor.getPlatform());
     
     // Check if update is already in progress
     const updateInProgress = await getUpdateInProgress();
     if (updateInProgress) {
-      // If the in-progress version is the same as current, update was applied
-      if (updateInProgress === currentVersion) {
-        console.log("[LiveUpdate] Update to", currentVersion, "completed");
+      // If the in-progress version matches last applied, update was completed
+      if (updateInProgress === lastAppliedVersion) {
+        console.log("[LiveUpdate] Update to", lastAppliedVersion, "completed");
         await setUpdateInProgress(null);
       } else {
         console.log("[LiveUpdate] Update to", updateInProgress, "still in progress");
@@ -136,14 +162,14 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
     console.log("[LiveUpdate] Calling check-app-update function...");
     const { data, error } = await supabase.functions.invoke("check-app-update", {
       body: {
-        currentVersion: currentVersion,
+        currentVersion: effectiveVersion,
         platform: Capacitor.getPlatform(),
       },
     });
 
     if (error) {
       console.error("[LiveUpdate] Error from edge function:", error);
-      await logUpdateCheck(currentVersion, undefined, "error: " + error.message);
+      await logUpdateCheck(effectiveVersion, undefined, "error: " + error.message);
       return { hasUpdate: false };
     }
 
@@ -153,30 +179,30 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
     if (data?.hasUpdate && data?.version && data?.bundleUrl) {
       console.log("[LiveUpdate] Server indicates update to version:", data.version);
       
-      // Compare versions: server version must be GREATER than current
-      const comparison = compareVersions(data.version, currentVersion);
-      console.log("[LiveUpdate] Comparison:", data.version, "vs", currentVersion, "=", comparison);
+      // Compare versions: server version must be GREATER than effective version
+      const comparison = compareVersions(data.version, effectiveVersion);
+      console.log("[LiveUpdate] Comparison:", data.version, "vs", effectiveVersion, "=", comparison);
       
       if (comparison <= 0) {
         console.log("[LiveUpdate] Already on latest version or newer");
-        await logUpdateCheck(currentVersion, data.version, "already_up_to_date");
+        await logUpdateCheck(effectiveVersion, data.version, "already_up_to_date");
         return { hasUpdate: false };
       }
       
       // Check if we're currently updating to this version
       if (updateInProgress === data.version) {
         console.log("[LiveUpdate] Already updating to", data.version);
-        await logUpdateCheck(currentVersion, data.version, "in_progress");
+        await logUpdateCheck(effectiveVersion, data.version, "in_progress");
         return { hasUpdate: false };
       }
       
-      console.log("[LiveUpdate] ✅ UPDATE AVAILABLE:", currentVersion, "->", data.version);
-      await logUpdateCheck(currentVersion, data.version, "update_available");
+      console.log("[LiveUpdate] ✅ UPDATE AVAILABLE:", effectiveVersion, "->", data.version);
+      await logUpdateCheck(effectiveVersion, data.version, "update_available");
       return data as UpdateInfo;
     }
     
     console.log("[LiveUpdate] No update available");
-    await logUpdateCheck(currentVersion, data?.version, "no_update");
+    await logUpdateCheck(effectiveVersion, data?.version, "no_update");
     console.log("[LiveUpdate] ====== UPDATE CHECK END ======");
     return { hasUpdate: false };
   } catch (error) {
@@ -200,7 +226,7 @@ export const downloadAndApplyUpdate = async (
     console.log("[LiveUpdate] ====== STARTING UPDATE ======");
     console.log("[LiveUpdate] URL:", bundleUrl);
     console.log("[LiveUpdate] Target version:", version);
-    console.log("[LiveUpdate] Current version:", APP_VERSION);
+    console.log("[LiveUpdate] Current APP_VERSION:", APP_VERSION);
     
     // Mark update in progress
     await setUpdateInProgress(version);
@@ -236,11 +262,13 @@ export const downloadAndApplyUpdate = async (
       bundleId: bundleId,
     });
 
-    // Save bundle ID
+    // Save bundle ID and the version we're applying
     await setAppliedBundleId(bundleId);
+    // حفظ الإصدار الجديد الذي تم تطبيقه
+    await setLastAppliedVersion(version);
 
     onProgress?.(100);
-    console.log("[LiveUpdate] Ready to reload...");
+    console.log("[LiveUpdate] Version", version, "saved, ready to reload...");
 
     // Small delay before reload
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -300,6 +328,7 @@ export const resetToDefaultBundle = async (): Promise<boolean> => {
     await removeItem(APPLIED_BUNDLE_ID_KEY);
     await removeItem(UPDATE_IN_PROGRESS_KEY);
     await removeItem(LAST_UPDATE_CHECK_KEY);
+    await removeItem(LAST_APPLIED_VERSION_KEY);
     
     console.log("[LiveUpdate] Reset to default bundle");
     return true;
