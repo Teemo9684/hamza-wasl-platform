@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -7,6 +7,7 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { useNewsTicker } from "@/hooks/useNewsTicker";
 import { BottomNav, parentNavItems } from "@/components/BottomNav";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { FloatingQuickNotification, QuickNotificationType } from "@/components/FloatingQuickNotification";
 
 // Context to share data between layout and pages
 interface ParentDashboardContextType {
@@ -37,6 +38,7 @@ export const ParentDashboardLayout = () => {
   const [selectedChild, setSelectedChild] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [parentName, setParentName] = useState<string>("");
+  const [dismissedNotifications, setDismissedNotifications] = useState<Set<QuickNotificationType>>(new Set());
   
   const { counts, clearSection, setUserId, setChildIds, setUserRole } = useNotifications();
 
@@ -107,10 +109,16 @@ export const ParentDashboardLayout = () => {
   const handleNavigate = (sectionId: string) => {
     if (sectionId === 'attendance') {
       clearSection('attendance');
+      setDismissedNotifications(prev => new Set([...prev, 'attendance']));
     } else if (sectionId === 'homework') {
       clearSection('homework');
+      setDismissedNotifications(prev => new Set([...prev, 'homework']));
     } else if (sectionId === 'documents') {
       clearSection('documents');
+      setDismissedNotifications(prev => new Set([...prev, 'documents']));
+    } else if (sectionId === 'messages') {
+      clearSection('messages');
+      setDismissedNotifications(prev => new Set([...prev, 'messages']));
     }
     
     if (sectionId === 'overview') {
@@ -119,6 +127,69 @@ export const ParentDashboardLayout = () => {
       navigate(`/dashboard/parent/${sectionId}`);
     }
   };
+
+  const handleDismissNotification = useCallback((type: QuickNotificationType) => {
+    setDismissedNotifications(prev => new Set([...prev, type]));
+  }, []);
+
+  // إعادة إظهار الإشعارات عند تغير العدد
+  useEffect(() => {
+    if (counts.messages > 0) {
+      setDismissedNotifications(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('messages');
+        return newSet;
+      });
+    }
+    if (counts.attendance > 0) {
+      setDismissedNotifications(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('attendance');
+        return newSet;
+      });
+    }
+    if (counts.homework > 0) {
+      setDismissedNotifications(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('homework');
+        return newSet;
+      });
+    }
+    if (counts.documents > 0) {
+      setDismissedNotifications(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('documents');
+        return newSet;
+      });
+    }
+  }, [counts.messages, counts.attendance, counts.homework, counts.documents]);
+
+  const floatingNotifications = [
+    { 
+      type: 'messages' as QuickNotificationType, 
+      count: dismissedNotifications.has('messages') ? 0 : counts.messages, 
+      label: 'رسائل جديدة',
+      onClick: () => handleNavigate('messages')
+    },
+    { 
+      type: 'attendance' as QuickNotificationType, 
+      count: dismissedNotifications.has('attendance') ? 0 : counts.attendance, 
+      label: 'تحديث الحضور',
+      onClick: () => handleNavigate('attendance')
+    },
+    { 
+      type: 'homework' as QuickNotificationType, 
+      count: dismissedNotifications.has('homework') ? 0 : counts.homework, 
+      label: 'واجبات جديدة',
+      onClick: () => handleNavigate('homework')
+    },
+    { 
+      type: 'documents' as QuickNotificationType, 
+      count: dismissedNotifications.has('documents') ? 0 : counts.documents, 
+      label: 'تحديث الوثائق',
+      onClick: () => handleNavigate('documents')
+    },
+  ];
 
   const contextValue: ParentDashboardContextType = {
     children,
@@ -172,6 +243,13 @@ export const ParentDashboardLayout = () => {
             <Outlet />
           </div>
         </main>
+
+        {/* الإشعارات العائمة */}
+        <FloatingQuickNotification 
+          notifications={floatingNotifications}
+          onDismiss={handleDismissNotification}
+          position="bottom-left"
+        />
 
         {/* شريط التنقل السفلي */}
         <BottomNav 
