@@ -122,12 +122,11 @@ export const PostersManager = () => {
         ? Math.max(...posters.map(p => p.display_order)) + 1 
         : 0;
 
-      // Insert poster with optional title
-      const posterTitle = formData.title.trim() || `ملصق ${new Date().toLocaleDateString('ar-SA')}`;
+      // Insert poster with optional title (can be empty)
       const { error: insertError } = await supabase
         .from('school_posters')
         .insert({
-          title: posterTitle,
+          title: formData.title.trim(),
           image_url: urlData.publicUrl,
           display_order: maxOrder,
         });
