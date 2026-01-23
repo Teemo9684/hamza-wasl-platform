@@ -42,6 +42,8 @@ const DashboardAdmin = () => {
     pendingRequests: 0,
     pendingDocuments: 0,
     unreadMessages: 0,
+    linkedParents: 0,
+    totalMessages: 0,
   });
   const scrollPositionRef = useRef<number>(0);
   const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
@@ -203,40 +205,34 @@ const DashboardAdmin = () => {
 
   const fetchStatistics = async () => {
     try {
-      const { count: parentsCount } = await supabase
-        .from("user_roles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "parent");
-
-      const { count: teachersCount } = await supabase
-        .from("user_roles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "teacher");
-
-      const { count: studentsCount } = await supabase
-        .from("students")
-        .select("*", { count: "exact", head: true });
-
-      const { count: pendingCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("is_approved", false);
-
-      const { count: pendingDocsCount } = await supabase
-        .from("document_requests")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending");
-
-      // الإدارة تراقب الرسائل فقط ولا تستلمها، لذا لا نحتاج لحساب الرسائل غير المقروءة
-      // تظهر كل الرسائل في قسم إدارة الرسائل بدون إشعارات وهمية
+      // جلب جميع الإحصائيات بشكل متوازٍ لتحسين الأداء
+      const [
+        parentsResult,
+        teachersResult,
+        studentsResult,
+        pendingResult,
+        pendingDocsResult,
+        linkedParentsResult,
+        messagesResult
+      ] = await Promise.all([
+        supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "parent"),
+        supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "teacher"),
+        supabase.from("students").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_approved", false),
+        supabase.from("document_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("parent_students").select("parent_id", { count: "exact", head: true }),
+        supabase.from("messages").select("*", { count: "exact", head: true })
+      ]);
 
       setStats({
-        parents: parentsCount || 0,
-        teachers: teachersCount || 0,
-        students: studentsCount || 0,
-        pendingRequests: pendingCount || 0,
-        pendingDocuments: pendingDocsCount || 0,
-        unreadMessages: 0, // الإدارة تراقب الرسائل فقط
+        parents: parentsResult.count || 0,
+        teachers: teachersResult.count || 0,
+        students: studentsResult.count || 0,
+        pendingRequests: pendingResult.count || 0,
+        pendingDocuments: pendingDocsResult.count || 0,
+        unreadMessages: 0,
+        linkedParents: linkedParentsResult.count || 0,
+        totalMessages: messagesResult.count || 0,
       });
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -339,59 +335,123 @@ const DashboardAdmin = () => {
           ) : (
             <>
               {/* Statistics */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="glass-card hover-lift">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 font-cairo">
-                  <Users className="w-5 h-5 text-primary" />
-                  أولياء الأمور
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{stats.parents}</p>
-                <p className="text-sm text-muted-foreground font-cairo">مسجل</p>
-              </CardContent>
-            </Card>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+                <Card className="glass-card hover-lift">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 font-cairo text-sm md:text-base">
+                      <GraduationCap className="w-5 h-5 text-accent" />
+                      التلاميذ
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl md:text-3xl font-bold">{stats.students}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground font-cairo">تلميذ مسجل</p>
+                  </CardContent>
+                </Card>
 
-            <Card className="glass-card hover-lift">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 font-cairo">
-                  <UserCheck className="w-5 h-5 text-secondary" />
-                  المعلمين
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{stats.teachers}</p>
-                <p className="text-sm text-muted-foreground font-cairo">معلم نشط</p>
-              </CardContent>
-            </Card>
+                <Card className="glass-card hover-lift">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 font-cairo text-sm md:text-base">
+                      <UserCheck className="w-5 h-5 text-secondary" />
+                      المعلمين
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl md:text-3xl font-bold">{stats.teachers}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground font-cairo">
+                      {stats.students > 0 && stats.teachers > 0 
+                        ? `نسبة 1:${Math.round(stats.students / stats.teachers)}`
+                        : 'معلم نشط'}
+                    </p>
+                  </CardContent>
+                </Card>
 
-            <Card className="glass-card hover-lift">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 font-cairo">
-                  <GraduationCap className="w-5 h-5 text-accent" />
-                  التلاميذ
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{stats.students}</p>
-                <p className="text-sm text-muted-foreground font-cairo">تلميذ</p>
-              </CardContent>
-            </Card>
+                <Card className="glass-card hover-lift">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 font-cairo text-sm md:text-base">
+                      <Users className="w-5 h-5 text-primary" />
+                      أولياء الأمور
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl md:text-3xl font-bold">{stats.parents}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground font-cairo">
+                      {stats.linkedParents > 0 
+                        ? `${stats.linkedParents} مرتبط بتلاميذ`
+                        : 'مسجل'}
+                    </p>
+                  </CardContent>
+                </Card>
 
-            <Card className="glass-card hover-lift">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 font-cairo">
-                  <Bell className="w-5 h-5 text-primary" />
-                  طلبات قيد الانتظار
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{stats.pendingRequests}</p>
-                <p className="text-sm text-muted-foreground font-cairo">بانتظار الموافقة</p>
-              </CardContent>
-            </Card>
-          </div>
+                <Card className="glass-card hover-lift relative">
+                  {stats.pendingRequests > 0 && (
+                    <Badge className="absolute -top-2 -right-2 bg-red-500 text-white animate-pulse text-xs">
+                      {stats.pendingRequests}
+                    </Badge>
+                  )}
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 font-cairo text-sm md:text-base">
+                      <Bell className="w-5 h-5 text-orange-500" />
+                      طلبات معلقة
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl md:text-3xl font-bold">{stats.pendingRequests}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground font-cairo">بانتظار الموافقة</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Additional Stats Row */}
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+                <Card className="glass-card hover-lift relative">
+                  {stats.pendingDocuments > 0 && (
+                    <Badge className="absolute -top-2 -right-2 bg-orange-500 text-white animate-pulse text-xs">
+                      {stats.pendingDocuments}
+                    </Badge>
+                  )}
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 font-cairo text-sm md:text-base">
+                      <FileText className="w-5 h-5 text-blue-500" />
+                      طلبات الوثائق
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl md:text-3xl font-bold">{stats.pendingDocuments}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground font-cairo">وثيقة معلقة</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-card hover-lift">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 font-cairo text-sm md:text-base">
+                      <MessageSquare className="w-5 h-5 text-green-500" />
+                      الرسائل
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl md:text-3xl font-bold">{stats.totalMessages}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground font-cairo">إجمالي الرسائل</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-card hover-lift col-span-2 lg:col-span-1">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 font-cairo text-sm md:text-base">
+                      <BarChart3 className="w-5 h-5 text-purple-500" />
+                      نسبة الارتباط
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl md:text-3xl font-bold">
+                      {stats.students > 0 
+                        ? `${Math.round((stats.linkedParents / stats.students) * 100)}%`
+                        : '0%'}
+                    </p>
+                    <p className="text-xs md:text-sm text-muted-foreground font-cairo">أولياء مرتبطين بتلاميذ</p>
+                  </CardContent>
+                </Card>
+              </div>
 
           {/* Management Sections */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
