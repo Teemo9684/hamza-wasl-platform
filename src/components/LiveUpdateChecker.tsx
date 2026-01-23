@@ -26,6 +26,8 @@ export const LiveUpdateChecker = ({
     if (!checkNativeApp() || hasInitialized) return;
 
     const initializeUpdate = async () => {
+      console.log("[LiveUpdateChecker] Initializing...");
+      
       // Initialize version first
       await initializeVersion();
       
@@ -36,7 +38,7 @@ export const LiveUpdateChecker = ({
       await checkAndConvertPendingUpdate();
       
       setHasInitialized(true);
-      console.log("LiveUpdateChecker initialized, current version:", getCurrentVersion());
+      console.log("[LiveUpdateChecker] Initialized, current version:", getCurrentVersion());
     };
 
     initializeUpdate();
@@ -89,7 +91,7 @@ export const LiveUpdateChecker = ({
     // Give the app a moment to fully load before confirming the bundle
     const timer = setTimeout(() => {
       markBundleAsReady();
-      console.log("Bundle marked as ready");
+      console.log("[LiveUpdateChecker] Bundle marked as ready");
     }, 2000);
 
     return () => clearTimeout(timer);
@@ -99,8 +101,10 @@ export const LiveUpdateChecker = ({
   useEffect(() => {
     if (!isNativeApp || !autoCheck || !hasInitialized) return;
 
+    console.log("[LiveUpdateChecker] Setting up periodic update check every", checkInterval / 1000, "seconds");
+    
     const intervalId = setInterval(() => {
-      console.log("Periodic update check, current version:", currentVersion);
+      console.log("[LiveUpdateChecker] Running periodic update check, current version:", currentVersion);
       checkUpdate();
     }, checkInterval);
 
