@@ -497,10 +497,10 @@ const Index = () => {
         </motion.div>
 
         {/* Account Type Selection Title */}
-        <motion.div variants={itemVariants} className="text-center my-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-white font-cairo">
+        <motion.div className="mt-8 text-center" variants={itemVariants}>
+          <p className="text-white/70 font-cairo text-lg">
             اختر نوع الحساب للدخول إلى المنصة
-          </h2>
+          </p>
         </motion.div>
 
         {/* Cards Grid */}
@@ -620,12 +620,6 @@ const Index = () => {
         </motion.div>
 
 
-        {/* Footer */}
-        <motion.div className="mt-8 text-center" variants={itemVariants}>
-          <p className="text-white/70 font-cairo text-lg">
-            اختر نوع الحساب للدخول إلى المنصة
-          </p>
-        </motion.div>
 
         {/* Copyright */}
         <motion.div className="mt-8 text-center" variants={itemVariants}>
