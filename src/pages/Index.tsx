@@ -460,60 +460,21 @@ const Index = () => {
       >
         {/* Logo and Title */}
         <motion.div className="text-center mb-8" variants={headerVariants}>
-          {/* 3D Rotating Ring Logo */}
-          <div className="relative h-56 mb-6 flex items-center justify-center" style={{ perspective: '1000px' }}>
-            {/* Outer rotating ring */}
-            <div 
-              className="absolute w-44 h-44 rounded-full border-4 border-white/30 logo-ring-rotate"
-              style={{ 
-                transformStyle: 'preserve-3d',
-              }}
-            >
-              {/* Ring glow effect */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 via-transparent to-primary/20 blur-xl" />
+          <div className="relative h-48 mb-6">
+            {/* همزة وصل */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
+                <div>همزة</div>
+                <div>وصل</div>
+              </h1>
             </div>
-
-            {/* Middle ring rotating opposite */}
-            <div 
-              className="absolute w-36 h-36 rounded-full border-[3px] border-white/40 logo-ring-rotate-reverse"
-              style={{ 
-                transformStyle: 'preserve-3d',
-              }}
-            />
-
-            {/* Inner ring */}
-            <div 
-              className="absolute w-28 h-28 rounded-full border-2 border-white/50 logo-ring-rotate-slow"
-              style={{ 
-                transformStyle: 'preserve-3d',
-              }}
-            />
-
-            {/* Center content with rotating text */}
-            <div className="relative z-10 w-48 h-48 flex items-center justify-center">
-              {/* همزة وصل */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
-                <h1 className="text-5xl font-bold text-white font-ruqaa leading-[0.9] drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
-                  <div>همزة</div>
-                  <div>وصل</div>
-                </h1>
-              </div>
-              
-              {/* العربي التبسي */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
-                <h1 className="text-5xl font-bold text-white font-ruqaa leading-[0.9] drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
-                  <div>العربي</div>
-                  <div>التبسي</div>
-                </h1>
-              </div>
-            </div>
-
-            {/* Orbiting dots */}
-            <div className="absolute w-52 h-52 logo-orbit">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
-            </div>
-            <div className="absolute w-52 h-52 logo-orbit-reverse">
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
+            
+            {/* العربي التبسي */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
+                <div>العربي</div>
+                <div>التبسي</div>
+              </h1>
             </div>
           </div>
           
