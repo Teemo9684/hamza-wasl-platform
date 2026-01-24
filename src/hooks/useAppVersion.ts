@@ -25,21 +25,16 @@ const setCachedVersion = (version: string): void => {
 
 /**
  * Hook to get the current app version
- * For native apps: fetches the latest active version from the server
- * For web: returns the static APP_VERSION
+ * For both native apps and PWA: fetches the latest active version from the server
+ * Falls back to APP_VERSION if no server version is available
  */
 export const useAppVersion = () => {
   // Start with cached version or static version
   const [version, setVersion] = useState<string>(getCachedVersion() || APP_VERSION);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isNative] = useState(() => isNativeApp());
 
   useEffect(() => {
-    // Only fetch from server for native apps
-    if (!isNativeApp()) {
-      setVersion(APP_VERSION);
-      return;
-    }
-
     const fetchVersion = async () => {
       setIsLoading(true);
       try {
@@ -58,6 +53,9 @@ export const useAppVersion = () => {
         } else if (data?.version) {
           setVersion(data.version);
           setCachedVersion(data.version);
+        } else {
+          // No active version in DB, use APP_VERSION
+          setVersion(APP_VERSION);
         }
       } catch (error) {
         console.error("Error fetching version:", error);
@@ -70,5 +68,5 @@ export const useAppVersion = () => {
     fetchVersion();
   }, []);
 
-  return { version, isLoading };
+  return { version, isLoading, isNative };
 };
