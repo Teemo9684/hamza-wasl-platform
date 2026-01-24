@@ -28,6 +28,7 @@ import LoginTeacher from "./pages/LoginTeacher";
 import LoginAdmin from "./pages/LoginAdmin";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import InstallApp from "./pages/InstallApp";
+import AdminApp from "./pages/AdminApp";
 import NotFound from "./pages/NotFound";
 
 // Dashboard Layouts
@@ -66,6 +67,9 @@ const AnimatedRoutes = () => {
       <Route path="/login/teacher" element={<PageTransition><LoginTeacher /></PageTransition>} />
       <Route path="/login/admin" element={<PageTransition><LoginAdmin /></PageTransition>} />
       
+      {/* Standalone Admin App - accessible via /admin */}
+      <Route path="/admin" element={<PageTransition><AdminApp /></PageTransition>} />
+
       {/* Parent Dashboard with shared layout */}
       <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentDashboardLayout /></ProtectedRoute>}>
         <Route index element={<ParentOverviewContent />} />
