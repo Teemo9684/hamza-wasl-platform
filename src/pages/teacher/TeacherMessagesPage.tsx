@@ -8,8 +8,6 @@ import { showError, showSuccess } from "@/utils/errorMessages";
 import { setAppBadge } from "@/utils/appBadge";
 import { clearAllDeliveredNotifications } from "@/utils/localNotifications";
 import { realtimeManager } from "@/utils/realtimeManager";
-import { playNotificationSound } from "@/utils/pushNotifications";
-import { mediumHaptic } from "@/utils/haptics";
 
 export const TeacherMessagesContent = () => {
   const [messages, setMessages] = useState<any[]>([]);
@@ -86,11 +84,6 @@ export const TeacherMessagesContent = () => {
           setAppBadge(unreadCount);
           return updated;
         });
-        
-        // Play notification sound and haptic for new message
-        playNotificationSound('message');
-        mediumHaptic();
-        showSuccess("رسالة جديدة", senderData?.full_name || 'رسالة جديدة من ولي أمر');
         
         refreshCounts();
       }
@@ -259,22 +252,10 @@ export const TeacherMessagesContent = () => {
 
       if (error) throw error;
 
-      // Get student name for notification
-      let studentName: string | undefined;
-      if (studentId) {
-        const { data: studentData } = await supabase
-          .from('students')
-          .select('full_name')
-          .eq('id', studentId)
-          .single();
-        studentName = studentData?.full_name;
-      }
-
       await sendMessageNotification(
         [recipientId],
         teacherName || 'معلم',
-        `رد: ${originalSubject}`,
-        studentName
+        `رد: ${originalSubject}`
       );
 
       showSuccess("تم الإرسال", "تم إرسال الرد بنجاح");

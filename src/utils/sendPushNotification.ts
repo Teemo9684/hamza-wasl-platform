@@ -33,30 +33,19 @@ export const sendPushNotification = async (params: PushNotificationParams): Prom
 
 /**
  * Send push notification for a new message
- * @param recipientIds - Array of user IDs to send notification to
- * @param senderName - Name of the message sender
- * @param subject - Message subject
- * @param studentName - Optional student name to include in notification
  */
 export const sendMessageNotification = async (
   recipientIds: string[],
   senderName: string,
-  subject: string,
-  studentName?: string
+  subject: string
 ): Promise<void> => {
   if (recipientIds.length === 0) return;
 
   try {
-    // Build notification body with student name if provided
-    let body = `${senderName}: ${subject}`;
-    if (studentName) {
-      body = `${senderName} (${studentName}): ${subject}`;
-    }
-
     await sendPushNotification({
       user_ids: recipientIds,
       title: 'رسالة جديدة',
-      body,
+      body: `${senderName}: ${subject}`,
       data: {
         type: 'message',
       },

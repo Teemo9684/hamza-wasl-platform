@@ -1,7 +1,6 @@
 import { toast } from 'sonner';
 import { playNotificationSound } from './pushNotifications';
 import { heavyHaptic, warningHaptic } from './haptics';
-import { showLocalNotification, isLocalNotificationsSupported } from './localNotifications';
 
 // School schedule configuration
 const SCHOOL_SCHEDULE = {
@@ -149,20 +148,7 @@ const triggerNotification = async (scheduleItem: ScheduleTime) => {
     console.log('Haptic feedback not available');
   }
   
-  // CRITICAL: Show native local notification for background alerts (works even when app is closed)
-  if (isLocalNotificationsSupported()) {
-    await showLocalNotification(
-      title,
-      message,
-      {
-        channelId: 'announcements',
-        id: Date.now() % 100000, // Unique ID
-      }
-    );
-    console.log('Native local notification sent for school schedule');
-  }
-  
-  // Show toast notification with custom styling and duration (for when app is open)
+  // Show toast notification with custom styling and duration
   toast.info(title, {
     description: message,
     duration: SCHOOL_SCHEDULE.notificationDuration,
@@ -176,7 +162,7 @@ const triggerNotification = async (scheduleItem: ScheduleTime) => {
     },
   });
   
-  // Show browser notification if permitted (for PWA/web)
+  // Show browser notification if permitted
   showBrowserNotification(title, message);
   
   // Dispatch custom event for the app to show a sliding banner

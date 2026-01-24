@@ -163,18 +163,10 @@ export const ParentMessages = ({
         .eq('id', user.id)
         .single();
 
-      // Get student name for notification
-      let studentName: string | undefined;
-      if (newMessage.student_id) {
-        const selectedChild = children.find(c => c.id === newMessage.student_id);
-        studentName = selectedChild?.full_name;
-      }
-
       await sendMessageNotification(
         [newMessage.recipient_id],
         profile?.full_name || 'ولي أمر',
-        newMessage.subject,
-        studentName
+        newMessage.subject
       );
 
       toast({
@@ -394,19 +386,11 @@ export const ParentMessages = ({
         .eq('id', user.id)
         .single();
 
-      // Get student name for notification
-      let studentName: string | undefined;
-      if (replyMessage.studentId) {
-        const selectedChild = children.find(c => c.id === replyMessage.studentId);
-        studentName = selectedChild?.full_name;
-      }
-
-      // Send notification to teacher with student name
+      // Send notification to teacher
       await sendMessageNotification(
         [replyMessage.recipientId],
         profile?.full_name || 'ولي أمر',
-        `رد: ${replyMessage.originalSubject}`,
-        studentName
+        `رد: ${replyMessage.originalSubject}`
       );
 
       toast({

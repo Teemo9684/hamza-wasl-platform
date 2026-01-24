@@ -21,9 +21,8 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/utils/pushNotifications";
 import { BottomNav, adminNavItems } from "@/components/BottomNav";
-import { FloatingQuickNotification, QuickNotificationType } from "@/components/FloatingQuickNotification";
+import { FloatingNotificationBadge, NotificationType } from "@/components/FloatingNotificationBadge";
 import { realtimeManager } from "@/utils/realtimeManager";
-import { mediumHaptic } from "@/utils/haptics";
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
@@ -641,42 +640,19 @@ const DashboardAdmin = () => {
           )}
         </main>
         
-        <FloatingQuickNotification 
+        <FloatingNotificationBadge 
           notifications={[
             { 
-              type: 'documents' as QuickNotificationType, 
-              count: dismissedNotifications.has('document') ? 0 : stats.pendingDocuments,
-              label: 'طلبات الوثائق',
-              onClick: () => {
-                mediumHaptic();
-                handleOpenSection('documentRequests');
-              }
+              type: 'document' as NotificationType, 
+              count: dismissedNotifications.has('document') ? 0 : stats.pendingDocuments, 
+              onClick: () => handleOpenSection('documentRequests') 
             },
             { 
-              type: 'messages' as QuickNotificationType, 
-              count: dismissedNotifications.has('message') ? 0 : stats.unreadMessages,
-              label: 'الرسائل',
-              onClick: () => {
-                mediumHaptic();
-                handleOpenSection('messages');
-              }
-            },
-            { 
-              type: 'announcements' as QuickNotificationType, 
-              count: dismissedNotifications.has('user') ? 0 : stats.pendingRequests,
-              label: 'طلبات التسجيل',
-              onClick: () => {
-                mediumHaptic();
-                handleOpenSection('users');
-              }
+              type: 'message' as NotificationType, 
+              count: dismissedNotifications.has('message') ? 0 : stats.unreadMessages, 
+              onClick: () => handleOpenSection('messages') 
             },
           ]}
-          onDismiss={(type) => {
-            if (type === 'documents') setDismissedNotifications(prev => new Set([...prev, 'document']));
-            if (type === 'messages') setDismissedNotifications(prev => new Set([...prev, 'message']));
-            if (type === 'announcements') setDismissedNotifications(prev => new Set([...prev, 'user']));
-          }}
-          position="bottom-left"
         />
         <BottomNav 
           items={adminNavItems} 
