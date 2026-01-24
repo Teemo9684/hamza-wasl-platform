@@ -27,7 +27,7 @@ const checkPasswordStrength = (password: string) => {
   };
 };
 
-// Arabic error messages for registration
+// Arabic error messages for registration (no error codes - user friendly)
 const getArabicRegistrationError = (error: any): { title: string; description: string } => {
   const errorMessage = typeof error === 'string' ? error : error?.message || '';
   const errorLower = errorMessage.toLowerCase();
@@ -36,62 +36,62 @@ const getArabicRegistrationError = (error: any): { title: string; description: s
   if (error?.errors) {
     const zodError = error.errors[0];
     if (zodError?.path?.includes('email')) {
-      return { title: "❌ البريد الإلكتروني غير صحيح", description: "تأكد من كتابة البريد بالشكل الصحيح (مثال: name@email.com)" };
+      return { title: "البريد الإلكتروني غير صحيح", description: "تأكد من كتابة البريد بالشكل الصحيح (مثال: name@email.com)" };
     }
     if (zodError?.path?.includes('password')) {
       return { 
-        title: "🔐 كلمة المرور ضعيفة", 
+        title: "كلمة المرور ضعيفة", 
         description: "كلمة المرور يجب أن تكون 8 أحرف على الأقل وتحتوي على حرف كبير وحرف صغير ورقم" 
       };
     }
     if (zodError?.path?.includes('phone')) {
-      return { title: "📱 رقم الهاتف غير صحيح", description: "تأكد من إدخال رقم هاتف صحيح (10 أرقام على الأقل)" };
+      return { title: "رقم الهاتف غير صحيح", description: "تأكد من إدخال رقم هاتف صحيح (10 أرقام على الأقل)" };
     }
     if (zodError?.path?.includes('full_name')) {
-      return { title: "👤 الاسم مطلوب", description: "يرجى إدخال الاسم الكامل" };
+      return { title: "الاسم مطلوب", description: "يرجى إدخال الاسم الكامل" };
     }
     if (zodError?.path?.includes('national_school_id')) {
-      return { title: "🔢 الرقم المدرسي غير صحيح", description: "الرقم المدرسي يجب أن يحتوي على أحرف وأرقام فقط" };
+      return { title: "الرقم المدرسي غير صحيح", description: "الرقم المدرسي يجب أن يحتوي على أحرف وأرقام فقط" };
     }
-    return { title: "📋 بيانات غير مكتملة", description: zodError?.message || "يرجى التحقق من جميع الحقول" };
+    return { title: "بيانات غير مكتملة", description: "يرجى التحقق من جميع الحقول" };
   }
 
   // Supabase auth errors
   if (errorLower.includes('user already registered') || errorLower.includes('already been registered')) {
     return { 
-      title: "👤 البريد مسجل مسبقاً", 
+      title: "البريد مسجل مسبقاً", 
       description: "هذا البريد الإلكتروني مستخدم بالفعل. جرب تسجيل الدخول أو استخدم بريد آخر" 
     };
   }
   if (errorLower.includes('invalid email')) {
-    return { title: "📧 البريد غير صالح", description: "تأكد من كتابة البريد الإلكتروني بالشكل الصحيح" };
+    return { title: "البريد غير صالح", description: "تأكد من كتابة البريد الإلكتروني بالشكل الصحيح" };
   }
   if (errorLower.includes('password')) {
     return { 
-      title: "🔐 كلمة المرور ضعيفة", 
+      title: "كلمة المرور ضعيفة", 
       description: "كلمة المرور يجب أن تكون 8 أحرف على الأقل مع حرف كبير وصغير ورقم" 
     };
   }
   if (errorLower.includes('rate limit') || errorLower.includes('too many')) {
     return { 
-      title: "⏳ انتظر قليلاً", 
+      title: "انتظر قليلاً", 
       description: "لقد حاولت كثيراً. انتظر بضع دقائق ثم حاول مجدداً" 
     };
   }
-  if (errorLower.includes('network') || errorLower.includes('fetch')) {
+  if (errorLower.includes('network') || errorLower.includes('fetch') || errorLower.includes('failed to fetch')) {
     return { 
-      title: "📡 خطأ في الاتصال", 
+      title: "خطأ في الاتصال", 
       description: "تحقق من اتصالك بالإنترنت وحاول مجدداً" 
     };
   }
   if (errorLower.includes('student not found') || errorLower.includes('التلميذ غير موجود')) {
     return { 
-      title: "🔍 التلميذ غير موجود", 
+      title: "التلميذ غير موجود", 
       description: "لم يتم العثور على تلميذ بهذا الرقم المدرسي. تأكد من صحة الرقم أو تواصل مع إدارة المدرسة" 
     };
   }
 
-  return { title: "❌ حدث خطأ", description: errorMessage || "حدث خطأ غير متوقع. حاول مجدداً" };
+  return { title: "حدث خطأ", description: "حدث خطأ غير متوقع. حاول مجدداً" };
 };
 
 const RegisterParent = () => {

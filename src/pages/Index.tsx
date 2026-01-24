@@ -81,10 +81,23 @@ interface NewsItem {
 
 type UserType = "parent" | "teacher" | "admin" | null;
 
+// Check if running as installed app (PWA or native)
+const isInstalledApp = () => {
+  // Check for native Capacitor app
+  if (Capacitor.isNativePlatform()) return true;
+  
+  // Check for PWA standalone mode
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  const isIOSStandalone = (window.navigator as any).standalone === true;
+  
+  return isStandalone || isIOSStandalone;
+};
+
 const Index = () => {
   const navigate = useNavigate();
   const { version: appVersion } = useAppVersion();
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isAppMode, setIsAppMode] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -98,14 +111,22 @@ const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    // Check if app is installed (running in standalone mode)
+    // Check if app is installed (running in standalone mode or native)
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isIOSStandalone = (window.navigator as any).standalone === true;
       setIsInstalled(isStandalone || isIOSStandalone);
+      setIsAppMode(isInstalledApp());
     };
 
     checkInstalled();
+    
+    // Listen for display mode changes
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    const handleChange = () => checkInstalled();
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
 
@@ -580,8 +601,8 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* Admin Card - Hidden on native app, only visible on web */}
-          {!Capacitor.isNativePlatform() && (
+          {/* Admin Card - Hidden on installed apps (PWA/native), only visible on browser */}
+          {!isAppMode && (
             <motion.div 
               onClick={() => handleCardClick("admin")}
               className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
