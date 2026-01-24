@@ -8,8 +8,6 @@ import { showError, showSuccess } from "@/utils/errorMessages";
 import { setAppBadge } from "@/utils/appBadge";
 import { clearAllDeliveredNotifications } from "@/utils/localNotifications";
 import { realtimeManager } from "@/utils/realtimeManager";
-import { playNotificationSound } from "@/utils/pushNotifications";
-import { mediumHaptic } from "@/utils/haptics";
 
 export const TeacherMessagesContent = () => {
   const [messages, setMessages] = useState<any[]>([]);
@@ -86,11 +84,6 @@ export const TeacherMessagesContent = () => {
           setAppBadge(unreadCount);
           return updated;
         });
-        
-        // Play notification sound and haptic for new message
-        playNotificationSound('message');
-        mediumHaptic();
-        showSuccess("رسالة جديدة", senderData?.full_name || 'رسالة جديدة من ولي أمر');
         
         refreshCounts();
       }
