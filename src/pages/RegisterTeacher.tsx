@@ -32,6 +32,67 @@ const RegisterTeacher = () => {
   // Check if subject is foreign language
   const isForeignLanguage = formData.subject === "فرنسية" || formData.subject === "إنجليزية";
 
+  // Arabic error messages for teacher registration
+  const getArabicTeacherError = (error: any): { title: string; description: string } => {
+    const errorMessage = typeof error === 'string' ? error : error?.message || '';
+    const errorLower = errorMessage.toLowerCase();
+
+    // Zod validation errors
+    if (error?.errors) {
+      const zodError = error.errors[0];
+      if (zodError?.path?.includes('email')) {
+        return { title: "البريد الإلكتروني غير صحيح", description: "تأكد من كتابة البريد بالشكل الصحيح (مثال: name@email.com)" };
+      }
+      if (zodError?.path?.includes('password')) {
+        return { 
+          title: "كلمة المرور ضعيفة", 
+          description: "كلمة المرور يجب أن تكون 8 أحرف على الأقل وتحتوي على حرف كبير وحرف صغير ورقم" 
+        };
+      }
+      if (zodError?.path?.includes('full_name')) {
+        return { title: "الاسم مطلوب", description: "يرجى إدخال الاسم الكامل" };
+      }
+      if (zodError?.path?.includes('subject')) {
+        return { title: "المادة مطلوبة", description: "يرجى اختيار المادة التي تدرّسها" };
+      }
+      if (zodError?.path?.includes('grade_level')) {
+        return { title: "القسم مطلوب", description: "يرجى اختيار القسم الذي تدرّسه" };
+      }
+      return { title: "بيانات غير مكتملة", description: "يرجى التحقق من جميع الحقول" };
+    }
+
+    // Supabase auth errors
+    if (errorLower.includes('user already registered') || errorLower.includes('already been registered')) {
+      return { 
+        title: "البريد مسجل مسبقاً", 
+        description: "هذا البريد الإلكتروني مستخدم بالفعل. جرب تسجيل الدخول أو استخدم بريد آخر" 
+      };
+    }
+    if (errorLower.includes('invalid email')) {
+      return { title: "البريد غير صالح", description: "تأكد من كتابة البريد الإلكتروني بالشكل الصحيح" };
+    }
+    if (errorLower.includes('password')) {
+      return { 
+        title: "كلمة المرور ضعيفة", 
+        description: "كلمة المرور يجب أن تكون 8 أحرف على الأقل مع حرف كبير وصغير ورقم" 
+      };
+    }
+    if (errorLower.includes('rate limit') || errorLower.includes('too many')) {
+      return { 
+        title: "انتظر قليلاً", 
+        description: "لقد حاولت كثيراً. انتظر بضع دقائق ثم حاول مجدداً" 
+      };
+    }
+    if (errorLower.includes('network') || errorLower.includes('fetch') || errorLower.includes('failed to fetch')) {
+      return { 
+        title: "خطأ في الاتصال", 
+        description: "تحقق من اتصالك بالإنترنت وحاول مجدداً" 
+      };
+    }
+
+    return { title: "حدث خطأ", description: "حدث خطأ غير متوقع. حاول مجدداً" };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -70,7 +131,8 @@ const RegisterTeacher = () => {
         navigate("/login/teacher");
       }
     } catch (error: any) {
-      showError(error.errors?.[0]?.message || error);
+      const errorInfo = getArabicTeacherError(error);
+      showError(errorInfo.title, errorInfo.description);
     }
   };
 
