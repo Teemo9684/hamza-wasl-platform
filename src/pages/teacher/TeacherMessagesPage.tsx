@@ -252,10 +252,22 @@ export const TeacherMessagesContent = () => {
 
       if (error) throw error;
 
+      // Get student name for notification
+      let studentName: string | undefined;
+      if (studentId) {
+        const { data: studentData } = await supabase
+          .from('students')
+          .select('full_name')
+          .eq('id', studentId)
+          .single();
+        studentName = studentData?.full_name;
+      }
+
       await sendMessageNotification(
         [recipientId],
         teacherName || 'معلم',
-        `رد: ${originalSubject}`
+        `رد: ${originalSubject}`,
+        studentName
       );
 
       showSuccess("تم الإرسال", "تم إرسال الرد بنجاح");
