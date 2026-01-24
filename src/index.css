@@ -947,4 +947,73 @@
   .splash-particle {
     animation: splash-particle 0.8s ease-out forwards;
   }
+
+  /* 3D Logo Ring Animations */
+  @keyframes logoRingRotate {
+    0% {
+      transform: rotateX(70deg) rotateZ(0deg);
+    }
+    100% {
+      transform: rotateX(70deg) rotateZ(360deg);
+    }
+  }
+
+  @keyframes logoRingRotateReverse {
+    0% {
+      transform: rotateX(60deg) rotateZ(360deg);
+    }
+    100% {
+      transform: rotateX(60deg) rotateZ(0deg);
+    }
+  }
+
+  @keyframes logoRingRotateSlow {
+    0% {
+      transform: rotateX(75deg) rotateZ(0deg);
+    }
+    100% {
+      transform: rotateX(75deg) rotateZ(360deg);
+    }
+  }
+
+  @keyframes logoOrbit {
+    0% {
+      transform: rotateZ(0deg);
+    }
+    100% {
+      transform: rotateZ(360deg);
+    }
+  }
+
+  @keyframes logoOrbitReverse {
+    0% {
+      transform: rotateZ(360deg);
+    }
+    100% {
+      transform: rotateZ(0deg);
+    }
+  }
+
+  .logo-ring-rotate {
+    animation: logoRingRotate 8s linear infinite;
+    transform-style: preserve-3d;
+  }
+
+  .logo-ring-rotate-reverse {
+    animation: logoRingRotateReverse 6s linear infinite;
+    transform-style: preserve-3d;
+  }
+
+  .logo-ring-rotate-slow {
+    animation: logoRingRotateSlow 12s linear infinite;
+    transform-style: preserve-3d;
+  }
+
+  .logo-orbit {
+    animation: logoOrbit 4s linear infinite;
+  }
+
+  .logo-orbit-reverse {
+    animation: logoOrbitReverse 5s linear infinite;
+  }
 }
