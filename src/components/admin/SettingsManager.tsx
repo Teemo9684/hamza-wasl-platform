@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Save, Bell, Shield, Smartphone, Loader2, Tag, Download, Calendar, HardDrive, RefreshCw } from "lucide-react";
+import { Bell, Shield, Smartphone, Loader2, Tag, Download, RefreshCw, Package, CheckCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDateTime } from "@/utils/formatters";
-import { useAppVersion } from "@/hooks/useAppVersion";
+import { APP_VERSION } from "@/config/version";
 import { OTAUpdatesManager } from "./OTAUpdatesManager";
 
 interface NotificationSettings {
@@ -20,74 +20,46 @@ interface AutoApprovalSettings {
   enabled: boolean;
 }
 
+interface LatestVersion {
+  version: string;
+  created_at: string;
+  is_active: boolean;
+}
+
 export const SettingsManager = () => {
-  const { version: currentAppVersion } = useAppVersion();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [buildingApk, setBuildingApk] = useState(false);
   const [appVersion, setAppVersion] = useState("1.0.0");
-  const [downloadingApk, setDownloadingApk] = useState(false);
-  const [latestApkInfo, setLatestApkInfo] = useState<{
-    name: string;
-    created_at: string;
-    size_in_bytes: number;
-    run_number: number;
-  } | null>(null);
-  const [apkNotAvailable, setApkNotAvailable] = useState(false);
-  const [buildJustTriggered, setBuildJustTriggered] = useState(false);
+  const [latestVersion, setLatestVersion] = useState<LatestVersion | null>(null);
 
   const { toast } = useToast();
 
-  const handleTriggerApkBuild = async () => {
-    // Validate version format
-    const versionRegex = /^\d+\.\d+\.\d+$/;
-    if (!versionRegex.test(appVersion)) {
-      toast({
-        title: "خطأ",
-        description: "صيغة رقم الإصدار غير صحيحة. استخدم الصيغة: X.X.X",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      setBuildingApk(true);
-      
-      const { data, error } = await supabase.functions.invoke('trigger-apk-build', {
-        method: 'POST',
-        body: { version: appVersion },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "نجاح",
-        description: data.message || "تم تشغيل بناء التطبيق بنجاح",
-      });
-      setBuildJustTriggered(true);
-      setApkNotAvailable(true);
-      
-      // Save the version for next time
-      await saveLastVersion(appVersion);
-    } catch (error) {
-      console.error("Error triggering APK build:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في تشغيل بناء التطبيق",
-        variant: "destructive"
-      });
-    } finally {
-      setBuildingApk(false);
-    }
-  };
-
   useEffect(() => {
     fetchSettings();
-    fetchLatestApkInfo();
+    fetchLatestVersion();
     fetchLastVersion();
   }, []);
+
+  const fetchLatestVersion = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("app_versions")
+        .select("version, created_at, is_active")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && data) {
+        setLatestVersion(data);
+      }
+    } catch (error) {
+      console.error("Error fetching latest version:", error);
+    }
+  };
 
   const fetchLastVersion = async () => {
     try {
@@ -112,7 +84,6 @@ export const SettingsManager = () => {
     try {
       const userId = (await supabase.auth.getUser()).data.user?.id;
       
-      // Try to update first
       const { data: existing } = await supabase
         .from("app_settings")
         .select("id")
@@ -141,112 +112,49 @@ export const SettingsManager = () => {
     }
   };
 
-  const fetchLatestApkInfo = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('get-apk-download', {
-        method: 'POST',
-      });
-
-      if (error) {
-        console.error("Error fetching APK info:", error);
-        setApkNotAvailable(true);
-        setLatestApkInfo(null);
-        return;
-      }
-
-      // Check if build is available
-      if (data?.available === false || data?.success === false) {
-        setApkNotAvailable(true);
-        setLatestApkInfo(null);
-        return;
-      }
-
-      if (data?.artifact) {
-        setLatestApkInfo({
-          name: data.artifact.name,
-          created_at: data.artifact.created_at,
-          size_in_bytes: data.artifact.size_in_bytes,
-          run_number: data.run.run_number,
-        });
-        setApkNotAvailable(false);
-        setBuildJustTriggered(false);
-      } else {
-        setApkNotAvailable(true);
-        setLatestApkInfo(null);
-      }
-    } catch (error) {
-      console.error("Error fetching APK info:", error);
-      setApkNotAvailable(true);
-    }
-  };
-
-  const handleDownloadApk = async () => {
-    try {
-      setDownloadingApk(true);
-      
-      const { data, error } = await supabase.functions.invoke('get-apk-download', {
-        method: 'POST',
-      });
-
-      if (error) {
-        toast({
-          title: "تنبيه",
-          description: "حدث خطأ أثناء جلب معلومات البناء",
-        });
-        setApkNotAvailable(true);
-        return;
-      }
-
-      // Check if build is not available
-      if (data?.available === false || data?.success === false) {
-        toast({
-          title: "تنبيه",
-          description: data.message || "لا يوجد بناء متاح حالياً. قم ببناء التطبيق أولاً أو انتظر اكتمال البناء الجاري.",
-        });
-        setApkNotAvailable(true);
-        return;
-      }
-
-      if (data?.downloadUrl) {
-        window.open(data.downloadUrl, '_blank');
-        toast({
-          title: "نجاح",
-          description: "جاري تحميل ملف APK...",
-        });
-      } else if (data?.error) {
-        toast({
-          title: "تنبيه",
-          description: data.message || data.error,
-        });
-        setApkNotAvailable(true);
-      }
-    } catch (error) {
-      console.error("Error downloading APK:", error);
+  const handleTriggerApkBuild = async () => {
+    const versionRegex = /^\d+\.\d+\.\d+$/;
+    if (!versionRegex.test(appVersion)) {
       toast({
-        title: "تنبيه",
-        description: "حدث خطأ غير متوقع",
+        title: "خطأ",
+        description: "صيغة رقم الإصدار غير صحيحة. استخدم الصيغة: X.X.X",
+        variant: "destructive"
       });
-      setApkNotAvailable(true);
-    } finally {
-      setDownloadingApk(false);
+      return;
     }
-  };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
+    try {
+      setBuildingApk(true);
+      
+      const { data, error } = await supabase.functions.invoke('trigger-apk-build', {
+        method: 'POST',
+        body: { version: appVersion },
+      });
 
-  const formatDateLocal = (dateString: string) => {
-    return formatDateTime(dateString);
+      if (error) throw error;
+
+      toast({
+        title: "نجاح",
+        description: data.message || "تم تشغيل بناء التطبيق بنجاح. ستصلك رسالة عند الانتهاء.",
+      });
+      
+      await saveLastVersion(appVersion);
+    } catch (error) {
+      console.error("Error triggering APK build:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تشغيل بناء التطبيق",
+        variant: "destructive"
+      });
+    } finally {
+      setBuildingApk(false);
+    }
   };
 
   const fetchSettings = async () => {
     try {
       setFetching(true);
 
-      // Fetch notifications settings
       const { data: notifData } = await supabase
         .from("app_settings")
         .select("setting_value")
@@ -258,7 +166,6 @@ export const SettingsManager = () => {
         setNotificationsEnabled(settings.enabled);
       }
 
-      // Fetch auto approval settings
       const { data: autoApprovalData } = await supabase
         .from("app_settings")
         .select("setting_value")
@@ -271,137 +178,151 @@ export const SettingsManager = () => {
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في تحميل الإعدادات",
-        variant: "destructive"
-      });
     } finally {
       setFetching(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveSettings = async (key: string, value: boolean) => {
     try {
-      setLoading(true);
+      setSaving(true);
 
-      // Update notifications
-      const { error: notifError } = await supabase
+      const { error } = await supabase
         .from("app_settings")
         .update({
-          setting_value: { enabled: notificationsEnabled } as any,
+          setting_value: { enabled: value } as any,
           updated_by: (await supabase.auth.getUser()).data.user?.id
         })
-        .eq("setting_key", "notifications_enabled");
+        .eq("setting_key", key);
 
-      if (notifError) throw notifError;
-
-      // Update auto approval
-      const { error: autoError } = await supabase
-        .from("app_settings")
-        .update({
-          setting_value: { enabled: autoApprove } as any,
-          updated_by: (await supabase.auth.getUser()).data.user?.id
-        })
-        .eq("setting_key", "auto_approve_registrations");
-
-      if (autoError) throw autoError;
+      if (error) throw error;
 
       toast({
-        title: "نجاح",
-        description: "تم حفظ الإعدادات بنجاح",
+        title: "تم الحفظ",
+        description: "تم حفظ الإعداد بنجاح",
       });
     } catch (error) {
-      console.error("Error saving settings:", error);
+      console.error("Error saving setting:", error);
       toast({
         title: "خطأ",
-        description: "فشل في حفظ الإعدادات",
+        description: "فشل في حفظ الإعداد",
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
+  };
+
+  const handleNotificationChange = async (value: boolean) => {
+    setNotificationsEnabled(value);
+    await handleSaveSettings("notifications_enabled", value);
+  };
+
+  const handleAutoApproveChange = async (value: boolean) => {
+    setAutoApprove(value);
+    await handleSaveSettings("auto_approve_registrations", value);
   };
 
   if (fetching) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-[300px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold font-cairo">الإعدادات</h2>
-        <Button onClick={handleSave} disabled={loading} className="font-cairo">
-          <Save className="ml-2 h-4 w-4" />
-          {loading ? "جاري الحفظ..." : "حفظ التغييرات"}
-        </Button>
-      </div>
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* App Version Display */}
+      <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-primary/20 rounded-xl">
+                <Package className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">إصدار التطبيق</h3>
+                <p className="text-sm text-muted-foreground">الإصدار المثبت في الكود</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <Badge variant="secondary" className="text-xl px-5 py-2 font-mono">
+                {APP_VERSION}
+              </Badge>
+              {latestVersion && latestVersion.version !== APP_VERSION && (
+                <Badge variant="default" className="gap-1">
+                  <CheckCircle className="h-3 w-3" />
+                  آخر OTA: {latestVersion.version}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* System Settings */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-cairo">
-            <Settings className="w-5 h-5 text-primary" />
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
             إعدادات النظام
           </CardTitle>
-          <CardDescription className="font-cairo">
-            تحكم في الإعدادات الأساسية للتطبيق
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label className="font-cairo flex items-center gap-2">
-                <Bell className="w-4 h-4 text-secondary" />
-                تفعيل الإشعارات
-              </Label>
-              <p className="text-sm text-muted-foreground font-cairo">
-                إرسال إشعارات للمستخدمين عند وجود تحديثات
-              </p>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <Bell className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <Label className="text-base font-medium">الإشعارات</Label>
+                <p className="text-sm text-muted-foreground">
+                  إرسال إشعارات للمستخدمين
+                </p>
+              </div>
             </div>
             <Switch
               checked={notificationsEnabled}
-              onCheckedChange={setNotificationsEnabled}
+              onCheckedChange={handleNotificationChange}
+              disabled={saving}
             />
           </div>
 
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label className="font-cairo flex items-center gap-2">
-                <Shield className="w-4 h-4 text-accent" />
-                الموافقة التلقائية على التسجيلات
-              </Label>
-              <p className="text-sm text-muted-foreground font-cairo">
-                قبول التسجيلات الجديدة تلقائياً بدون مراجعة إدارية
-              </p>
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-accent/20 rounded-lg">
+                <Shield className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <Label className="text-base font-medium">الموافقة التلقائية</Label>
+                <p className="text-sm text-muted-foreground">
+                  قبول التسجيلات الجديدة تلقائياً
+                </p>
+              </div>
             </div>
-            <Switch checked={autoApprove} onCheckedChange={setAutoApprove} />
+            <Switch 
+              checked={autoApprove} 
+              onCheckedChange={handleAutoApproveChange}
+              disabled={saving}
+            />
           </div>
         </CardContent>
       </Card>
 
       {/* APK Build Section */}
-      <Card className="glass-card border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-cairo">
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-primary" />
             بناء تطبيق الأندرويد
           </CardTitle>
-          <CardDescription className="font-cairo">
-            قم بتشغيل بناء ملف APK الجديد للتطبيق
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex-1 space-y-2 w-full sm:w-auto">
-              <Label className="font-cairo flex items-center gap-2">
-                <Tag className="w-4 h-4 text-primary" />
+        <CardContent>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4">
+            <div className="flex-1 space-y-2">
+              <Label className="flex items-center gap-2">
+                <Tag className="w-4 h-4" />
                 رقم الإصدار
               </Label>
               <Input
@@ -409,136 +330,45 @@ export const SettingsManager = () => {
                 value={appVersion}
                 onChange={(e) => setAppVersion(e.target.value)}
                 placeholder="1.0.0"
-                className="font-cairo text-left ltr max-w-[150px]"
+                className="text-left ltr font-mono text-lg"
                 dir="ltr"
               />
-              <p className="text-xs text-muted-foreground font-cairo">
-                استخدم الصيغة: X.X.X (مثال: 1.0.0)
-              </p>
             </div>
             <Button 
               onClick={handleTriggerApkBuild} 
               disabled={buildingApk}
-              className="font-cairo mt-2 sm:mt-6"
+              size="lg"
+              className="sm:w-auto w-full"
             >
               {buildingApk ? (
                 <>
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري التشغيل...
+                  <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                  جاري البناء...
                 </>
               ) : (
                 <>
-                  <Smartphone className="ml-2 h-4 w-4" />
-                  بناء التطبيق
+                  <Download className="ml-2 h-5 w-5" />
+                  بناء APK
                 </>
               )}
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground font-cairo">
-            سيتم بناء ملف APK جديد بالإصدار المحدد وإرسال إشعار عند الانتهاء
+          <p className="text-sm text-muted-foreground mt-3">
+            سيتم بناء ملف APK وإرسال إشعار عند الانتهاء (5-10 دقائق)
           </p>
-
-          <Separator className="my-4" />
-
-          {/* Download APK Section */}
-          <div className="space-y-3">
-            <Label className="font-cairo flex items-center gap-2 text-base">
-              <Download className="w-4 h-4 text-green-500" />
-              تحميل آخر ملف APK
-            </Label>
-            
-            {buildJustTriggered && (
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 font-cairo">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>جاري بناء التطبيق... يستغرق هذا عادة 5-10 دقائق</span>
-                </div>
-                <p className="text-xs text-muted-foreground font-cairo">
-                  سيتم إشعارك عند اكتمال البناء. يمكنك تحديث الصفحة للتحقق من حالة البناء.
-                </p>
-                <Button 
-                  onClick={fetchLatestApkInfo} 
-                  variant="ghost"
-                  size="sm"
-                  className="font-cairo"
-                >
-                  تحديث الحالة
-                </Button>
-              </div>
-            )}
-
-            {apkNotAvailable && !buildJustTriggered && (
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-sm text-muted-foreground font-cairo">
-                  لا يوجد ملف APK متاح حالياً. قم ببناء التطبيق أولاً باستخدام الزر أعلاه.
-                </p>
-              </div>
-            )}
-            
-            {latestApkInfo && (
-              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
-                  <Calendar className="w-4 h-4" />
-                  <span>تاريخ البناء: {formatDateLocal(latestApkInfo.created_at)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
-                  <HardDrive className="w-4 h-4" />
-                  <span>الحجم: {formatFileSize(latestApkInfo.size_in_bytes)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground font-cairo">
-                  <Tag className="w-4 h-4" />
-                  <span>رقم البناء: #{latestApkInfo.run_number}</span>
-                </div>
-              </div>
-            )}
-
-            <Button 
-              onClick={handleDownloadApk} 
-              disabled={downloadingApk || apkNotAvailable}
-              variant="outline"
-              className="font-cairo w-full sm:w-auto"
-            >
-              {downloadingApk ? (
-                <>
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري التحميل...
-                </>
-              ) : (
-                <>
-                  <Download className="ml-2 h-4 w-4" />
-                  تحميل ملف APK
-                </>
-              )}
-            </Button>
-            
-            <p className="text-xs text-muted-foreground font-cairo">
-              سيتم تحميل ملف مضغوط يحتوي على آخر نسخة من التطبيق
-            </p>
-          </div>
         </CardContent>
       </Card>
+
+      <Separator />
 
       {/* OTA Updates Manager */}
-      <Card className="glass-card border-green-500/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-cairo">
-            <RefreshCw className="w-5 h-5 text-green-500" />
-            تحديثات OTA (التحديث عن بُعد)
-          </CardTitle>
-          <CardDescription className="font-cairo">
-            إدارة تحديثات التطبيق التي يتم تنزيلها تلقائياً دون الحاجة لإعادة تثبيت التطبيق
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <OTAUpdatesManager />
-        </CardContent>
-      </Card>
-
-      {/* App Version */}
-      <div className="text-center pt-4 pb-2">
-        <p className="text-xs text-muted-foreground font-cairo">
-          إصدار التطبيق: {currentAppVersion}
-        </p>
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <RefreshCw className="w-5 h-5 text-primary" />
+          <h2 className="text-xl font-bold">تحديثات OTA</h2>
+          <Badge variant="outline" className="text-xs">تحديث بدون إعادة تثبيت</Badge>
+        </div>
+        <OTAUpdatesManager />
       </div>
     </div>
   );
