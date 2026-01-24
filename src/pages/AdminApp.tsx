@@ -8,6 +8,64 @@ import { Shield, ArrowRight, Settings, Download, Check, Smartphone } from "lucid
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
 
+// Set admin-specific manifest and theme color
+const useAdminManifest = () => {
+  useEffect(() => {
+    // Update manifest link
+    const existingManifest = document.querySelector('link[rel="manifest"]');
+    const adminManifest = document.createElement('link');
+    adminManifest.rel = 'manifest';
+    adminManifest.href = '/admin-manifest.json';
+    
+    if (existingManifest) {
+      existingManifest.parentNode?.replaceChild(adminManifest, existingManifest);
+    } else {
+      document.head.appendChild(adminManifest);
+    }
+    
+    // Update theme color
+    let themeColorMeta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
+    const originalThemeColor = themeColorMeta?.content;
+    if (themeColorMeta) {
+      themeColorMeta.content = '#7c3aed';
+    } else {
+      themeColorMeta = document.createElement('meta');
+      themeColorMeta.name = 'theme-color';
+      themeColorMeta.content = '#7c3aed';
+      document.head.appendChild(themeColorMeta);
+    }
+    
+    // Update apple touch icon
+    let appleTouchIcon = document.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement;
+    const originalAppleIcon = appleTouchIcon?.href;
+    if (appleTouchIcon) {
+      appleTouchIcon.href = '/admin-icon-192.png';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      // Restore original manifest
+      const currentManifest = document.querySelector('link[rel="manifest"]');
+      if (currentManifest) {
+        const originalManifestLink = document.createElement('link');
+        originalManifestLink.rel = 'manifest';
+        originalManifestLink.href = '/manifest.webmanifest';
+        currentManifest.parentNode?.replaceChild(originalManifestLink, currentManifest);
+      }
+      
+      // Restore original theme color
+      if (themeColorMeta && originalThemeColor) {
+        themeColorMeta.content = originalThemeColor;
+      }
+      
+      // Restore original apple touch icon
+      if (appleTouchIcon && originalAppleIcon) {
+        appleTouchIcon.href = originalAppleIcon;
+      }
+    };
+  }, []);
+};
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -25,6 +83,9 @@ const AdminApp = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
+  
+  // Use admin-specific manifest and theme
+  useAdminManifest();
   
   // Check if app is already installed
   useEffect(() => {
