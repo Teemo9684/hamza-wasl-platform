@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, ArrowRight, Settings, Download, Check, Smartphone } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Shield, ArrowRight, Settings, Download, Check, Smartphone, X, Share } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
 
@@ -83,20 +84,39 @@ const AdminApp = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
+  const [showInstallDialog, setShowInstallDialog] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   
   // Use admin-specific manifest and theme
   useAdminManifest();
   
-  // Check if app is already installed
+  // Check if app is already installed and show install prompt
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     const isIOSStandalone = (window.navigator as any).standalone === true;
-    setIsInstalled(isStandalone || isIOSStandalone);
+    const installed = isStandalone || isIOSStandalone;
+    setIsInstalled(installed);
+    
+    // Detect iOS
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(isIOSDevice);
+    
+    // Show install dialog after a short delay if not installed
+    if (!installed) {
+      const timer = setTimeout(() => {
+        setShowInstallDialog(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
     
     // Listen for beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
+      // Show dialog when prompt is available
+      if (!installed) {
+        setShowInstallDialog(true);
+      }
     };
     
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -105,6 +125,7 @@ const AdminApp = () => {
     window.addEventListener('appinstalled', () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
+      setShowInstallDialog(false);
       showSuccess("تم التثبيت", "تم تثبيت تطبيق الإدارة بنجاح!");
     });
     
@@ -374,6 +395,94 @@ const AdminApp = () => {
           هذا الرابط مخصص للإدارة فقط
         </p>
       </div>
+
+      {/* Install Dialog */}
+      <Dialog open={showInstallDialog && !isInstalled} onOpenChange={setShowInstallDialog}>
+        <DialogContent className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border-purple-500/30 text-white max-w-sm mx-auto">
+          <DialogHeader className="text-center">
+            <div className="mx-auto w-24 h-24 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl flex items-center justify-center mb-4 shadow-xl shadow-purple-500/40">
+              <Shield className="w-12 h-12 text-white" />
+            </div>
+            <DialogTitle className="text-2xl font-cairo text-white text-center">
+              تثبيت تطبيق الإدارة
+            </DialogTitle>
+            <DialogDescription className="text-purple-200/70 font-cairo text-center">
+              ثبّت التطبيق على جهازك للوصول السريع والمباشر
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Features */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-purple-200/80">
+                <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                  <Smartphone className="h-4 w-4 text-purple-400" />
+                </div>
+                <span className="font-cairo text-sm">وصول سريع من الشاشة الرئيسية</span>
+              </div>
+              <div className="flex items-center gap-3 text-purple-200/80">
+                <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-purple-400" />
+                </div>
+                <span className="font-cairo text-sm">تطبيق منفصل خاص بالإدارة</span>
+              </div>
+              <div className="flex items-center gap-3 text-purple-200/80">
+                <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                  <Check className="h-4 w-4 text-purple-400" />
+                </div>
+                <span className="font-cairo text-sm">إشعارات فورية للطلبات الجديدة</span>
+              </div>
+            </div>
+
+            {/* iOS Instructions */}
+            {isIOS && (
+              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                <p className="text-purple-200/80 text-sm font-cairo mb-2 text-center">
+                  لتثبيت التطبيق على iPhone:
+                </p>
+                <div className="flex items-center justify-center gap-2 text-white/90">
+                  <Share className="h-5 w-5" />
+                  <span className="text-sm font-cairo">اضغط على زر المشاركة</span>
+                </div>
+                <p className="text-purple-200/60 text-xs text-center mt-2 font-cairo">
+                  ثم اختر "إضافة إلى الشاشة الرئيسية"
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+            {!isIOS && (
+              <Button
+                onClick={handleInstall}
+                disabled={isInstalling}
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-cairo shadow-lg"
+                size="lg"
+              >
+                {isInstalling ? (
+                  <>
+                    <span className="animate-spin ml-2">⏳</span>
+                    جاري التثبيت...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-5 w-5 ml-2" />
+                    تثبيت التطبيق الآن
+                  </>
+                )}
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              onClick={() => setShowInstallDialog(false)}
+              className="w-full text-purple-200/70 hover:text-white hover:bg-white/10 font-cairo"
+            >
+              <X className="h-4 w-4 ml-2" />
+              تخطي والمتابعة
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
