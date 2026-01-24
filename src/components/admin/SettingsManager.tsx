@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, Shield, Smartphone, Loader2, Tag, Download, RefreshCw, Package, CheckCircle } from "lucide-react";
+import { Bell, Shield, Smartphone, Loader2, Tag, Download, RefreshCw, Package, CheckCircle, CloudDownload, Sparkles, GitBranch } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/config/version";
 import { OTAUpdatesManager } from "./OTAUpdatesManager";
@@ -26,6 +27,12 @@ interface LatestVersion {
   is_active: boolean;
 }
 
+interface GitHubBuildInfo {
+  run_number: number;
+  created_at: string;
+  commit_message: string;
+}
+
 export const SettingsManager = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
@@ -34,6 +41,14 @@ export const SettingsManager = () => {
   const [buildingApk, setBuildingApk] = useState(false);
   const [appVersion, setAppVersion] = useState("1.0.0");
   const [latestVersion, setLatestVersion] = useState<LatestVersion | null>(null);
+  
+  // Auto OTA states
+  const [fetchingOta, setFetchingOta] = useState(false);
+  const [autoOtaVersion, setAutoOtaVersion] = useState("");
+  const [autoOtaNotes, setAutoOtaNotes] = useState("");
+  const [autoOtaMandatory, setAutoOtaMandatory] = useState(false);
+  const [lastBuildInfo, setLastBuildInfo] = useState<GitHubBuildInfo | null>(null);
+  const [checkingBuild, setCheckingBuild] = useState(false);
 
   const { toast } = useToast();
 
@@ -41,7 +56,39 @@ export const SettingsManager = () => {
     fetchSettings();
     fetchLatestVersion();
     fetchLastVersion();
+    checkLatestGitHubBuild();
   }, []);
+
+  const checkLatestGitHubBuild = async () => {
+    try {
+      setCheckingBuild(true);
+      const { data, error } = await supabase.functions.invoke('get-apk-download', {
+        method: 'POST',
+      });
+
+      if (!error && data?.success && data?.run) {
+        setLastBuildInfo({
+          run_number: data.run.run_number,
+          created_at: data.run.created_at,
+          commit_message: data.run.head_commit || 'تحديث',
+        });
+        
+        // Suggest version based on run number
+        if (!autoOtaVersion) {
+          setAutoOtaVersion(`1.2.${data.run.run_number}`);
+        }
+        
+        // Use commit message as notes suggestion
+        if (!autoOtaNotes && data.run.head_commit) {
+          setAutoOtaNotes(data.run.head_commit);
+        }
+      }
+    } catch (error) {
+      console.error("Error checking GitHub build:", error);
+    } finally {
+      setCheckingBuild(false);
+    }
+  };
 
   const fetchLatestVersion = async () => {
     try {
@@ -148,6 +195,64 @@ export const SettingsManager = () => {
       });
     } finally {
       setBuildingApk(false);
+    }
+  };
+
+  const handleAutoFetchOta = async () => {
+    const versionRegex = /^\d+\.\d+\.\d+$/;
+    if (!versionRegex.test(autoOtaVersion)) {
+      toast({
+        title: "خطأ",
+        description: "صيغة رقم الإصدار غير صحيحة. استخدم الصيغة: X.X.X",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setFetchingOta(true);
+      
+      const { data, error } = await supabase.functions.invoke('fetch-github-ota', {
+        method: 'POST',
+        body: { 
+          version: autoOtaVersion,
+          releaseNotes: autoOtaNotes,
+          isMandatory: autoOtaMandatory,
+          minAppVersion: "1.0.0"
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "نجاح ✨",
+          description: data.message || "تم إنشاء تحديث OTA بنجاح!",
+        });
+        
+        // Reset form
+        setAutoOtaVersion("");
+        setAutoOtaNotes("");
+        setAutoOtaMandatory(false);
+        
+        // Refresh versions
+        fetchLatestVersion();
+      } else {
+        toast({
+          title: "تنبيه",
+          description: data?.message || data?.error || "لم يتم إنشاء التحديث",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching OTA:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في جلب تحديث OTA من GitHub",
+        variant: "destructive"
+      });
+    } finally {
+      setFetchingOta(false);
     }
   };
 
@@ -258,6 +363,96 @@ export const SettingsManager = () => {
               )}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Auto OTA from GitHub - NEW SECTION */}
+      <Card className="border-accent/30 bg-gradient-to-br from-accent/5 to-accent/10">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-accent" />
+            نشر تحديث OTA تلقائي
+            <Badge variant="outline" className="text-xs mr-2">من GitHub</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* GitHub Build Info */}
+          {lastBuildInfo && (
+            <div className="p-3 rounded-lg bg-muted/50 border border-muted">
+              <div className="flex items-center gap-2 text-sm">
+                <GitBranch className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">آخر بناء ناجح:</span>
+                <Badge variant="secondary" className="font-mono">#{lastBuildInfo.run_number}</Badge>
+                <span className="text-muted-foreground">-</span>
+                <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                  {lastBuildInfo.commit_message}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Tag className="w-4 h-4" />
+                رقم الإصدار الجديد
+              </Label>
+              <Input
+                type="text"
+                value={autoOtaVersion}
+                onChange={(e) => setAutoOtaVersion(e.target.value)}
+                placeholder="مثال: 1.2.70"
+                className="text-left ltr font-mono"
+                dir="ltr"
+                disabled={fetchingOta}
+              />
+            </div>
+            <div className="flex items-center gap-3 pt-6">
+              <Switch
+                id="otaMandatory"
+                checked={autoOtaMandatory}
+                onCheckedChange={setAutoOtaMandatory}
+                disabled={fetchingOta}
+              />
+              <Label htmlFor="otaMandatory" className="cursor-pointer">
+                تحديث إجباري
+              </Label>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>ملاحظات التحديث</Label>
+            <Textarea
+              value={autoOtaNotes}
+              onChange={(e) => setAutoOtaNotes(e.target.value)}
+              placeholder="ما الجديد في هذا الإصدار..."
+              rows={2}
+              disabled={fetchingOta}
+            />
+          </div>
+
+          <Button
+            onClick={handleAutoFetchOta}
+            disabled={fetchingOta || !autoOtaVersion}
+            className="w-full bg-accent hover:bg-accent/90"
+            size="lg"
+          >
+            {fetchingOta ? (
+              <>
+                <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                جاري إنشاء التحديث...
+              </>
+            ) : (
+              <>
+                <CloudDownload className="ml-2 h-5 w-5" />
+                إنشاء تحديث OTA تلقائياً
+              </>
+            )}
+          </Button>
+          
+          <p className="text-xs text-muted-foreground text-center">
+            سيتم جلب أحدث نسخة من الموقع المنشور وتحويلها إلى حزمة OTA تلقائياً
+          </p>
         </CardContent>
       </Card>
 
