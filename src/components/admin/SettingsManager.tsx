@@ -378,16 +378,15 @@ export const SettingsManager = () => {
         <CardContent className="space-y-4">
           {/* GitHub Build Info */}
           {lastBuildInfo && (
-            <div className="p-3 rounded-lg bg-muted/50 border border-muted">
-              <div className="flex items-center gap-2 text-sm">
-                <GitBranch className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">آخر بناء ناجح:</span>
-                <Badge variant="secondary" className="font-mono">#{lastBuildInfo.run_number}</Badge>
-                <span className="text-muted-foreground">-</span>
-                <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                  {lastBuildInfo.commit_message}
-                </span>
+            <div className="p-3 rounded-lg bg-muted/50 border border-muted overflow-hidden">
+              <div className="flex items-center gap-2 text-sm flex-wrap">
+                <GitBranch className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-muted-foreground flex-shrink-0">آخر بناء ناجح:</span>
+                <Badge variant="secondary" className="font-mono flex-shrink-0">#{lastBuildInfo.run_number}</Badge>
               </div>
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2 break-words">
+                {lastBuildInfo.commit_message}
+              </p>
             </div>
           )}
 
@@ -421,13 +420,15 @@ export const SettingsManager = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>ملاحظات التحديث</Label>
+            <Label>ملاحظات التحديث (بالعربية - مختصرة)</Label>
             <Textarea
               value={autoOtaNotes}
               onChange={(e) => setAutoOtaNotes(e.target.value)}
-              placeholder="ما الجديد في هذا الإصدار..."
+              placeholder="مثال: تحسين الأداء، إصلاح الأخطاء، ميزات جديدة..."
               rows={2}
               disabled={fetchingOta}
+              className="text-right"
+              dir="rtl"
             />
           </div>
 
