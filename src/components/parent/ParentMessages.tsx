@@ -190,6 +190,9 @@ export const ParentMessages = ({
 
   const handleMarkAsRead = async (messageId: string) => {
     try {
+      // Optimistic update - immediately update local state
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { error } = await supabase
         .from('messages')
         .update({ is_read: true })
@@ -197,8 +200,6 @@ export const ParentMessages = ({
 
       if (error) throw error;
       
-      // Recalculate unread count and update app badge immediately
-      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { count } = await supabase
           .from('messages')
@@ -206,13 +207,14 @@ export const ParentMessages = ({
           .eq('recipient_id', user.id)
           .eq('is_read', false);
         
-        // Update app badge with new count
+        // Update app badge immediately to zero or new count
         setAppBadge(count || 0);
         
-        // Clear notifications from status bar
+        // Clear notifications from status bar immediately
         await clearAllDeliveredNotifications();
       }
       
+      // Refresh parent data and notification context
       onMessageSent();
     } catch (error: any) {
       console.error("Error marking message as read:", error);
@@ -329,11 +331,14 @@ export const ParentMessages = ({
     }
   };
 
+  // When clicking a message, open reply dialog directly and mark as read
   const handleViewMessage = async (message: Message) => {
-    setViewMessage(message);
+    // Mark as read immediately
     if (!message.is_read) {
       await handleMarkAsRead(message.id);
     }
+    // Open reply dialog directly
+    handleOpenReply(message);
   };
 
   // Handle reply
@@ -360,6 +365,7 @@ export const ParentMessages = ({
     }
 
     setIsReplying(true);
+    
     try {
       messageSchema.parse({
         subject: `رد: ${replyMessage.originalSubject}`,
@@ -369,7 +375,13 @@ export const ParentMessages = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("المستخدم غير مسجل الدخول");
 
-      const { error } = await supabase.from('messages').insert({
+      console.log('Sending reply:', {
+        sender_id: user.id,
+        recipient_id: replyMessage.recipientId,
+        subject: `رد: ${replyMessage.originalSubject}`,
+      });
+
+      const { error: insertError } = await supabase.from('messages').insert({
         sender_id: user.id,
         recipient_id: replyMessage.recipientId,
         subject: `رد: ${replyMessage.originalSubject}`,
@@ -377,7 +389,14 @@ export const ParentMessages = ({
         student_id: replyMessage.studentId || null,
       });
 
-      if (error) throw error;
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        throw insertError;
+      }
+
+      // Close dialog immediately after successful insert
+      setIsReplyDialogOpen(false);
+      setIsReplying(false);
 
       // Get parent name for notification
       const { data: profile } = await supabase
@@ -386,21 +405,19 @@ export const ParentMessages = ({
         .eq('id', user.id)
         .single();
 
-      // Send notification to teacher
-      await sendMessageNotification(
+      // Send notification to teacher (don't await, fire and forget)
+      sendMessageNotification(
         [replyMessage.recipientId],
         profile?.full_name || 'ولي أمر',
         `رد: ${replyMessage.originalSubject}`
-      );
+      ).catch(err => console.warn('Notification error:', err));
 
       toast({
         title: "تم إرسال الرد",
         description: "تم إرسال ردك بنجاح",
       });
 
-      // Mark original message as read
-      await handleMarkAsRead(replyMessage.messageId);
-
+      // Reset reply state
       setReplyMessage({
         messageId: "",
         recipientId: "",
@@ -409,16 +426,16 @@ export const ParentMessages = ({
         studentId: "",
         content: "",
       });
-      setIsReplyDialogOpen(false);
+      
       onMessageSent();
     } catch (error: any) {
+      console.error('Reply error:', error);
+      setIsReplying(false);
       toast({
-        title: "خطأ",
-        description: error.errors?.[0]?.message || error.message || "فشل في إرسال الرد",
+        title: "خطأ في إرسال الرد",
+        description: error.message || "فشل في إرسال الرد، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
-    } finally {
-      setIsReplying(false);
     }
   };
 
