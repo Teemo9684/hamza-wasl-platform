@@ -364,29 +364,29 @@ export const ParentMessages = ({
       return;
     }
 
+    // Capture values before any state changes
+    const recipientId = replyMessage.recipientId;
+    const originalSubject = replyMessage.originalSubject;
+    const content = replyMessage.content;
+    const studentId = replyMessage.studentId;
+
     setIsReplying(true);
     
     try {
       messageSchema.parse({
-        subject: `رد: ${replyMessage.originalSubject}`,
-        content: replyMessage.content,
+        subject: `رد: ${originalSubject}`,
+        content: content,
       });
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("المستخدم غير مسجل الدخول");
 
-      console.log('Sending reply:', {
-        sender_id: user.id,
-        recipient_id: replyMessage.recipientId,
-        subject: `رد: ${replyMessage.originalSubject}`,
-      });
-
       const { error: insertError } = await supabase.from('messages').insert({
         sender_id: user.id,
-        recipient_id: replyMessage.recipientId,
-        subject: `رد: ${replyMessage.originalSubject}`,
-        content: replyMessage.content,
-        student_id: replyMessage.studentId || null,
+        recipient_id: recipientId,
+        subject: `رد: ${originalSubject}`,
+        content: content,
+        student_id: studentId || null,
       });
 
       if (insertError) {
@@ -394,22 +394,18 @@ export const ParentMessages = ({
         throw insertError;
       }
 
-      // Close dialog immediately after successful insert
-      setIsReplyDialogOpen(false);
-      setIsReplying(false);
-
       // Get parent name for notification
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      // Send notification to teacher (don't await, fire and forget)
+      // Send notification (fire and forget)
       sendMessageNotification(
-        [replyMessage.recipientId],
+        [recipientId],
         profile?.full_name || 'ولي أمر',
-        `رد: ${replyMessage.originalSubject}`
+        `رد: ${originalSubject}`
       ).catch(err => console.warn('Notification error:', err));
 
       toast({
@@ -417,7 +413,7 @@ export const ParentMessages = ({
         description: "تم إرسال ردك بنجاح",
       });
 
-      // Reset reply state
+      // Reset all states after success
       setReplyMessage({
         messageId: "",
         recipientId: "",
@@ -426,16 +422,18 @@ export const ParentMessages = ({
         studentId: "",
         content: "",
       });
+      setIsReplyDialogOpen(false);
+      setIsReplying(false);
       
       onMessageSent();
     } catch (error: any) {
       console.error('Reply error:', error);
-      setIsReplying(false);
       toast({
         title: "خطأ في إرسال الرد",
         description: error.message || "فشل في إرسال الرد، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
+      setIsReplying(false);
     }
   };
 
@@ -659,7 +657,22 @@ export const ParentMessages = ({
       </Dialog>
 
       {/* Reply Dialog */}
-      <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
+      <Dialog 
+        open={isReplyDialogOpen} 
+        onOpenChange={(open) => {
+          if (!open && !isReplying) {
+            setIsReplyDialogOpen(false);
+            setReplyMessage({
+              messageId: "",
+              recipientId: "",
+              recipientName: "",
+              originalSubject: "",
+              studentId: "",
+              content: "",
+            });
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>الرد على الرسالة</DialogTitle>
@@ -678,10 +691,15 @@ export const ParentMessages = ({
               placeholder="اكتب ردك هنا..."
               rows={6}
               className="resize-none"
+              disabled={isReplying}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsReplyDialogOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsReplyDialogOpen(false)}
+              disabled={isReplying}
+            >
               إلغاء
             </Button>
             <Button 
