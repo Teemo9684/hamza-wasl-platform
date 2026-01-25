@@ -31,6 +31,19 @@ interface Message {
   sender_name: string;
   recipient_name: string;
   student_name: string;
+  sender_id?: string;
+  recipient_id?: string;
+}
+
+interface GroupedAdminMessage {
+  id: string;
+  subject: string;
+  content: string;
+  created_at: string;
+  recipient_count: number;
+  recipient_names: string[];
+  is_group: boolean;
+  unread_count: number;
 }
 
 interface TeacherMessages {
@@ -40,8 +53,16 @@ interface TeacherMessages {
   unreadCount: number;
 }
 
+interface AdminGroupMessages {
+  id: string; // 'admin-group'
+  name: string;
+  messages: GroupedAdminMessage[];
+  unreadCount: number;
+}
+
 export const MessagesView = () => {
   const [messagesByTeacher, setMessagesByTeacher] = useState<TeacherMessages[]>([]);
+  const [adminGroupMessages, setAdminGroupMessages] = useState<GroupedAdminMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,6 +104,14 @@ export const MessagesView = () => {
 
       if (error) throw error;
 
+      // Get admin IDs
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      
+      const adminIds = adminRoles?.map((r) => r.user_id) || [];
+
       const { data: teacherRoles, error: teacherError } = await supabase
         .from("user_roles")
         .select("user_id")
@@ -100,15 +129,55 @@ export const MessagesView = () => {
       if (profileError) throw profileError;
 
       const groupedMessages: { [key: string]: TeacherMessages } = {};
+      
+      // Group admin messages by subject and timestamp (within 5 seconds = same batch)
+      const adminMessageGroups: { [key: string]: GroupedAdminMessage } = {};
 
       messages?.forEach((msg: any) => {
+        const isAdminSender = adminIds.includes(msg.sender_id);
+        
+        // Check if this is an admin group message (admin sending to multiple recipients)
+        if (isAdminSender) {
+          // Create a key based on subject and timestamp (rounded to 5 seconds)
+          const timestamp = new Date(msg.created_at);
+          const roundedTime = Math.floor(timestamp.getTime() / 5000) * 5000;
+          const groupKey = `${msg.sender_id}-${msg.subject}-${roundedTime}`;
+          
+          if (!adminMessageGroups[groupKey]) {
+            adminMessageGroups[groupKey] = {
+              id: groupKey,
+              subject: msg.subject,
+              content: msg.content,
+              created_at: msg.created_at,
+              recipient_count: 0,
+              recipient_names: [],
+              is_group: false,
+              unread_count: 0,
+            };
+          }
+          
+          adminMessageGroups[groupKey].recipient_count++;
+          if (msg.recipient?.full_name) {
+            adminMessageGroups[groupKey].recipient_names.push(msg.recipient.full_name);
+          }
+          if (!msg.is_read) {
+            adminMessageGroups[groupKey].unread_count++;
+          }
+          
+          // Mark as group if more than 1 recipient
+          if (adminMessageGroups[groupKey].recipient_count > 1) {
+            adminMessageGroups[groupKey].is_group = true;
+          }
+        }
+        
+        // Also add to teacher groups for teacher-related messages
         const teacherId = teacherIds.includes(msg.sender_id) 
           ? msg.sender_id 
           : teacherIds.includes(msg.recipient_id) 
           ? msg.recipient_id 
           : null;
 
-        if (teacherId) {
+        if (teacherId && !isAdminSender) {
           const teacherProfile = teacherProfiles?.find(p => p.id === teacherId);
           const teacherName = teacherProfile?.full_name || "معلم غير معروف";
 
@@ -130,6 +199,8 @@ export const MessagesView = () => {
             sender_name: msg.sender?.full_name || "غير معروف",
             recipient_name: msg.recipient?.full_name || "غير معروف",
             student_name: msg.student?.full_name || "",
+            sender_id: msg.sender_id,
+            recipient_id: msg.recipient_id,
           });
 
           if (!msg.is_read) {
@@ -137,6 +208,12 @@ export const MessagesView = () => {
           }
         }
       });
+
+      // Convert admin groups to array and sort by date
+      const adminGroupsArray = Object.values(adminMessageGroups).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setAdminGroupMessages(adminGroupsArray);
 
       const teachersArray = Object.values(groupedMessages).sort(
         (a, b) => b.unreadCount - a.unreadCount
@@ -155,6 +232,7 @@ export const MessagesView = () => {
   const stats = useMemo(() => {
     const allMessages = messagesByTeacher.flatMap(t => t.messages);
     const unread = allMessages.filter(m => !m.is_read).length;
+    const adminUnread = adminGroupMessages.reduce((sum, m) => sum + m.unread_count, 0);
     const today = allMessages.filter(m => {
       const date = new Date(m.created_at);
       const now = new Date();
@@ -162,12 +240,13 @@ export const MessagesView = () => {
     }).length;
     
     return {
-      total: allMessages.length,
-      unread,
+      total: allMessages.length + adminGroupMessages.reduce((sum, m) => sum + m.recipient_count, 0),
+      unread: unread + adminUnread,
       today,
-      teachers: messagesByTeacher.length
+      teachers: messagesByTeacher.length,
+      adminGroups: adminGroupMessages.length
     };
-  }, [messagesByTeacher]);
+  }, [messagesByTeacher, adminGroupMessages]);
 
   // Filtered teachers
   const filteredTeachers = useMemo(() => {
@@ -190,6 +269,22 @@ export const MessagesView = () => {
       }))
       .filter(teacher => teacher.messages.length > 0);
   }, [messagesByTeacher, filterStatus, searchQuery]);
+
+  // Filtered admin group messages
+  const filteredAdminMessages = useMemo(() => {
+    return adminGroupMessages.filter(message => {
+      const matchesStatus = filterStatus === "all" 
+        || (filterStatus === "unread" && message.unread_count > 0)
+        || (filterStatus === "read" && message.unread_count === 0);
+      
+      const matchesSearch = !searchQuery 
+        || message.subject.toLowerCase().includes(searchQuery.toLowerCase())
+        || message.content.toLowerCase().includes(searchQuery.toLowerCase())
+        || message.recipient_names.some(name => name.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      return matchesStatus && matchesSearch;
+    });
+  }, [adminGroupMessages, filterStatus, searchQuery]);
 
   const toggleTeacher = (teacherId: string) => {
     setExpandedTeachers(prev => 
@@ -309,8 +404,85 @@ export const MessagesView = () => {
         </Select>
       </div>
 
+      {/* Admin Group Messages Section */}
+      {filteredAdminMessages.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">رسائل الإدارة الجماعية</h3>
+            <Badge variant="secondary" className="text-xs">
+              {filteredAdminMessages.length} رسالة
+            </Badge>
+          </div>
+          
+          <div className="grid gap-3">
+            {filteredAdminMessages.map((message) => (
+              <Card 
+                key={message.id} 
+                className={cn(
+                  "transition-all",
+                  message.is_group && "border-primary/30 bg-gradient-to-r from-primary/5 to-transparent"
+                )}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium truncate">{message.subject}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        {message.is_group ? (
+                          <Badge className="bg-primary/90 text-primary-foreground text-xs">
+                            <Users className="h-3 w-3 ml-1" />
+                            {message.recipient_count} مستلم
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            إلى: {message.recipient_names[0]}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      {message.unread_count > 0 && (
+                        <Badge className="bg-emerald-500 text-xs">
+                          {message.unread_count} جديد
+                        </Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        {formatDateTime(message.created_at)}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-muted/40 rounded-lg p-3">
+                    <p className="text-sm text-foreground/90 line-clamp-2">{message.content}</p>
+                  </div>
+                  
+                  {message.is_group && message.recipient_names.length > 0 && (
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      <span className="font-medium">المستلمون: </span>
+                      {message.recipient_names.slice(0, 3).join('، ')}
+                      {message.recipient_names.length > 3 && ` و${message.recipient_names.length - 3} آخرين...`}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Teacher Messages Section */}
+      {filteredTeachers.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <User className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">محادثات المعلمين والأولياء</h3>
+          </div>
+        </div>
+      )}
+
       {/* Messages List */}
-      {filteredTeachers.length === 0 ? (
+      {filteredTeachers.length === 0 && filteredAdminMessages.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-16 text-center">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
@@ -322,7 +494,7 @@ export const MessagesView = () => {
             </p>
           </CardContent>
         </Card>
-      ) : (
+      ) : filteredTeachers.length > 0 && (
         <div className="space-y-3">
           {filteredTeachers.map((teacher) => {
             const isExpanded = expandedTeachers.includes(teacher.teacher_id);
