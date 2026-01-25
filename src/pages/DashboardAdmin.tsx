@@ -643,6 +643,11 @@ const DashboardAdmin = () => {
         <FloatingNotificationBadge 
           notifications={[
             { 
+              type: 'user' as NotificationType, 
+              count: dismissedNotifications.has('user') ? 0 : stats.pendingRequests, 
+              onClick: () => handleOpenSection('users') 
+            },
+            { 
               type: 'document' as NotificationType, 
               count: dismissedNotifications.has('document') ? 0 : stats.pendingDocuments, 
               onClick: () => handleOpenSection('documentRequests') 

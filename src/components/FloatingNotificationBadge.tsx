@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { mediumHaptic } from "@/utils/haptics";
 import { cn } from "@/lib/utils";
 
-export type NotificationType = 'message' | 'document' | 'homework' | 'announcement' | 'attendance';
+export type NotificationType = 'message' | 'document' | 'homework' | 'announcement' | 'attendance' | 'user';
 
 interface NotificationItem {
   type: NotificationType;
@@ -60,6 +60,13 @@ const notificationConfig: Record<NotificationType, {
     gradient: 'from-teal-500 via-cyan-600 to-sky-600',
     shadowColor: 'rgba(20, 184, 166, 0.5)',
     emoji: '✅',
+  },
+  user: {
+    icon: Users,
+    label: 'طلبات تسجيل',
+    gradient: 'from-rose-500 via-red-600 to-pink-600',
+    shadowColor: 'rgba(244, 63, 94, 0.5)',
+    emoji: '👤',
   },
 };
 
