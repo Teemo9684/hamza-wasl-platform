@@ -15,6 +15,7 @@ interface MessageCardProps {
   onReply?: () => void;
   onMarkAsRead?: () => void;
   onDelete?: () => void;
+  onClick?: () => void;
   showActions?: boolean;
   compact?: boolean;
 }
@@ -31,6 +32,7 @@ export const MessageCard = ({
   onReply,
   onMarkAsRead,
   onDelete,
+  onClick,
   showActions = true,
   compact = false,
 }: MessageCardProps) => {
@@ -58,10 +60,19 @@ export const MessageCard = ({
     });
   };
 
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (onReply) {
+      onReply();
+    }
+  };
+
   return (
     <div
+      onClick={handleCardClick}
       className={cn(
-        "group relative rounded-xl border transition-all duration-200",
+        "group relative rounded-xl border transition-all duration-200 cursor-pointer",
         !isRead 
           ? "bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border-primary/30 shadow-sm" 
           : "bg-card hover:bg-muted/30 border-border",

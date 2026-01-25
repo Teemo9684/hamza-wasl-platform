@@ -172,6 +172,13 @@ export const ConversationGroup = ({
                     createdAt={message.created_at}
                     isRead={message.is_read}
                     isReply={message.subject?.startsWith('رد:')}
+                    onClick={onReply ? () => {
+                      // Mark as read when clicking
+                      if (!message.is_read && onMarkAsRead) {
+                        onMarkAsRead(message.id);
+                      }
+                      onReply(message);
+                    } : undefined}
                     onReply={onReply ? () => onReply(message) : undefined}
                     onMarkAsRead={onMarkAsRead ? () => onMarkAsRead(message.id) : undefined}
                     onDelete={onDelete ? () => onDelete(message.id) : undefined}
