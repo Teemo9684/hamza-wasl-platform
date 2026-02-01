@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
-import { MessageSquare, User, Clock, Search, Filter, TrendingUp, Users } from "lucide-react";
+import { MessageSquare, User, Clock, Search, Filter, TrendingUp, Users, Reply, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,6 +46,17 @@ interface GroupedAdminMessage {
   unread_count: number;
 }
 
+interface ParentReply {
+  id: string;
+  subject: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+  sender_name: string;
+  sender_id: string;
+  student_name: string;
+}
+
 interface TeacherMessages {
   teacher_id: string;
   teacher_name: string;
@@ -63,10 +74,12 @@ interface AdminGroupMessages {
 export const MessagesView = () => {
   const [messagesByTeacher, setMessagesByTeacher] = useState<TeacherMessages[]>([]);
   const [adminGroupMessages, setAdminGroupMessages] = useState<GroupedAdminMessage[]>([]);
+  const [parentReplies, setParentReplies] = useState<ParentReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "read">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedTeachers, setExpandedTeachers] = useState<string[]>([]);
+  const [expandedParentReplies, setExpandedParentReplies] = useState(true);
 
   const handleMessagesChange = useCallback(() => {
     fetchAllMessages();
@@ -112,6 +125,14 @@ export const MessagesView = () => {
       
       const adminIds = adminRoles?.map((r) => r.user_id) || [];
 
+      // Get parent IDs for filtering parent replies
+      const { data: parentRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "parent");
+      
+      const parentIds = parentRoles?.map((r) => r.user_id) || [];
+
       const { data: teacherRoles, error: teacherError } = await supabase
         .from("user_roles")
         .select("user_id")
@@ -132,6 +153,9 @@ export const MessagesView = () => {
       
       // Group admin messages by subject and timestamp (within 5 seconds = same batch)
       const adminMessageGroups: { [key: string]: GroupedAdminMessage } = {};
+      
+      // Collect parent replies to admin
+      const parentRepliesList: ParentReply[] = [];
 
       messages?.forEach((msg: any) => {
         const isAdminSender = adminIds.includes(msg.sender_id);
@@ -168,6 +192,23 @@ export const MessagesView = () => {
           if (adminMessageGroups[groupKey].recipient_count > 1) {
             adminMessageGroups[groupKey].is_group = true;
           }
+        }
+        
+        // Check if this is a parent reply to admin (parent sending to admin)
+        const isParentSender = parentIds.includes(msg.sender_id);
+        const isAdminRecipient = adminIds.includes(msg.recipient_id);
+        
+        if (isParentSender && isAdminRecipient) {
+          parentRepliesList.push({
+            id: msg.id,
+            subject: msg.subject,
+            content: msg.content,
+            created_at: msg.created_at,
+            is_read: msg.is_read,
+            sender_name: msg.sender?.full_name || "غير معروف",
+            sender_id: msg.sender_id,
+            student_name: msg.student?.full_name || "",
+          });
         }
         
         // Also add to teacher groups for teacher-related messages
@@ -209,6 +250,12 @@ export const MessagesView = () => {
         }
       });
 
+      // Sort parent replies by date
+      const sortedParentReplies = parentRepliesList.sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setParentReplies(sortedParentReplies);
+
       // Convert admin groups to array and sort by date
       const adminGroupsArray = Object.values(adminMessageGroups).sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -233,6 +280,7 @@ export const MessagesView = () => {
     const allMessages = messagesByTeacher.flatMap(t => t.messages);
     const unread = allMessages.filter(m => !m.is_read).length;
     const adminUnread = adminGroupMessages.reduce((sum, m) => sum + m.unread_count, 0);
+    const parentRepliesUnread = parentReplies.filter(r => !r.is_read).length;
     const today = allMessages.filter(m => {
       const date = new Date(m.created_at);
       const now = new Date();
@@ -240,13 +288,15 @@ export const MessagesView = () => {
     }).length;
     
     return {
-      total: allMessages.length + adminGroupMessages.reduce((sum, m) => sum + m.recipient_count, 0),
-      unread: unread + adminUnread,
+      total: allMessages.length + adminGroupMessages.reduce((sum, m) => sum + m.recipient_count, 0) + parentReplies.length,
+      unread: unread + adminUnread + parentRepliesUnread,
       today,
       teachers: messagesByTeacher.length,
-      adminGroups: adminGroupMessages.length
+      adminGroups: adminGroupMessages.length,
+      parentReplies: parentReplies.length,
+      parentRepliesUnread
     };
-  }, [messagesByTeacher, adminGroupMessages]);
+  }, [messagesByTeacher, adminGroupMessages, parentReplies]);
 
   // Filtered teachers
   const filteredTeachers = useMemo(() => {
@@ -285,6 +335,22 @@ export const MessagesView = () => {
       return matchesStatus && matchesSearch;
     });
   }, [adminGroupMessages, filterStatus, searchQuery]);
+
+  // Filtered parent replies
+  const filteredParentReplies = useMemo(() => {
+    return parentReplies.filter(reply => {
+      const matchesStatus = filterStatus === "all" 
+        || (filterStatus === "unread" && !reply.is_read)
+        || (filterStatus === "read" && reply.is_read);
+      
+      const matchesSearch = !searchQuery 
+        || reply.subject.toLowerCase().includes(searchQuery.toLowerCase())
+        || reply.content.toLowerCase().includes(searchQuery.toLowerCase())
+        || reply.sender_name.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return matchesStatus && matchesSearch;
+    });
+  }, [parentReplies, filterStatus, searchQuery]);
 
   const toggleTeacher = (teacherId: string) => {
     setExpandedTeachers(prev => 
@@ -471,6 +537,101 @@ export const MessagesView = () => {
         </div>
       )}
 
+      {/* Parent Replies Section */}
+      {filteredParentReplies.length > 0 && (
+        <Collapsible 
+          open={expandedParentReplies}
+          onOpenChange={setExpandedParentReplies}
+        >
+          <div className="rounded-2xl border bg-card overflow-hidden transition-all duration-200 shadow-sm hover:shadow-md border-orange-500/30">
+            <CollapsibleTrigger asChild>
+              <button className="w-full p-4 flex items-center gap-4 hover:bg-muted/30 transition-colors text-right">
+                <div className="relative shrink-0">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-orange-500 to-orange-600">
+                    <Reply className="h-6 w-6 text-white" />
+                  </div>
+                  {stats.parentRepliesUnread > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                      {stats.parentRepliesUnread > 9 ? '+9' : stats.parentRepliesUnread}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-semibold">ردود الأولياء على الإدارة</h3>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {filteredParentReplies.length} رسالة
+                    </span>
+                    {stats.parentRepliesUnread > 0 && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
+                        {stats.parentRepliesUnread} جديدة
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <ChevronDown className={cn(
+                  "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                  expandedParentReplies && "rotate-180"
+                )} />
+              </button>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent>
+              <div className="border-t">
+                <ScrollArea className="max-h-[500px]">
+                  <div className="p-3 space-y-2">
+                    {filteredParentReplies.map((reply) => (
+                      <div
+                        key={reply.id}
+                        className={cn(
+                          "rounded-xl border p-3 transition-all",
+                          !reply.is_read 
+                            ? "bg-gradient-to-r from-orange-500/10 to-transparent border-orange-500/30" 
+                            : "bg-card"
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-medium text-sm truncate flex-1">{reply.subject}</h4>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {!reply.is_read && (
+                              <Badge className="bg-orange-500 text-[10px] px-1.5 py-0">جديد</Badge>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-2">
+                          <span>من: {reply.sender_name}</span>
+                          {reply.student_name && (
+                            <>
+                              <span>•</span>
+                              <span>الطالب: {reply.student_name}</span>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="bg-muted/40 rounded-lg p-2.5 mb-2">
+                          <p className="text-xs text-foreground/90 line-clamp-2">{reply.content}</p>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {formatDateTime(reply.created_at)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
+      )}
+
       {/* Teacher Messages Section */}
       {filteredTeachers.length > 0 && (
         <div className="space-y-3">
@@ -482,7 +643,7 @@ export const MessagesView = () => {
       )}
 
       {/* Messages List */}
-      {filteredTeachers.length === 0 && filteredAdminMessages.length === 0 ? (
+      {filteredTeachers.length === 0 && filteredAdminMessages.length === 0 && filteredParentReplies.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-16 text-center">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">

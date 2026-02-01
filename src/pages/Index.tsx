@@ -495,13 +495,21 @@ const Index = () => {
         <motion.div variants={itemVariants} className="w-full">
           <PostersCarousel />
         </motion.div>
-
-        {/* Account Type Selection Title */}
-        <motion.div className="my-12 text-center" variants={itemVariants}>
-          <p className="text-white/90 font-cairo text-lg drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] animate-pulse-slow">
-            اختر نوع الحساب للدخول إلى المنصة
-          </p>
-        </motion.div>
+        {/* Account Type Selection Title - Hidden on installed PWA and native apps */}
+        {!Capacitor.isNativePlatform() && !isInstalled && (
+          <motion.div className="my-12 text-center" variants={itemVariants}>
+            <p className="text-white/90 font-cairo text-lg drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] animate-pulse-slow">
+              اختر نوع الحساب للدخول إلى المنصة
+            </p>
+          </motion.div>
+        )}
+        {(Capacitor.isNativePlatform() || isInstalled) && (
+          <motion.div className="my-12 text-center" variants={itemVariants}>
+            <p className="text-white/90 font-cairo text-lg drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] animate-pulse-slow">
+              اختر نوع حسابك للدخول
+            </p>
+          </motion.div>
+        )}
 
         {/* Cards Grid */}
         <motion.div 
@@ -580,8 +588,8 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* Admin Card - Hidden on native app, only visible on web */}
-          {!Capacitor.isNativePlatform() && (
+          {/* Admin Card - Hidden on native app AND installed PWA, only visible on web preview */}
+          {!Capacitor.isNativePlatform() && !isInstalled && (
             <motion.div 
               onClick={() => handleCardClick("admin")}
               className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
