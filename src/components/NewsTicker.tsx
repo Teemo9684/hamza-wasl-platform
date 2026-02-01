@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { realtimeManager } from "@/utils/realtimeManager";
+import { useOfflineCache, isOffline } from "@/hooks/useOfflineCache";
 
 interface NewsItem {
   id: string;
@@ -12,22 +13,53 @@ interface NewsItem {
 }
 
 const TICKER_HEIGHT = 36; // Height in pixels
+const CACHE_KEY = "news_ticker_component";
 
 export const NewsTicker = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const { saveToCache, loadFromCache } = useOfflineCache<NewsItem[]>(CACHE_KEY);
 
   const fetchNewsItems = useCallback(async () => {
-    const { data } = await supabase
-      .from("news_ticker")
-      .select("*")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true });
-
-    if (data) {
-      console.log('NewsTicker: Fetched', data.length, 'items');
-      setNewsItems(data);
+    // Try to load from cache first if offline
+    if (isOffline()) {
+      const cachedData = await loadFromCache();
+      if (cachedData && cachedData.length > 0) {
+        setNewsItems(cachedData);
+        return;
+      }
     }
-  }, []);
+
+    try {
+      const { data, error } = await supabase
+        .from("news_ticker")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) {
+        console.error('News ticker fetch error:', error);
+        // Try to load from cache on error
+        const cachedData = await loadFromCache();
+        if (cachedData && cachedData.length > 0) {
+          setNewsItems(cachedData);
+        }
+      } else if (data) {
+        console.log('NewsTicker: Fetched', data.length, 'items');
+        setNewsItems(data);
+        // Save to cache for offline use
+        if (data.length > 0) {
+          await saveToCache(data);
+        }
+      }
+    } catch (err) {
+      console.error('News ticker network error:', err);
+      // Try to load from cache on network error
+      const cachedData = await loadFromCache();
+      if (cachedData && cachedData.length > 0) {
+        setNewsItems(cachedData);
+      }
+    }
+  }, [loadFromCache, saveToCache]);
 
   useEffect(() => {
     fetchNewsItems();
@@ -42,7 +74,17 @@ export const NewsTicker = () => {
       }
     );
 
-    return cleanup;
+    // Listen for online/offline events
+    const handleOnline = () => {
+      fetchNewsItems();
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      cleanup();
+      window.removeEventListener('online', handleOnline);
+    };
   }, [fetchNewsItems]);
 
   if (newsItems.length === 0) {

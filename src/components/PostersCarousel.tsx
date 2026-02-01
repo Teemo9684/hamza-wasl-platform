@@ -5,6 +5,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { realtimeManager } from '@/utils/realtimeManager';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useOfflineCache, isOffline } from '@/hooks/useOfflineCache';
 
 interface Poster {
   id: string;
@@ -192,7 +193,19 @@ export const PostersCarousel = () => {
     }, 2000);
   }, []);
 
+  const { saveToCache, loadFromCache } = useOfflineCache<Poster[]>('posters');
+
   const fetchPosters = useCallback(async () => {
+    // Try to load from cache first if offline
+    if (isOffline()) {
+      const cachedData = await loadFromCache();
+      if (cachedData && cachedData.length > 0) {
+        setPosters(cachedData);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const { data, error } = await supabase
         .from('school_posters')
@@ -202,16 +215,32 @@ export const PostersCarousel = () => {
 
       if (error) {
         console.error('Error fetching posters:', error);
-        setPosters([]);
+        // Try to load from cache on error
+        const cachedData = await loadFromCache();
+        if (cachedData && cachedData.length > 0) {
+          setPosters(cachedData);
+        } else {
+          setPosters([]);
+        }
       } else {
         setPosters(data || []);
+        // Save to cache for offline use
+        if (data && data.length > 0) {
+          await saveToCache(data);
+        }
       }
     } catch (err) {
       console.error('Fetch error:', err);
-      setPosters([]);
+      // Try to load from cache on network error
+      const cachedData = await loadFromCache();
+      if (cachedData && cachedData.length > 0) {
+        setPosters(cachedData);
+      } else {
+        setPosters([]);
+      }
     }
     setLoading(false);
-  }, []);
+  }, [loadFromCache, saveToCache]);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % posters.length);
@@ -363,7 +392,17 @@ export const PostersCarousel = () => {
       }
     );
 
-    return cleanup;
+    // Listen for online/offline events
+    const handleOnline = () => {
+      fetchPosters();
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      cleanup();
+      window.removeEventListener('online', handleOnline);
+    };
   }, [fetchPosters]);
 
   // Continuous auto-play every 4 seconds
