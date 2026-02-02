@@ -543,8 +543,15 @@ const Index = () => {
                 <p className="text-white/80 font-cairo">تابع مستوى أبنائك الدراسي</p>
               </div>
 
+              {/* User Type Indicator */}
+              <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 border border-white/30">
+                <p className="text-white text-sm font-cairo font-medium">
+                  👨‍👧‍👦 خاص بـ <span className="font-bold">ولي الأمر</span>
+                </p>
+              </div>
+
               {/* Arrow Icon */}
-              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
@@ -579,8 +586,15 @@ const Index = () => {
                 <p className="text-white/80 font-cairo">إدارة الأقسام والتلاميذ</p>
               </div>
 
+              {/* User Type Indicator */}
+              <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 border border-white/30">
+                <p className="text-white text-sm font-cairo font-medium">
+                  👨‍🏫 خاص بـ <span className="font-bold">الأستاذ</span>
+                </p>
+              </div>
+
               {/* Arrow Icon */}
-              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
@@ -720,34 +734,60 @@ const Index = () => {
                             نسيت كلمة المرور؟
                           </Button>
                         </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>إعادة تعيين كلمة المرور</DialogTitle>
-                          <DialogDescription>
-                            أدخل بريدك الإلكتروني وسنرسل لك رابط لإعادة تعيين كلمة المرور
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="reset-email">البريد الإلكتروني</Label>
-                            <Input
-                              id="reset-email"
-                              type="email"
-                              placeholder="example@email.com"
-                              value={resetEmail}
-                              onChange={(e) => setResetEmail(e.target.value)}
-                            />
+                        <DialogContent className="max-w-sm">
+                          <DialogHeader className="text-center">
+                            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                              <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                              </svg>
+                            </div>
+                            <DialogTitle className="text-xl font-cairo">استرجاع كلمة المرور</DialogTitle>
+                            <DialogDescription className="font-cairo text-center">
+                              أدخل بريدك الإلكتروني المسجل وسنرسل لك رابط لإعادة تعيين كلمة المرور خلال دقائق
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="reset-email" className="font-cairo">البريد الإلكتروني</Label>
+                              <Input
+                                id="reset-email"
+                                type="email"
+                                placeholder="example@email.com"
+                                value={resetEmail}
+                                onChange={(e) => setResetEmail(e.target.value)}
+                                className="text-center"
+                                autoComplete="email"
+                              />
+                            </div>
+                            <Button 
+                              onClick={handleResetPassword} 
+                              disabled={isResetting || !resetEmail}
+                              className="w-full font-cairo"
+                              size="lg"
+                            >
+                              {isResetting ? (
+                                <>
+                                  <svg className="animate-spin ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  جاري الإرسال...
+                                </>
+                              ) : (
+                                <>
+                                  إرسال رابط الاسترجاع
+                                  <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                  </svg>
+                                </>
+                              )}
+                            </Button>
+                            <p className="text-xs text-muted-foreground text-center font-cairo">
+                              تحقق من صندوق البريد الوارد والرسائل غير المرغوب فيها
+                            </p>
                           </div>
-                          <Button 
-                            onClick={handleResetPassword} 
-                            disabled={isResetting}
-                            className="w-full"
-                          >
-                            {isResetting ? "جاري الإرسال..." : "إرسال رابط إعادة التعيين"}
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   )}
                 </CardContent>
