@@ -495,60 +495,6 @@ const Index = () => {
         <motion.div variants={itemVariants} className="w-full">
           <PostersCarousel />
         </motion.div>
-        {/* Professional User Guide Section */}
-        <motion.div className="my-10 w-full max-w-4xl" variants={itemVariants}>
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-            <div className="text-center mb-4">
-              <h3 className="text-xl font-bold text-white font-cairo mb-2">
-                كيف تختار البطاقة المناسبة؟
-              </h3>
-              <div className="w-16 h-1 bg-white/40 mx-auto rounded-full"></div>
-            </div>
-            
-            <div className={`grid gap-4 ${Capacitor.isNativePlatform() || isInstalled ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
-              {/* Parent Guide */}
-              <div className="flex items-start gap-3 bg-white/5 rounded-xl p-4 border border-white/10">
-                <div className="bg-primary/30 rounded-full p-2 flex-shrink-0">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-right">
-                  <p className="text-white font-bold font-cairo text-sm mb-1">أولياء الأمور</p>
-                  <p className="text-white/70 text-xs font-cairo leading-relaxed">
-                    إذا كنت والد أو والدة تلميذ وتريد متابعة دراسته
-                  </p>
-                </div>
-              </div>
-              
-              {/* Teacher Guide */}
-              <div className="flex items-start gap-3 bg-white/5 rounded-xl p-4 border border-white/10">
-                <div className="bg-secondary/30 rounded-full p-2 flex-shrink-0">
-                  <GraduationCap className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-right">
-                  <p className="text-white font-bold font-cairo text-sm mb-1">المعلمين</p>
-                  <p className="text-white/70 text-xs font-cairo leading-relaxed">
-                    إذا كنت أستاذاً في المدرسة وتريد إدارة صفك
-                  </p>
-                </div>
-              </div>
-              
-              {/* Admin Guide - Only visible in web preview */}
-              {!Capacitor.isNativePlatform() && !isInstalled && (
-                <div className="flex items-start gap-3 bg-white/5 rounded-xl p-4 border border-white/10">
-                  <div className="bg-accent/30 rounded-full p-2 flex-shrink-0">
-                    <Shield className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white font-bold font-cairo text-sm mb-1">الإدارة</p>
-                    <p className="text-white/70 text-xs font-cairo leading-relaxed">
-                      للمسؤولين فقط - إدارة النظام بالكامل
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </motion.div>
 
         {/* Cards Grid */}
         <motion.div 
