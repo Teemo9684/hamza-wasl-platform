@@ -29,6 +29,7 @@ import LoginAdmin from "./pages/LoginAdmin";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
+import AdminPortal from "./pages/AdminPortal";
 
 // Dashboard Layouts
 import { ParentDashboardLayout } from "./components/ParentDashboardLayout";
@@ -90,6 +91,9 @@ const AnimatedRoutes = () => {
       
       {/* Admin Dashboard */}
       <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><DashboardAdmin /></ProtectedRoute>} />
+      
+      {/* Admin Portal - Separate entry point */}
+      <Route path="/admin" element={<PageTransition><AdminPortal /></PageTransition>} />
       
       <Route path="/install" element={<PageTransition><InstallApp /></PageTransition>} />
       <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
