@@ -13,7 +13,6 @@ interface BeforeInstallPromptEvent extends Event {
 const AdminPortal = () => {
   const navigate = useNavigate();
   const [isChecking, setIsChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
@@ -51,7 +50,6 @@ const AdminPortal = () => {
           .maybeSingle();
 
         if (roleData) {
-          setIsAdmin(true);
           // Redirect directly to admin dashboard if already logged in as admin
           navigate("/dashboard/admin", { replace: true });
           return;
