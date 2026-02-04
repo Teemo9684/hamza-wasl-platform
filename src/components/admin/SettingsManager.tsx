@@ -338,36 +338,8 @@ export const SettingsManager = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      {/* App Version Display */}
-      <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-primary/20 rounded-xl">
-                <Package className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">إصدار التطبيق</h3>
-                <p className="text-sm text-muted-foreground">الإصدار المثبت في الكود</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <Badge variant="secondary" className="text-xl px-5 py-2 font-mono">
-                {APP_VERSION}
-              </Badge>
-              {latestVersion && latestVersion.version !== APP_VERSION && (
-                <Badge variant="default" className="gap-1">
-                  <CheckCircle className="h-3 w-3" />
-                  آخر OTA: {latestVersion.version}
-                </Badge>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Auto OTA from GitHub - NEW SECTION */}
-      <Card className="border-accent/30 bg-gradient-to-br from-accent/5 to-accent/10">
+      {/* Auto OTA from GitHub - MOST IMPORTANT SECTION - FIRST */}
+      <Card className="border-accent/30 bg-gradient-to-br from-accent/5 to-accent/10 shadow-lg">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-accent" />
@@ -456,6 +428,36 @@ export const SettingsManager = () => {
           </p>
         </CardContent>
       </Card>
+
+      {/* App Version Display */}
+      <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-primary/20 rounded-xl">
+                <Package className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">إصدار التطبيق</h3>
+                <p className="text-sm text-muted-foreground">الإصدار المثبت في الكود</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <Badge variant="secondary" className="text-xl px-5 py-2 font-mono">
+                {APP_VERSION}
+              </Badge>
+              {latestVersion && latestVersion.version !== APP_VERSION && (
+                <Badge variant="default" className="gap-1">
+                  <CheckCircle className="h-3 w-3" />
+                  آخر OTA: {latestVersion.version}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* System Settings */}
 
       {/* System Settings */}
       <Card>

@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
-import { MessageSquare, User, Clock, Search, Filter, TrendingUp, Users, Reply, Mail } from "lucide-react";
+import { MessageSquare, User, Clock, Search, Filter, TrendingUp, Users, Reply, Mail, Trash2, Eye, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -18,6 +20,22 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/utils/formatters";
@@ -80,6 +98,17 @@ export const MessagesView = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedTeachers, setExpandedTeachers] = useState<string[]>([]);
   const [expandedParentReplies, setExpandedParentReplies] = useState(true);
+  
+  // Message reading dialog
+  const [selectedMessage, setSelectedMessage] = useState<Message | ParentReply | null>(null);
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  
+  // Delete confirmation
+  const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  
+  const { toast } = useToast();
 
   const handleMessagesChange = useCallback(() => {
     fetchAllMessages();
@@ -360,6 +389,51 @@ export const MessagesView = () => {
     );
   };
 
+  // Open message for reading
+  const handleOpenMessage = (message: Message | ParentReply) => {
+    setSelectedMessage(message);
+    setMessageDialogOpen(true);
+  };
+
+  // Delete a single message
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      setDeleting(true);
+      
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف الرسالة بنجاح",
+      });
+      
+      setDeleteDialogOpen(false);
+      setDeleteMessageId(null);
+      fetchAllMessages();
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف الرسالة",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Confirm delete
+  const confirmDelete = (messageId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setDeleteMessageId(messageId);
+    setDeleteDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -588,8 +662,9 @@ export const MessagesView = () => {
                     {filteredParentReplies.map((reply) => (
                       <div
                         key={reply.id}
+                        onClick={() => handleOpenMessage(reply)}
                         className={cn(
-                          "rounded-xl border p-3 transition-all",
+                          "rounded-xl border p-3 transition-all cursor-pointer hover:shadow-md",
                           !reply.is_read 
                             ? "bg-gradient-to-r from-orange-500/10 to-transparent border-orange-500/30" 
                             : "bg-card"
@@ -618,9 +693,33 @@ export const MessagesView = () => {
                           <p className="text-xs text-foreground/90 line-clamp-2">{reply.content}</p>
                         </div>
 
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {formatDateTime(reply.created_at)}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {formatDateTime(reply.created_at)}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenMessage(reply);
+                              }}
+                              className="h-7 px-2 text-xs gap-1 hover:bg-primary/10"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              قراءة
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => confirmDelete(reply.id, e)}
+                              className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -729,8 +828,9 @@ export const MessagesView = () => {
                               return (
                                 <div
                                   key={message.id}
+                                  onClick={() => handleOpenMessage(message)}
                                   className={cn(
-                                    "rounded-xl border p-3 transition-all",
+                                    "rounded-xl border p-3 transition-all cursor-pointer hover:shadow-md",
                                     !message.is_read 
                                       ? "bg-gradient-to-r from-primary/5 to-transparent border-primary/30" 
                                       : "bg-card"
@@ -763,9 +863,33 @@ export const MessagesView = () => {
                                     <p className="text-xs text-foreground/90 line-clamp-2">{message.content}</p>
                                   </div>
 
-                                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <Clock className="h-3 w-3" />
-                                    {formatDateTime(message.created_at)}
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                      <Clock className="h-3 w-3" />
+                                      {formatDateTime(message.created_at)}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleOpenMessage(message);
+                                        }}
+                                        className="h-7 px-2 text-xs gap-1 hover:bg-primary/10"
+                                      >
+                                        <Eye className="h-3.5 w-3.5" />
+                                        قراءة
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => confirmDelete(message.id, e)}
+                                        className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               );
@@ -780,6 +904,76 @@ export const MessagesView = () => {
           })}
         </div>
       )}
+
+      {/* Message Reading Dialog */}
+      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              {selectedMessage?.subject}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedMessage && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground border-b pb-3">
+                <span><strong>من:</strong> {selectedMessage.sender_name}</span>
+                {'recipient_name' in selectedMessage && (
+                  <span><strong>إلى:</strong> {selectedMessage.recipient_name}</span>
+                )}
+                {selectedMessage.student_name && (
+                  <span><strong>الطالب:</strong> {selectedMessage.student_name}</span>
+                )}
+              </div>
+              
+              <div className="bg-muted/30 rounded-lg p-4 min-h-[120px]">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedMessage.content}</p>
+              </div>
+              
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  {formatDateTime(selectedMessage.created_at)}
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    setMessageDialogOpen(false);
+                    confirmDelete(selectedMessage.id);
+                  }}
+                  className="gap-1"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  حذف الرسالة
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد حذف الرسالة</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف هذه الرسالة؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMessageId && handleDeleteMessage(deleteMessageId)}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "جاري الحذف..." : "حذف"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
