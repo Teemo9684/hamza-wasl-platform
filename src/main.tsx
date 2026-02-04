@@ -5,6 +5,8 @@ import App from "./App.tsx";
 import "./index.css";
 import { registerSW } from 'virtual:pwa-register';
 
+// Environment check - rebuild trigger
+
 // Add platform-specific class to html element for CSS targeting
 if (Capacitor.isNativePlatform()) {
   const platform = Capacitor.getPlatform();
