@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Calendar, FileText, Loader2 } from "lucide-react";
+import { BookOpen, Calendar, FileText, Loader2, WifiOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDateOnly } from "@/utils/formatters";
+import { useOfflineCache, isOffline } from "@/hooks/useOfflineCache";
 
 interface Homework {
   id: string;
@@ -30,7 +31,9 @@ export const ParentHomework = () => {
   const [homework, setHomework] = useState<Homework[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
   const { toast } = useToast();
+  const { saveToCache, loadFromCache } = useOfflineCache<{ homework: Homework[], students: Student[] }>('parent_homework');
 
   const handleHomeworkChange = useCallback(() => {
     fetchStudentsAndHomework();
@@ -48,6 +51,19 @@ export const ParentHomework = () => {
 
   const fetchStudentsAndHomework = async () => {
     setLoading(true);
+    setIsOfflineMode(isOffline());
+
+    // Try to load from cache first if offline
+    if (isOffline()) {
+      const cachedData = await loadFromCache();
+      if (cachedData) {
+        setHomework(cachedData.homework);
+        setStudents(cachedData.students);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -108,12 +124,27 @@ export const ParentHomework = () => {
       if (homeworkError) throw homeworkError;
 
       setHomework(homeworkData || []);
-    } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: "فشل تحميل الواجبات",
-        variant: "destructive",
+
+      // Save to cache for offline use
+      await saveToCache({
+        homework: homeworkData || [],
+        students: studentsList
       });
+    } catch (error: any) {
+      console.error("Error fetching homework:", error);
+      // Try to load from cache on network error
+      const cachedData = await loadFromCache();
+      if (cachedData) {
+        setHomework(cachedData.homework);
+        setStudents(cachedData.students);
+        setIsOfflineMode(true);
+      } else {
+        toast({
+          title: "خطأ",
+          description: "فشل تحميل الواجبات",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -153,6 +184,15 @@ export const ParentHomework = () => {
 
   return (
     <div className="space-y-6">
+      {isOfflineMode && (
+        <Card className="bg-muted/50 border-dashed">
+          <CardContent className="p-3 flex items-center gap-2 text-muted-foreground">
+            <WifiOff className="w-4 h-4" />
+            <span className="text-sm font-cairo">وضع عدم الاتصال - يتم عرض البيانات المحفوظة</span>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-cairo">

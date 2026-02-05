@@ -24,7 +24,14 @@ interface BottomNavProps {
   scrollable?: boolean;
 }
 
-export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}, useHashNavigation = true, scrollable = false }: BottomNavProps) => {
+export const BottomNav = ({ 
+  items, 
+  activeSection, 
+  onNavigate, 
+  notifications = {}, 
+  useHashNavigation = true, 
+  scrollable = false 
+}: BottomNavProps) => {
   const [currentSection, setCurrentSection] = useState<string>(activeSection || items[0]?.id || "");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -170,9 +177,9 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/98 backdrop-blur-xl border-t shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/98 backdrop-blur-xl border-t shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:shadow-[0_-8px_30px_rgba(0,0,0,0.12)] safe-area-bottom">
       {scrollable ? (
-        <div className="relative flex flex-col">
+        <div className="relative flex flex-col max-w-4xl mx-auto w-full">
           <div className="relative">
             {/* مؤشر التمرير لليسار */}
             {canScrollLeft && (
@@ -196,7 +203,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
             
             <div 
               ref={scrollContainerRef}
-              className="flex items-center gap-1.5 h-[72px] px-3 overflow-x-auto scrollbar-hide scroll-smooth"
+              className="flex items-center justify-center gap-1.5 h-[72px] px-3 overflow-x-auto scrollbar-hide scroll-smooth"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {items.map((item) => {
@@ -271,7 +278,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
           )}
         </div>
       ) : (
-        <div className="flex items-center justify-evenly h-[72px] px-2 w-full">
+        <div className="flex items-center justify-center h-[72px] px-2 w-full max-w-2xl mx-auto gap-1 md:gap-2">
           {items.map((item) => {
             const Icon = item.icon;
             const isActive = currentSection === item.id;
@@ -286,7 +293,7 @@ export const BottomNav = ({ items, activeSection, onNavigate, notifications = {}
                 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-1.5 px-2 py-2 rounded-xl transition-all duration-200 min-w-[52px] min-h-[56px] flex-1 max-w-[68px] active:scale-95 touch-feedback",
+                  "relative flex flex-col items-center justify-center gap-1.5 px-2 py-2 rounded-xl transition-all duration-200 min-w-[52px] min-h-[56px] flex-1 max-w-[72px] md:max-w-[80px] md:min-w-[60px] active:scale-95 touch-feedback",
                   isActive 
                     ? "bg-primary/15 text-primary shadow-md" 
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted/70"

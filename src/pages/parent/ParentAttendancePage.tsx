@@ -9,13 +9,18 @@ import { mediumHaptic } from "@/utils/haptics";
 import { toast as sonnerToast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { useOfflineCache, isOffline } from "@/hooks/useOfflineCache";
+import { Card, CardContent } from "@/components/ui/card";
+import { WifiOff } from "lucide-react";
 
 export const ParentAttendanceContent = () => {
   const { toast } = useToast();
   const { children, selectedChild, setSelectedChild } = useParentDashboard();
   const [attendance, setAttendance] = useState<any[]>([]);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
   
   const { clearSection } = useNotifications();
+  const { saveToCache, loadFromCache } = useOfflineCache<any[]>(`parent_attendance_${selectedChild}`);
 
   useEffect(() => {
     clearSection('attendance');
@@ -79,6 +84,17 @@ export const ParentAttendanceContent = () => {
   }, [selectedChild]);
 
   const fetchChildDetails = async (childId: string) => {
+    setIsOfflineMode(isOffline());
+
+    // Try to load from cache first if offline
+    if (isOffline()) {
+      const cachedData = await loadFromCache();
+      if (cachedData) {
+        setAttendance(cachedData);
+        return;
+      }
+    }
+
     try {
       const { data: attendanceData, error: attendanceError } = await supabase
         .from('attendance')
@@ -88,17 +104,38 @@ export const ParentAttendanceContent = () => {
 
       if (attendanceError) throw attendanceError;
       setAttendance(attendanceData || []);
+
+      // Save to cache for offline use
+      if (attendanceData && attendanceData.length > 0) {
+        await saveToCache(attendanceData);
+      }
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Error fetching attendance:", error);
+      // Try to load from cache on network error
+      const cachedData = await loadFromCache();
+      if (cachedData) {
+        setAttendance(cachedData);
+        setIsOfflineMode(true);
+      } else {
+        toast({
+          title: "خطأ",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     }
   };
 
   return (
     <>
+      {isOfflineMode && (
+        <Card className="bg-muted/50 border-dashed mb-4">
+          <CardContent className="p-3 flex items-center gap-2 text-muted-foreground">
+            <WifiOff className="w-4 h-4" />
+            <span className="text-sm font-cairo">وضع عدم الاتصال - يتم عرض البيانات المحفوظة</span>
+          </CardContent>
+        </Card>
+      )}
       {children.length > 1 && (
         <div className="mb-4">
           <Select value={selectedChild} onValueChange={setSelectedChild}>
