@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useRealtime } from "@/hooks/useRealtime";
-import { Calendar, Download } from "lucide-react";
+import { Calendar, Download, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDateOnly } from "@/utils/formatters";
+import { useOfflineCache, isOffline } from "@/hooks/useOfflineCache";
 
 interface ParentScheduleProps {
   selectedChild: string;
@@ -15,6 +16,8 @@ interface ParentScheduleProps {
 export const ParentSchedule = ({ selectedChild, children }: ParentScheduleProps) => {
   const [schedule, setSchedule] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const { saveToCache, loadFromCache } = useOfflineCache<any>(`parent_schedule_${selectedChild}`);
 
   const handleScheduleChange = useCallback(() => {
     if (selectedChild) {
@@ -36,6 +39,18 @@ export const ParentSchedule = ({ selectedChild, children }: ParentScheduleProps)
 
   const fetchSchedule = async () => {
     setLoading(true);
+    setIsOfflineMode(isOffline());
+
+    // Try to load from cache first if offline
+    if (isOffline()) {
+      const cachedData = await loadFromCache();
+      if (cachedData) {
+        setSchedule(cachedData);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       // Get the selected child's grade level
       const child = children.find(c => c.id === selectedChild);
@@ -50,9 +65,21 @@ export const ParentSchedule = ({ selectedChild, children }: ParentScheduleProps)
 
       if (error) throw error;
       setSchedule(data);
+
+      // Save to cache for offline use
+      if (data) {
+        await saveToCache(data);
+      }
     } catch (error: any) {
-      toast.error("خطأ في تحميل جدول الحصص");
       console.error(error);
+      // Try to load from cache on network error
+      const cachedData = await loadFromCache();
+      if (cachedData) {
+        setSchedule(cachedData);
+        setIsOfflineMode(true);
+      } else {
+        toast.error("خطأ في تحميل جدول الحصص");
+      }
     } finally {
       setLoading(false);
     }
@@ -101,6 +128,9 @@ export const ParentSchedule = ({ selectedChild, children }: ParentScheduleProps)
           <div className="flex items-center gap-2">
             <Calendar className="w-6 h-6 text-primary" />
             جدول الحصص الأسبوعي
+            {isOfflineMode && (
+              <WifiOff className="w-4 h-4 text-muted-foreground" />
+            )}
           </div>
           <Button variant="outline" size="sm" onClick={handleDownload}>
             <Download className="w-4 h-4 ml-2" />
@@ -116,6 +146,7 @@ export const ParentSchedule = ({ selectedChild, children }: ParentScheduleProps)
             className="w-full h-auto rounded-lg border shadow-lg"
           />
           <p className="text-sm text-muted-foreground text-center font-cairo">
+            {isOfflineMode ? 'بيانات محفوظة • ' : ''}
             آخر تحديث: {new Date(schedule.updated_at).toLocaleDateString('ar-u-nu-latn', {
               year: 'numeric',
               month: 'long',

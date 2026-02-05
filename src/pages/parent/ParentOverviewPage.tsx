@@ -6,6 +6,7 @@ import { useParentDashboard } from "@/components/ParentDashboardLayout";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useNavigate } from "react-router-dom";
+import { useOfflineCache, isOffline } from "@/hooks/useOfflineCache";
 
 export const ParentOverviewContent = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export const ParentOverviewContent = () => {
   const [attendance, setAttendance] = useState<any[]>([]);
   
   const { clearSection } = useNotifications();
+  const { saveToCache, loadFromCache } = useOfflineCache<any[]>(`parent_overview_attendance_${selectedChild}`);
 
   useEffect(() => {
     if (selectedChild) {
@@ -67,6 +69,15 @@ export const ParentOverviewContent = () => {
   }, [selectedChild]);
 
   const fetchChildDetails = async (childId: string) => {
+    // Try to load from cache first if offline
+    if (isOffline()) {
+      const cachedData = await loadFromCache();
+      if (cachedData) {
+        setAttendance(cachedData);
+        return;
+      }
+    }
+
     try {
       const { data: attendanceData, error: attendanceError } = await supabase
         .from('attendance')
@@ -76,12 +87,24 @@ export const ParentOverviewContent = () => {
 
       if (attendanceError) throw attendanceError;
       setAttendance(attendanceData || []);
+
+      // Save to cache for offline use
+      if (attendanceData && attendanceData.length > 0) {
+        await saveToCache(attendanceData);
+      }
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Error fetching attendance:", error);
+      // Try to load from cache on network error
+      const cachedData = await loadFromCache();
+      if (cachedData) {
+        setAttendance(cachedData);
+      } else {
+        toast({
+          title: "خطأ",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     }
   };
 
