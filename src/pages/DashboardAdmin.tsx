@@ -14,6 +14,7 @@ import { MessagesView } from "@/components/admin/MessagesView";
 import { ScheduleManager } from "@/components/admin/ScheduleManager";
 import { DocumentRequestsManager } from "@/components/admin/DocumentRequestsManager";
 import { PostersManager } from "@/components/admin/PostersManager";
+import { QuickOTADeploy } from "@/components/admin/QuickOTADeploy";
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
@@ -325,7 +326,7 @@ const DashboardAdmin = () => {
                   {activeSection === "reports" && <ReportsView />}
                   {activeSection === "settings" && <SettingsManager />}
                   {activeSection === "messages" && <MessagesView />}
-                  
+                  {activeSection === "ota" && <QuickOTADeploy />}
                   {activeSection === "schedule" && <ScheduleManager />}
                   {activeSection === "documentRequests" && <DocumentRequestsManager />}
                   {activeSection === "posters" && <PostersManager />}
