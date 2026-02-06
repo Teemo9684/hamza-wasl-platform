@@ -299,7 +299,7 @@ const DashboardAdmin = () => {
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 pb-28">
+        <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 pb-36 md:pb-40">
           <div className="mb-6 md:mb-8">
             <h2 className="text-xl md:text-3xl font-bold mb-1 md:mb-2 font-cairo">مرحباً مديرة المدرسة</h2>
             <p className="text-sm md:text-base text-muted-foreground font-cairo">
