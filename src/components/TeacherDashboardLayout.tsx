@@ -162,7 +162,7 @@ export const TeacherDashboardLayout = () => {
         <div style={{ height: (hasNews ? tickerHeight : 0) + headerHeight }} />
 
         {/* المحتوى الرئيسي */}
-        <main className="flex-1 p-3 md:p-4 pb-28 md:pb-32 w-full">
+        <main className="flex-1 p-3 md:p-4 pb-36 md:pb-40 w-full">
           <div className="max-w-6xl mx-auto w-full">
             <Outlet />
           </div>
