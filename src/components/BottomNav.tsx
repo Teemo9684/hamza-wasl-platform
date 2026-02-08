@@ -203,7 +203,7 @@ export const BottomNav = ({
             
             <div 
               ref={scrollContainerRef}
-              className="flex items-center justify-center gap-1.5 h-[72px] px-3 overflow-x-auto scrollbar-hide scroll-smooth"
+              className="flex items-center justify-start gap-1.5 h-[72px] px-10 overflow-x-auto scrollbar-hide scroll-smooth"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {items.map((item) => {
