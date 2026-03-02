@@ -376,8 +376,8 @@ const Index = () => {
       <Dialog open={showTeacherWarning} onOpenChange={setShowTeacherWarning}>
         <DialogContent className="max-w-md">
           <DialogHeader className="text-center">
-            <div className="mx-auto w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mb-3">
-              <Shield className="w-7 h-7 text-amber-600" />
+            <div className="mx-auto w-14 h-14 bg-destructive/10 rounded-full flex items-center justify-center mb-3">
+              <Shield className="w-7 h-7 text-destructive" />
             </div>
             <DialogTitle className="text-lg font-cairo text-foreground">
               تنبيه — قسم المعلمين
