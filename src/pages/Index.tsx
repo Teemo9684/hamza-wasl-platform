@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
+import { Users, GraduationCap, Shield, ArrowRight, LogIn } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,73 +10,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { PostersCarousel } from "@/components/PostersCarousel";
-import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { useAppVersion } from "@/hooks/useAppVersion";
-
-// Stagger animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
-    },
-  },
-} as const;
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring" as const,
-      stiffness: 100,
-      damping: 15,
-    },
-  },
-} as const;
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: "spring" as const,
-      stiffness: 80,
-      damping: 12,
-    },
-  },
-} as const;
-
-const headerVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      type: "spring" as const,
-      stiffness: 100,
-      damping: 20,
-      delay: 0.05,
-    },
-  },
-} as const;
-
-interface NewsItem {
-  id: string;
-  title: string;
-  content: string;
-  icon_type: string;
-  badge_color: string;
-  is_active: boolean;
-}
 
 type UserType = "parent" | "teacher" | "admin" | null;
 
@@ -94,82 +28,38 @@ const Index = () => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [showTeacherWarning, setShowTeacherWarning] = useState(false);
   const loginSectionRef = useRef<HTMLDivElement>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    // Check if app is installed (running in standalone mode)
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isIOSStandalone = (window.navigator as any).standalone === true;
       setIsInstalled(isStandalone || isIOSStandalone);
     };
-
     checkInstalled();
   }, []);
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
-
-  const fetchNewsItems = useCallback(async () => {
-    const { data } = await supabase
-      .from("news_ticker")
-      .select("*")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true });
-
-    if (data) {
-      console.log('Index: Fetched', data.length, 'news items');
-      setNewsItems(data);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchNewsItems();
-    
-    // Re-fetch news items when auth state changes (e.g., after logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchNewsItems();
-    });
-
-    // Subscribe using realtimeManager for better reconnection handling
-    const cleanup = realtimeManager.subscribe(
-      'index-news-ticker',
-      'news_ticker',
-      (payload) => {
-        console.log('Index: News ticker realtime update received', payload);
-        fetchNewsItems();
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-      cleanup();
-    };
-  }, [fetchNewsItems]);
-
-  useEffect(() => {
-    // Update time every second
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
 
   const handleCardClick = (userType: UserType) => {
+    if (userType === "teacher") {
+      setShowTeacherWarning(true);
+      return;
+    }
+    openLoginFor(userType);
+  };
+
+  const openLoginFor = (userType: UserType) => {
     setSelectedUserType(userType);
     setEmail("");
     setPassword("");
     setRememberMe(false);
     
-    // Load saved email for this user type (not password for security)
     if (userType && userType !== "admin") {
       const savedEmail = localStorage.getItem(`${userType}_email`);
       if (savedEmail) {
         setEmail(savedEmail);
         setRememberMe(true);
       }
-      // Clean up any old stored passwords
       localStorage.removeItem(`${userType}_password`);
     }
     
@@ -180,12 +70,9 @@ const Index = () => {
 
   const handleBackToTop = () => {
     setIsExiting(true);
-    
-    // After exit animation, scroll to top and hide section
     setTimeout(() => {
       setSelectedUserType(null);
       setIsExiting(false);
-      // Scroll to top after hiding the section
       requestAnimationFrame(() => {
         window.scrollTo({ top: 0, behavior: "instant" });
         document.documentElement.scrollTop = 0;
@@ -198,7 +85,6 @@ const Index = () => {
     e.preventDefault();
     
     if (selectedUserType === "admin") {
-      // For admin login, use a fixed email
       const ADMIN_EMAIL = "admin@arbit.local";
       
       if (!password) {
@@ -247,7 +133,6 @@ const Index = () => {
       return;
     }
     
-    // For parent/teacher login
     const loginEmail = email;
     
     if (!loginEmail || !password) {
@@ -302,7 +187,6 @@ const Index = () => {
           return;
         }
 
-        // Handle remember me (save email only, never password)
         if (rememberMe && selectedUserType) {
           localStorage.setItem(`${selectedUserType}_email`, loginEmail);
         } else if (selectedUserType) {
@@ -359,7 +243,6 @@ const Index = () => {
           icon: Users,
           title: "تسجيل دخول ولي الأمر",
           description: "أدخل بياناتك للوصول إلى حساب ولي الأمر",
-          gradient: "bg-gradient-primary",
           registerPath: "/register/parent"
         };
       case "teacher":
@@ -367,7 +250,6 @@ const Index = () => {
           icon: GraduationCap,
           title: "تسجيل دخول المعلم",
           description: "أدخل بياناتك للوصول إلى حساب المعلم",
-          gradient: "bg-gradient-secondary",
           registerPath: "/register/teacher"
         };
       case "admin":
@@ -375,7 +257,6 @@ const Index = () => {
           icon: Shield,
           title: "تسجيل دخول الإدارة",
           description: "أدخل بياناتك للوصول إلى لوحة التحكم الإدارية",
-          gradient: "bg-gradient-accent",
           registerPath: "/register"
         };
       default:
@@ -384,264 +265,161 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden pt-[env(safe-area-inset-top)]">
-      {/* Animated Gradient Background */}
-      <div className="absolute inset-0 animated-gradient-bg" />
-
-      {/* News Ticker */}
-      {newsItems.length > 0 && (
-        <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
-          <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
-            {/* Repeat items 3 times for seamless scrolling */}
-            {[...Array(3)].map((_, repeatIndex) => (
-              newsItems.map((item, itemIndex) => (
-                <div key={`${repeatIndex}-${item.id}`} className="flex items-center gap-8">
-                  <span className="text-white font-cairo flex items-center gap-2">
-                    <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
-                      {item.icon_type}
-                    </span>
-                    {item.content}
-                  </span>
-                  
-                  {/* Logo separator */}
-                  <div className="relative h-8 w-12 flex-shrink-0">
-                    <div className="flex flex-col items-center justify-center">
-                      <span className="text-sm font-bold text-white/80 font-ruqaa leading-[0.8]">
-                        {itemIndex % 2 === 0 ? (
-                          <>
-                            <div>همزة</div>
-                            <div>وصل</div>
-                          </>
-                        ) : (
-                          <>
-                            <div>العربي</div>
-                            <div>التبسي</div>
-                          </>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ))}
-          </div>
+    <div className="min-h-screen w-full bg-background" dir="rtl">
+      {/* Official Header Bar */}
+      <header className="bg-primary text-primary-foreground">
+        <div className="max-w-4xl mx-auto px-4 py-6 text-center">
+          <p className="text-sm font-cairo opacity-90 mb-1">
+            الجمهورية الجزائرية الديمقراطية الشعبية
+          </p>
+          <p className="text-sm font-cairo opacity-90 mb-1">
+            وزارة التربية الوطنية
+          </p>
+          <p className="text-xs font-cairo opacity-75 mb-4">
+            مديرية التربية لولاية خنشلة
+          </p>
+          <div className="w-16 h-px bg-primary-foreground/30 mx-auto mb-4" />
+          <h1 className="text-3xl md:text-4xl font-bold font-cairo">
+            منصة همزة وصل
+          </h1>
+          <p className="text-sm font-cairo opacity-80 mt-2">
+            المدرسة الابتدائية العربي التبسي
+          </p>
         </div>
-      )}
-
-      {/* Date and Time Display - Below News Ticker */}
-      <motion.div 
-        className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-      >
-        <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
-          {/* Date */}
-          <div className="font-medium">
-            {formatDateWithWeekday(currentTime)}
-          </div>
-          
-          {/* Separator */}
-          <div className="w-px h-4 bg-white/30"></div>
-          
-          {/* Time */}
-          <div className="font-mono font-medium" dir="ltr">
-            {format(currentTime, "HH:mm:ss")}
-          </div>
-        </div>
-      </motion.div>
+      </header>
 
       {/* Main Content */}
-      <motion.div 
-        className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Logo and Title */}
-        <motion.div className="text-center mb-8" variants={headerVariants}>
-          <div className="relative h-48 mb-6">
-            {/* همزة وصل */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
-              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
-                <div>همزة</div>
-                <div>وصل</div>
-              </h1>
-            </div>
-            
-            {/* العربي التبسي */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
-              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
-                <div>العربي</div>
-                <div>التبسي</div>
-              </h1>
-            </div>
-          </div>
-          
-          <motion.div variants={itemVariants}>
-            <p className="text-2xl text-white/90 font-cairo mb-2">
-              جسر التواصل بين المدرسة والبيت
-            </p>
-            <p className="text-lg text-white/80 font-cairo mb-3 max-w-3xl mx-auto leading-relaxed">
-              منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية
-            </p>
-            <p className="text-lg text-white/70 font-ruqaa">
-              المدرسة الابتدائية العربي التبسي
-            </p>
-          </motion.div>
-        </motion.div>
-
-        {/* Posters Carousel */}
-        <motion.div variants={itemVariants} className="w-full">
-          <PostersCarousel />
-        </motion.div>
+      <main className="max-w-4xl mx-auto px-4 py-10">
+        {/* Section Title */}
+        <div className="text-center mb-10">
+          <h2 className="text-xl md:text-2xl font-bold font-cairo text-foreground">
+            اختر صفة الدخول إلى المنصة
+          </h2>
+          <div className="w-20 h-0.5 bg-primary mx-auto mt-3" />
+        </div>
 
         {/* Cards Grid */}
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl"
-          variants={containerVariants}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {/* Parent Card */}
-          <motion.div 
+          <Card 
+            className="cursor-pointer transition-shadow duration-200 hover:shadow-md border border-border bg-card"
             onClick={() => handleCardClick("parent")}
-            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
-              selectedUserType === "parent" 
-                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
-                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
-            }`}
-            variants={cardVariants}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
           >
-            <div className="flex flex-col items-center text-center space-y-6">
-              {/* Icon Container */}
-              <div className="relative icon-float">
-                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
-                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
-                  <Users className="w-16 h-16 text-white" strokeWidth={1.5} />
-                </div>
+            <CardHeader className="text-center pb-3">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                <Users className="w-8 h-8 text-primary" />
               </div>
-              
-              {/* Text */}
-              <div>
-                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">أولياء الأمور</h2>
-                <p className="text-white/80 font-cairo">تابع مستوى أبنائك الدراسي</p>
-              </div>
-
-
-              {/* Arrow Icon */}
-              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </div>
-            </div>
-          </motion.div>
+              <CardTitle className="text-xl font-cairo text-foreground">أولياء الأمور</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center pb-4">
+              <p className="text-sm text-muted-foreground font-cairo leading-relaxed">
+                متابعة المسار الدراسي للتلميذ والتواصل مع المعلم
+              </p>
+            </CardContent>
+            <CardFooter className="justify-center pb-6">
+              <Button className="font-cairo bg-primary text-primary-foreground hover:bg-primary/90">
+                <LogIn className="ml-2 h-4 w-4" />
+                دخول / تسجيل
+              </Button>
+            </CardFooter>
+          </Card>
 
           {/* Teacher Card */}
-          <motion.div 
+          <Card 
+            className="cursor-pointer transition-shadow duration-200 hover:shadow-md border border-border bg-card"
             onClick={() => handleCardClick("teacher")}
-            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
-              selectedUserType === "teacher" 
-                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
-                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
-            }`}
-            variants={cardVariants}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
           >
-            {/* تنبيه متوهج باللون الأحمر */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-              <div className="relative">
-                <div className="absolute inset-0 bg-red-500 rounded-full blur-md animate-pulse" />
-                <div className="relative bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full font-cairo shadow-lg border border-red-400 animate-pulse">
-                  ⚠️ للمعلمين فقط
-                </div>
+            <CardHeader className="text-center pb-3">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                <GraduationCap className="w-8 h-8 text-primary" />
               </div>
-            </div>
+              <CardTitle className="text-xl font-cairo text-foreground">المعلمون</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center pb-4">
+              <p className="text-sm text-muted-foreground font-cairo leading-relaxed">
+                إدارة الأقسام والتواصل التربوي
+              </p>
+            </CardContent>
+            <CardFooter className="justify-center pb-6">
+              <Button className="font-cairo bg-primary text-primary-foreground hover:bg-primary/90">
+                <LogIn className="ml-2 h-4 w-4" />
+                دخول / تسجيل
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
 
-            <div className="flex flex-col items-center text-center space-y-6">
-              {/* Icon Container */}
-              <div className="relative icon-float" style={{ animationDelay: "0.5s" }}>
-                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
-                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
-                  <GraduationCap className="w-16 h-16 text-white" strokeWidth={1.5} />
-                </div>
-              </div>
-              
-              {/* Text */}
-              <div>
-                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">المعلمين</h2>
-                <p className="text-white/80 font-cairo">إدارة الأقسام والتلاميذ</p>
-              </div>
-
-
-              {/* Arrow Icon */}
-              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Admin Card - Hidden on native app AND installed PWA, only visible on web preview */}
-          {!Capacitor.isNativePlatform() && !isInstalled && (
-            <motion.div 
-              onClick={() => handleCardClick("admin")}
-              className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
-                selectedUserType === "admin" 
-                  ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
-                  : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
-              }`}
-              variants={cardVariants}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
+        {/* Admin Card - Only on web */}
+        {!Capacitor.isNativePlatform() && !isInstalled && (
+          <div className="max-w-sm mx-auto mt-6">
+            <Card 
+              className="cursor-pointer transition-shadow duration-200 hover:shadow-md border border-border bg-card"
+              onClick={() => openLoginFor("admin")}
             >
-              <div className="flex flex-col items-center text-center space-y-6">
-                {/* Icon Container */}
-                <div className="relative icon-float" style={{ animationDelay: "1s" }}>
-                  <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
-                  <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
-                    <Shield className="w-16 h-16 text-white" strokeWidth={1.5} />
-                  </div>
+              <CardHeader className="text-center pb-3">
+                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+                  <Shield className="w-6 h-6 text-primary" />
                 </div>
-                
-                {/* Text */}
-                <div>
-                  <h2 className="text-3xl font-bold text-white mb-2 font-cairo">الإدارة</h2>
-                  <p className="text-white/80 font-cairo">لوحة التحكم الإدارية</p>
-                </div>
+                <CardTitle className="text-lg font-cairo text-foreground">الإدارة</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center pb-4">
+                <p className="text-xs text-muted-foreground font-cairo">
+                  لوحة التحكم الإدارية
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </main>
 
-                {/* Arrow Icon */}
-                <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
-                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-
-
-
-        {/* Copyright */}
-        <motion.div className="mt-8 text-center" variants={itemVariants}>
-          <p className="text-white/60 font-cairo text-sm">
-            جميع الحقوق محفوظة-العربي التبسي 2026©
-          </p>
-        </motion.div>
-      </motion.div>
+      {/* Teacher Warning Dialog */}
+      <Dialog open={showTeacherWarning} onOpenChange={setShowTeacherWarning}>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="text-center">
+            <div className="mx-auto w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mb-3">
+              <Shield className="w-7 h-7 text-amber-600" />
+            </div>
+            <DialogTitle className="text-lg font-cairo text-foreground">
+              تنبيه — قسم المعلمين
+            </DialogTitle>
+            <DialogDescription className="font-cairo text-sm leading-relaxed mt-2">
+              تسجيل حساب المعلمين متاح فقط للطاقم التربوي المعتمد من إدارة المدرسة.
+              <br /><br />
+              إذا كنت ولي أمر، يرجى استخدام قسم "أولياء الأمور" لإنشاء حسابك.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button 
+              className="w-full font-cairo bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => {
+                setShowTeacherWarning(false);
+                openLoginFor("teacher");
+              }}
+            >
+              أنا معلم، متابعة تسجيل الدخول
+            </Button>
+            <Button 
+              variant="outline"
+              className="w-full font-cairo"
+              onClick={() => {
+                setShowTeacherWarning(false);
+                openLoginFor("parent");
+              }}
+            >
+              أنا ولي أمر، الذهاب لقسم الأولياء
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Login Section */}
       {selectedUserType && (
-        <div ref={loginSectionRef} className="relative z-10 min-h-screen flex items-center justify-center p-8">
-          <div className={`w-full max-w-md transition-all duration-500 ${isExiting ? 'opacity-0 scale-90 translate-y-10' : 'slide-in-up'}`}>
+        <div ref={loginSectionRef} className="min-h-screen flex items-center justify-center p-6 bg-muted/50">
+          <div className={`w-full max-w-md transition-all duration-400 ${isExiting ? 'opacity-0 scale-95 translate-y-5' : 'animate-fadeInScale'}`}>
             <Button
               variant="ghost"
               onClick={handleBackToTop}
-              className="mb-4 text-white hover:bg-white/10"
+              className="mb-4 text-foreground hover:bg-accent/10 font-cairo"
               disabled={isExiting}
             >
               <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -650,18 +428,18 @@ const Index = () => {
               العودة للأعلى
             </Button>
 
-            <Card className="glass-card border-none shadow-2xl">
+            <Card className="border border-border shadow-sm">
               <CardHeader className="text-center">
                 {(() => {
                   const userInfo = getUserTypeInfo();
                   const IconComponent = userInfo?.icon;
                   return (
                     <>
-                      <div className={`mx-auto w-20 h-20 ${userInfo?.gradient} rounded-full flex items-center justify-center mb-4`}>
-                        {IconComponent && <IconComponent className="w-10 h-10 text-white" />}
+                      <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                        {IconComponent && <IconComponent className="w-8 h-8 text-primary" />}
                       </div>
-                      <CardTitle className="text-3xl font-cairo">{userInfo?.title}</CardTitle>
-                      <CardDescription className="font-cairo">
+                      <CardTitle className="text-2xl font-cairo">{userInfo?.title}</CardTitle>
+                      <CardDescription className="font-cairo text-sm">
                         {userInfo?.description}
                       </CardDescription>
                     </>
@@ -673,7 +451,7 @@ const Index = () => {
                 <CardContent className="space-y-4">
                   {selectedUserType !== "admin" && (
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="font-cairo">البريد الإلكتروني</Label>
+                      <Label htmlFor="email" className="font-cairo text-foreground">البريد الإلكتروني</Label>
                       <Input
                         id="email"
                         type="email"
@@ -687,7 +465,7 @@ const Index = () => {
                   )}
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="font-cairo">كلمة المرور</Label>
+                    <Label htmlFor="password" className="font-cairo text-foreground">كلمة المرور</Label>
                     <Input
                       id="password"
                       type="password"
@@ -713,20 +491,15 @@ const Index = () => {
                       </div>
                       <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto">
+                          <Button type="button" variant="link" className="text-sm text-primary p-0 h-auto font-cairo">
                             نسيت كلمة المرور؟
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-sm">
                           <DialogHeader className="text-center">
-                            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                              <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                              </svg>
-                            </div>
                             <DialogTitle className="text-xl font-cairo">استرجاع كلمة المرور</DialogTitle>
-                            <DialogDescription className="font-cairo text-center">
-                              أدخل بريدك الإلكتروني المسجل وسنرسل لك رابط لإعادة تعيين كلمة المرور خلال دقائق
+                            <DialogDescription className="font-cairo text-center text-sm">
+                              أدخل بريدك الإلكتروني المسجل وسنرسل لك رابط لإعادة تعيين كلمة المرور
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
@@ -745,25 +518,10 @@ const Index = () => {
                             <Button 
                               onClick={handleResetPassword} 
                               disabled={isResetting || !resetEmail}
-                              className="w-full font-cairo"
+                              className="w-full font-cairo bg-primary text-primary-foreground"
                               size="lg"
                             >
-                              {isResetting ? (
-                                <>
-                                  <svg className="animate-spin ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                                  جاري الإرسال...
-                                </>
-                              ) : (
-                                <>
-                                  إرسال رابط الاسترجاع
-                                  <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                  </svg>
-                                </>
-                              )}
+                              {isResetting ? "جاري الإرسال..." : "إرسال رابط الاسترجاع"}
                             </Button>
                             <p className="text-xs text-muted-foreground text-center font-cairo">
                               تحقق من صندوق البريد الوارد والرسائل غير المرغوب فيها
@@ -778,7 +536,7 @@ const Index = () => {
                 <CardFooter className="flex flex-col space-y-4">
                   <Button
                     type="submit"
-                    className={`w-full ${getUserTypeInfo()?.gradient} text-white font-cairo`}
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-cairo"
                     size="lg"
                     disabled={isLoading}
                   >
@@ -791,10 +549,10 @@ const Index = () => {
                       type="button"
                       variant="ghost"
                       onClick={() => navigate(getUserTypeInfo()?.registerPath || "")}
-                      className="w-full font-cairo"
+                      className="w-full font-cairo text-sm"
                     >
                       ليس لديك حساب؟{" "}
-                      <span className="text-purple-500 animate-pulse font-bold">سجل الآن</span>
+                      <span className="text-primary font-bold mr-1">سجل الآن</span>
                     </Button>
                   )}
                 </CardFooter>
@@ -803,11 +561,16 @@ const Index = () => {
           </div>
         </div>
       )}
-      
-      {/* App Version Display */}
-      <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
-        v{appVersion}
-      </div>
+
+      {/* Footer */}
+      <footer className="bg-primary text-primary-foreground py-4 text-center">
+        <p className="text-xs font-cairo opacity-70">
+          جميع الحقوق محفوظة — المدرسة الابتدائية العربي التبسي © 2026
+        </p>
+        <p className="text-xs font-cairo opacity-50 mt-1">
+          v{appVersion}
+        </p>
+      </footer>
     </div>
   );
 };
