@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -94,6 +95,7 @@ const Index = () => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [showTeacherWarning, setShowTeacherWarning] = useState(false);
   const loginSectionRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -540,7 +542,7 @@ const Index = () => {
 
           {/* Teacher Card */}
           <motion.div 
-            onClick={() => handleCardClick("teacher")}
+            onClick={() => setShowTeacherWarning(true)}
             className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
               selectedUserType === "teacher" 
                 ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
@@ -808,6 +810,44 @@ const Index = () => {
       <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
         v{appVersion}
       </div>
+
+      {/* Teacher Warning Dialog */}
+      <AlertDialog open={showTeacherWarning} onOpenChange={setShowTeacherWarning}>
+        <AlertDialogContent className="max-w-md border-destructive/50 bg-background" dir="rtl">
+          <AlertDialogHeader>
+            <div className="flex justify-center mb-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-destructive rounded-full blur-lg animate-pulse opacity-50" />
+                <div className="relative bg-destructive/10 rounded-full p-4 border-2 border-destructive">
+                  <GraduationCap className="w-10 h-10 text-destructive" />
+                </div>
+              </div>
+            </div>
+            <AlertDialogTitle className="text-center text-xl font-cairo text-destructive">
+              ⚠️ تنبيه رسمي
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center font-cairo text-base leading-relaxed space-y-2">
+              <p className="font-bold text-foreground">هذا القسم مخصص حصرياً للطاقم التربوي</p>
+              <p>التسجيل والدخول في هذا القسم مسموح فقط للمعلمين والأساتذة المعتمدين من إدارة المدرسة.</p>
+              <p className="text-destructive font-semibold">إذا كنت ولي أمر، يرجى استخدام قسم "أولياء الأمور".</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse gap-2 sm:flex-row-reverse">
+            <AlertDialogAction 
+              onClick={() => {
+                setShowTeacherWarning(false);
+                handleCardClick("teacher");
+              }}
+              className="bg-destructive hover:bg-destructive/90 font-cairo"
+            >
+              أنا معلم، متابعة
+            </AlertDialogAction>
+            <AlertDialogCancel className="font-cairo">
+              رجوع
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
