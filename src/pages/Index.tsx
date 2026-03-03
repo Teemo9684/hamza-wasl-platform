@@ -542,7 +542,7 @@ const Index = () => {
 
           {/* Teacher Card */}
           <motion.div 
-            onClick={() => handleCardClick("teacher")}
+            onClick={() => setShowTeacherWarning(true)}
             className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
               selectedUserType === "teacher" 
                 ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
