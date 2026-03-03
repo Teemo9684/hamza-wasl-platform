@@ -823,17 +823,17 @@ const Index = () => {
               <p className="text-destructive font-semibold">إذا كنت ولي أمر، يرجى استخدام قسم "أولياء الأمور".</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row-reverse gap-2 sm:flex-row-reverse">
+          <AlertDialogFooter className="flex flex-col gap-3 sm:flex-col">
             <AlertDialogAction 
               onClick={() => {
                 setShowTeacherWarning(false);
                 handleCardClick("teacher");
               }}
-              className="bg-destructive hover:bg-destructive/90 font-cairo"
+              className="w-full bg-destructive hover:bg-destructive/90 font-cairo text-base py-3"
             >
               أنا معلم، متابعة
             </AlertDialogAction>
-            <AlertDialogCancel className="font-cairo">
+            <AlertDialogCancel className="w-full font-cairo text-base py-3 mt-0 sm:mt-0">
               رجوع
             </AlertDialogCancel>
           </AlertDialogFooter>
