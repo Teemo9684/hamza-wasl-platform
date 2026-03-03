@@ -552,15 +552,6 @@ const Index = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
-            {/* تنبيه متوهج باللون الأحمر */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-              <div className="relative">
-                <div className="absolute inset-0 bg-red-500 rounded-full blur-md animate-pulse" />
-                <div className="relative bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full font-cairo shadow-lg border border-red-400 animate-pulse">
-                  ⚠️ للمعلمين فقط
-                </div>
-              </div>
-            </div>
 
             <div className="flex flex-col items-center text-center space-y-6">
               {/* Icon Container */}
@@ -824,7 +815,7 @@ const Index = () => {
               </div>
             </div>
             <AlertDialogTitle className="text-center text-xl font-cairo text-destructive">
-              ⚠️ تنبيه رسمي
+              ⚠️ تنبيه
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center font-cairo text-base leading-relaxed space-y-2">
               <p className="font-bold text-foreground">هذا القسم مخصص حصرياً للطاقم التربوي</p>
