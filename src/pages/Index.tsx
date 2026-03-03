@@ -95,6 +95,7 @@ const Index = () => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [showTeacherWarning, setShowTeacherWarning] = useState(false);
   const loginSectionRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
