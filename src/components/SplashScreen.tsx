@@ -49,9 +49,16 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
     };
   }, [phase, onFinish]);
 
+  // Show a solid background while image loads to prevent flicker
+  if (phase === 'loading') {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-primary/10 via-background to-primary/5" />
+    );
+  }
+
   return (
     <AnimatePresence>
-      {phase !== 'exit' ? (
+      {phase === 'logo' ? (
         <motion.div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5"
           initial={{ opacity: 0 }}
