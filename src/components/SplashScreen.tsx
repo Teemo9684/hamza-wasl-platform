@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import splashLogo from "@/assets/splash-logo.svg";
 
@@ -7,15 +7,38 @@ interface SplashScreenProps {
 }
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
-  const [phase, setPhase] = useState<'logo' | 'exit'>('logo');
+  const [phase, setPhase] = useState<'loading' | 'logo' | 'exit'>('loading');
+  const imageRef = useRef<HTMLImageElement | null>(null);
+
+  // Preload the image before showing anything
+  useEffect(() => {
+    const img = new Image();
+    img.src = splashLogo;
+    imageRef.current = img;
+    
+    const startSplash = () => {
+      setPhase('logo');
+    };
+
+    if (img.complete) {
+      startSplash();
+    } else {
+      img.onload = startSplash;
+      img.onerror = startSplash; // Show anyway if error
+    }
+
+    // Fallback: if image takes too long, show anyway
+    const fallback = setTimeout(startSplash, 500);
+    return () => clearTimeout(fallback);
+  }, []);
 
   useEffect(() => {
-    // Show logo for 4 seconds, then start exit animation
+    if (phase !== 'logo') return;
+
     const logoTimer = setTimeout(() => {
       setPhase('exit');
     }, 4000);
 
-    // Finish after exit animation completes
     const finishTimer = setTimeout(() => {
       onFinish();
     }, 4800);
@@ -24,11 +47,18 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
       clearTimeout(logoTimer);
       clearTimeout(finishTimer);
     };
-  }, [onFinish]);
+  }, [phase, onFinish]);
+
+  // Show a solid background while image loads to prevent flicker
+  if (phase === 'loading') {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-primary/10 via-background to-primary/5" />
+    );
+  }
 
   return (
     <AnimatePresence>
-      {phase !== 'exit' ? (
+      {phase === 'logo' ? (
         <motion.div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5"
           initial={{ opacity: 0 }}
