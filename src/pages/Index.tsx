@@ -810,6 +810,44 @@ const Index = () => {
       <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
         v{appVersion}
       </div>
+
+      {/* Teacher Warning Dialog */}
+      <AlertDialog open={showTeacherWarning} onOpenChange={setShowTeacherWarning}>
+        <AlertDialogContent className="max-w-md border-destructive/50 bg-background" dir="rtl">
+          <AlertDialogHeader>
+            <div className="flex justify-center mb-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-destructive rounded-full blur-lg animate-pulse opacity-50" />
+                <div className="relative bg-destructive/10 rounded-full p-4 border-2 border-destructive">
+                  <GraduationCap className="w-10 h-10 text-destructive" />
+                </div>
+              </div>
+            </div>
+            <AlertDialogTitle className="text-center text-xl font-cairo text-destructive">
+              ⚠️ تنبيه رسمي
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center font-cairo text-base leading-relaxed space-y-2">
+              <p className="font-bold text-foreground">هذا القسم مخصص حصرياً للطاقم التربوي</p>
+              <p>التسجيل والدخول في هذا القسم مسموح فقط للمعلمين والأساتذة المعتمدين من إدارة المدرسة.</p>
+              <p className="text-destructive font-semibold">إذا كنت ولي أمر، يرجى استخدام قسم "أولياء الأمور".</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse gap-2 sm:flex-row-reverse">
+            <AlertDialogAction 
+              onClick={() => {
+                setShowTeacherWarning(false);
+                handleCardClick("teacher");
+              }}
+              className="bg-destructive hover:bg-destructive/90 font-cairo"
+            >
+              أنا معلم، متابعة
+            </AlertDialogAction>
+            <AlertDialogCancel className="font-cairo">
+              رجوع
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
