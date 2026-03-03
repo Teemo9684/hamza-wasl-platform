@@ -33,20 +33,18 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   }, []);
 
   useEffect(() => {
-    if (phase !== 'logo') return;
-
-    const logoTimer = setTimeout(() => {
-      setPhase('exit');
-    }, 4000);
-
-    const finishTimer = setTimeout(() => {
-      onFinish();
-    }, 4800);
-
-    return () => {
-      clearTimeout(logoTimer);
-      clearTimeout(finishTimer);
-    };
+    if (phase === 'logo') {
+      const logoTimer = setTimeout(() => {
+        setPhase('exit');
+      }, 4000);
+      return () => clearTimeout(logoTimer);
+    }
+    if (phase === 'exit') {
+      const finishTimer = setTimeout(() => {
+        onFinish();
+      }, 800);
+      return () => clearTimeout(finishTimer);
+    }
   }, [phase, onFinish]);
 
   // Show a solid background while image loads to prevent flicker
