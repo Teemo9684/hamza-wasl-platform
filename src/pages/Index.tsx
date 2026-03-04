@@ -504,7 +504,8 @@ const Index = () => {
         <motion.div variants={itemVariants} className="w-full">
           <PostersCarousel />
         </motion.div>
-        </motion.div>
+
+
 
         {/* Cards Grid */}
         <motion.div 
