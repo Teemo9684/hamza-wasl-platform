@@ -96,6 +96,50 @@
     --glass-border: rgba(255, 255, 255, 0.125);
     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   }
+
+  /* Ramadan Theme */
+  .ramadan {
+    --background: 230 30% 12%;
+    --foreground: 45 30% 90%;
+
+    --card: 230 25% 16%;
+    --card-foreground: 45 30% 90%;
+
+    --popover: 230 25% 16%;
+    --popover-foreground: 45 30% 90%;
+
+    --primary: 150 35% 35%;
+    --primary-foreground: 45 80% 90%;
+    --primary-light: 150 30% 45%;
+    --primary-dark: 150 40% 25%;
+
+    --secondary: 45 60% 45%;
+    --secondary-foreground: 230 30% 10%;
+    --secondary-light: 45 50% 55%;
+    --secondary-dark: 45 70% 35%;
+
+    --accent: 230 40% 45%;
+    --accent-foreground: 45 80% 90%;
+
+    --muted: 230 20% 20%;
+    --muted-foreground: 45 15% 60%;
+
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 230 20% 25%;
+    --input: 230 20% 22%;
+    --ring: 45 60% 50%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(150, 35%, 35%), hsl(230, 40%, 35%));
+    --gradient-secondary: linear-gradient(135deg, hsl(45, 60%, 45%), hsl(150, 35%, 35%));
+    --gradient-accent: linear-gradient(135deg, hsl(230, 40%, 45%), hsl(45, 60%, 45%));
+    --gradient-hero: linear-gradient(135deg, hsl(230, 40%, 15%) 0%, hsl(230, 35%, 12%) 50%, hsl(220, 30%, 10%) 100%);
+
+    --glass-bg: rgba(15, 20, 40, 0.85);
+    --glass-border: rgba(218, 165, 32, 0.15);
+    --glass-shadow: 0 8px 32px 0 rgba(218, 165, 32, 0.1);
+  }
 }
 
 @layer base {
@@ -946,5 +990,60 @@
 
   .splash-particle {
     animation: splash-particle 0.8s ease-out forwards;
+  }
+
+  /* ========== Ramadan Theme Animations ========== */
+
+  /* Ramadan gradient background */
+  .ramadan-gradient-bg {
+    background: linear-gradient(
+      180deg,
+      hsl(230, 40%, 8%) 0%,
+      hsl(230, 35%, 12%) 30%,
+      hsl(220, 30%, 15%) 60%,
+      hsl(230, 40%, 10%) 100%
+    );
+  }
+
+  @keyframes ramadan-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(2deg); }
+    50% { transform: translateY(-15px) rotate(-1deg); }
+    75% { transform: translateY(-6px) rotate(1deg); }
+  }
+
+  .ramadan-float {
+    animation: ramadan-float 8s ease-in-out infinite;
+  }
+
+  @keyframes ramadan-twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .ramadan-twinkle {
+    animation: ramadan-twinkle 3s ease-in-out infinite;
+  }
+
+  @keyframes ramadan-swing {
+    0%, 100% { transform: rotate(0deg); transform-origin: top center; }
+    25% { transform: rotate(3deg); }
+    75% { transform: rotate(-3deg); }
+  }
+
+  .ramadan-swing {
+    animation: ramadan-swing 5s ease-in-out infinite;
+  }
+
+  /* Ramadan animated gradient - replaces default on homepage */
+  .ramadan .animated-gradient-bg {
+    background: linear-gradient(
+      180deg,
+      hsl(230, 40%, 8%) 0%,
+      hsl(230, 35%, 12%) 30%,
+      hsl(220, 30%, 15%) 60%,
+      hsl(230, 40%, 10%) 100%
+    );
+    animation: none;
   }
 }
