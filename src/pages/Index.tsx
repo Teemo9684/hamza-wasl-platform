@@ -17,6 +17,7 @@ import { PostersCarousel } from "@/components/PostersCarousel";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { useAppVersion } from "@/hooks/useAppVersion";
+import { RamadanDecorations, RamadanBanner } from "@/components/RamadanDecorations";
 
 // Stagger animation variants
 const containerVariants = {
@@ -390,6 +391,9 @@ const Index = () => {
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 animated-gradient-bg" />
 
+      {/* Ramadan Decorations */}
+      <RamadanDecorations />
+
       {/* News Ticker */}
       {newsItems.length > 0 && (
         <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
@@ -493,10 +497,15 @@ const Index = () => {
           </motion.div>
         </motion.div>
 
+        {/* Ramadan Welcome Banner */}
+        <RamadanBanner />
+
         {/* Posters Carousel */}
         <motion.div variants={itemVariants} className="w-full">
           <PostersCarousel />
         </motion.div>
+
+
 
         {/* Cards Grid */}
         <motion.div 

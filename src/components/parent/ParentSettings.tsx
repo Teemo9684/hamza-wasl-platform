@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2, Info } from "lucide-react";
+import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2, Info, Moon } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useAppVersion } from "@/hooks/useAppVersion";
 import { supabase } from "@/integrations/supabase/client";
 import { lightHaptic, successHaptic, errorHaptic, warningHaptic } from "@/utils/haptics";
 import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +30,7 @@ interface ParentSettingsProps {
 
 export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps) => {
   const { version: appVersion } = useAppVersion();
+  const { isRamadanMode, toggleRamadanMode } = useTheme();
   const [profile, setProfile] = useState({
     full_name: "",
     phone: "",
@@ -404,6 +407,36 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
           </CardContent>
         </Card>
       )}
+
+      {/* Ramadan Theme Toggle */}
+      <Card className="border-[hsl(45,60%,40%)]/30 bg-gradient-to-br from-[hsl(150,20%,15%)]/10 to-[hsl(230,20%,15%)]/10">
+        <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
+          <CardTitle className="text-base md:text-lg flex items-center gap-2">
+            <Moon className="h-5 w-5 text-[hsl(45,70%,50%)]" />
+            الوضع الرمضاني
+          </CardTitle>
+          <CardDescription>تفعيل تصميم خاص بشهر رمضان المبارك</CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 md:p-6 pt-2">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[hsl(45,60%,50%)]/20 rounded-lg">
+                <Moon className="w-5 h-5 text-[hsl(45,70%,50%)]" />
+              </div>
+              <div>
+                <Label className="text-base font-medium">وضع رمضان</Label>
+                <p className="text-sm text-muted-foreground">
+                  خلفية ليلية مع زخارف رمضانية أنيقة
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={isRamadanMode}
+              onCheckedChange={toggleRamadanMode}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* App Version */}
       <div className="text-center pt-4 pb-2">
