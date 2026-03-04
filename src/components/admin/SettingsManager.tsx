@@ -52,6 +52,7 @@ export const SettingsManager = () => {
   const [checkingBuild, setCheckingBuild] = useState(false);
 
   const { toast } = useToast();
+  const { isRamadanMode, toggleRamadanMode } = useTheme();
 
   useEffect(() => {
     fetchSettings();
@@ -509,7 +510,34 @@ export const SettingsManager = () => {
         </CardContent>
       </Card>
 
-      {/* APK Build Section */}
+      {/* Ramadan Theme */}
+      <Card className="border-[hsl(45,60%,40%)]/30">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Moon className="w-5 h-5 text-[hsl(45,70%,50%)]" />
+            الوضع الرمضاني
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[hsl(45,60%,50%)]/20 rounded-lg">
+                <Moon className="w-5 h-5 text-[hsl(45,70%,50%)]" />
+              </div>
+              <div>
+                <Label className="text-base font-medium">تفعيل وضع رمضان</Label>
+                <p className="text-sm text-muted-foreground">
+                  تصميم خاص بشهر رمضان المبارك مع خلفية ليلية وزخارف إسلامية
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={isRamadanMode}
+              onCheckedChange={toggleRamadanMode}
+            />
+          </div>
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center gap-2">
