@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getItem, setItem } from '@/utils/nativeStorage';
 
 interface ThemeContextType {
   isLoading: boolean;
@@ -9,16 +10,29 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const RAMADAN_CACHE_KEY = 'ramadan_mode';
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isRamadanMode, setIsRamadanMode] = useState(() => {
-    const saved = localStorage.getItem('ramadan_mode');
-    return saved === 'true';
-  });
+  const [isRamadanMode, setIsRamadanMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch global setting from database
+  // Load cached value from native storage first, then fetch from DB
   useEffect(() => {
-    const fetchTheme = async () => {
+    let cancelled = false;
+
+    const init = async () => {
+      // 1. Load cached value immediately (survives OTA updates on Android)
+      try {
+        const cached = await getItem(RAMADAN_CACHE_KEY);
+        if (!cancelled && cached === 'true') {
+          setIsRamadanMode(true);
+          document.documentElement.classList.add('ramadan');
+        }
+      } catch (e) {
+        console.log('Error loading cached theme:', e);
+      }
+
+      // 2. Fetch authoritative value from database
       try {
         const { data } = await supabase
           .from('theme_settings')
@@ -26,16 +40,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .eq('theme_name', 'ramadan')
           .maybeSingle();
 
-        const active = data?.is_active ?? false;
-        setIsRamadanMode(active);
-        localStorage.setItem('ramadan_mode', String(active));
+        if (!cancelled) {
+          const active = data?.is_active ?? false;
+          setIsRamadanMode(active);
+          await setItem(RAMADAN_CACHE_KEY, String(active));
+        }
       } catch (e) {
         console.log('Error fetching theme:', e);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
-    fetchTheme();
+
+    init();
 
     // Listen for realtime changes
     const channel = supabase
@@ -44,16 +61,20 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         event: '*',
         schema: 'public',
         table: 'theme_settings',
-      }, (payload: any) => {
+      }, async (payload: any) => {
         const row = payload.new;
         if (row?.theme_name === 'ramadan') {
-          setIsRamadanMode(row.is_active ?? false);
-          localStorage.setItem('ramadan_mode', String(row.is_active ?? false));
+          const active = row.is_active ?? false;
+          setIsRamadanMode(active);
+          await setItem(RAMADAN_CACHE_KEY, String(active));
         }
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -67,9 +88,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const toggleRamadanMode = useCallback(async () => {
     const newValue = !isRamadanMode;
     setIsRamadanMode(newValue);
-    localStorage.setItem('ramadan_mode', String(newValue));
+    await setItem(RAMADAN_CACHE_KEY, String(newValue));
 
-    // Upsert in database
     const { data: existing } = await supabase
       .from('theme_settings')
       .select('id')
