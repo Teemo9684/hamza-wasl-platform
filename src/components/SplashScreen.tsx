@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import splashLogo from "@/assets/splash-logo.svg";
+import splashLogoImport from "@/assets/splash-logo.svg";
+
+// Fallback: if the hashed asset path breaks after OTA, use the original path
+const splashLogo = splashLogoImport || "/assets/splash-logo.svg";
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -24,7 +27,13 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
       startSplash();
     } else {
       img.onload = startSplash;
-      img.onerror = startSplash; // Show anyway if error
+      img.onerror = () => {
+        // Try public fallback path if hashed asset fails after OTA
+        console.log('[SplashScreen] Primary logo failed, trying fallback');
+        img.src = "/assets/splash-logo.svg";
+        img.onload = startSplash;
+        img.onerror = startSplash; // Show anyway
+      };
     }
 
     // Fallback: if image takes too long, show anyway
