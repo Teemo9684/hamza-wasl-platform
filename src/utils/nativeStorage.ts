@@ -4,6 +4,7 @@ import { Capacitor } from "@capacitor/core";
 // Uses Capacitor Preferences for native platforms (more persistent than localStorage)
 
 let Preferences: typeof import("@capacitor/preferences").Preferences | null = null;
+let preferencesReady: Promise<void> | null = null;
 
 // Initialize Preferences dynamically
 const initPreferences = async () => {
@@ -17,8 +18,15 @@ const initPreferences = async () => {
   }
 };
 
-// Initialize on module load
-initPreferences();
+// Initialize on module load and store the promise
+preferencesReady = initPreferences();
+
+// Ensure preferences are ready before any operation
+const ensureReady = async () => {
+  if (preferencesReady) {
+    await preferencesReady;
+  }
+};
 
 /**
  * Set a value in persistent storage
