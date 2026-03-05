@@ -34,19 +34,23 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       // 2. Fetch authoritative value from database
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('theme_settings')
           .select('is_active')
           .eq('theme_name', 'ramadan')
           .maybeSingle();
 
-        if (!cancelled) {
-          const active = data?.is_active ?? false;
+        // Only update if we got a real response (not network error or null)
+        if (!cancelled && !error && data !== null) {
+          const active = data.is_active ?? false;
           setIsRamadanMode(active);
           await setItem(RAMADAN_CACHE_KEY, String(active));
+          console.log('[ThemeContext] DB value:', active);
+        } else if (error) {
+          console.log('[ThemeContext] DB fetch error, keeping cached value:', error.message);
         }
       } catch (e) {
-        console.log('Error fetching theme:', e);
+        console.log('[ThemeContext] Network error, keeping cached value:', e);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
