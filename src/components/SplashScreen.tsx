@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import splashLogo from "@/assets/splash-logo.svg";
+import splashLogoImport from "@/assets/splash-logo.svg";
+
+// Fallback: if the hashed asset path breaks after OTA, use the original path
+const splashLogo = splashLogoImport || "/assets/splash-logo.svg";
 
 interface SplashScreenProps {
   onFinish: () => void;
