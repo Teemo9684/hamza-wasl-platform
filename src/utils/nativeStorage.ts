@@ -4,6 +4,7 @@ import { Capacitor } from "@capacitor/core";
 // Uses Capacitor Preferences for native platforms (more persistent than localStorage)
 
 let Preferences: typeof import("@capacitor/preferences").Preferences | null = null;
+let preferencesReady: Promise<void> | null = null;
 
 // Initialize Preferences dynamically
 const initPreferences = async () => {
@@ -17,14 +18,22 @@ const initPreferences = async () => {
   }
 };
 
-// Initialize on module load
-initPreferences();
+// Initialize on module load and store the promise
+preferencesReady = initPreferences();
+
+// Ensure preferences are ready before any operation
+const ensureReady = async () => {
+  if (preferencesReady) {
+    await preferencesReady;
+  }
+};
 
 /**
  * Set a value in persistent storage
  * Uses Capacitor Preferences on native, localStorage on web
  */
 export const setItem = async (key: string, value: string): Promise<void> => {
+  await ensureReady();
   if (Capacitor.isNativePlatform() && Preferences) {
     await Preferences.set({ key, value });
   } else {
@@ -37,6 +46,7 @@ export const setItem = async (key: string, value: string): Promise<void> => {
  * Uses Capacitor Preferences on native, localStorage on web
  */
 export const getItem = async (key: string): Promise<string | null> => {
+  await ensureReady();
   if (Capacitor.isNativePlatform() && Preferences) {
     const { value } = await Preferences.get({ key });
     return value;
@@ -50,6 +60,7 @@ export const getItem = async (key: string): Promise<string | null> => {
  * Uses Capacitor Preferences on native, localStorage on web
  */
 export const removeItem = async (key: string): Promise<void> => {
+  await ensureReady();
   if (Capacitor.isNativePlatform() && Preferences) {
     await Preferences.remove({ key });
   } else {
@@ -61,6 +72,7 @@ export const removeItem = async (key: string): Promise<void> => {
  * Clear all values from persistent storage
  */
 export const clear = async (): Promise<void> => {
+  await ensureReady();
   if (Capacitor.isNativePlatform() && Preferences) {
     await Preferences.clear();
   } else {
