@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-// Use URL import to ensure the path works after OTA bundle updates
-import splashLogo from "@/assets/splash-logo.svg?url";
+import splashLogo from "@/assets/splash-logo.svg";
 
 interface SplashScreenProps {
   onFinish: () => void;
