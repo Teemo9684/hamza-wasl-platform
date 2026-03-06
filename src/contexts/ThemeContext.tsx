@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { getItem, setItem } from '@/utils/nativeStorage';
 
 interface ThemeContextType {
   isLoading: boolean;
@@ -10,29 +9,43 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const RAMADAN_CACHE_KEY = 'ramadan_mode';
+const RAMADAN_CACHE_KEY = 'ramadan_mode_active';
+
+// Synchronous localStorage read for instant UI on both PWA and Android WebView
+const getCachedRamadan = (): boolean => {
+  try {
+    return localStorage.getItem(RAMADAN_CACHE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+const setCachedRamadan = (value: boolean) => {
+  try {
+    localStorage.setItem(RAMADAN_CACHE_KEY, String(value));
+  } catch {
+    // ignore
+  }
+};
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isRamadanMode, setIsRamadanMode] = useState(false);
+  // Initialize from localStorage synchronously - works on both PWA and Android WebView
+  const [isRamadanMode, setIsRamadanMode] = useState(() => getCachedRamadan());
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load cached value from native storage first, then fetch from DB
+  // Apply class immediately based on initial state
+  useEffect(() => {
+    if (isRamadanMode) {
+      document.documentElement.classList.add('ramadan');
+    }
+  }, []);
+
+  // Fetch from DB and subscribe to realtime - same pattern as posters
   useEffect(() => {
     let cancelled = false;
+    let retryTimeout: ReturnType<typeof setTimeout>;
 
-    const init = async () => {
-      // 1. Load cached value immediately (survives OTA updates on Android)
-      try {
-        const cached = await getItem(RAMADAN_CACHE_KEY);
-        if (!cancelled && cached === 'true') {
-          setIsRamadanMode(true);
-          document.documentElement.classList.add('ramadan');
-        }
-      } catch (e) {
-        console.log('Error loading cached theme:', e);
-      }
-
-      // 2. Fetch authoritative value from database
+    const fetchTheme = async (attempt = 0) => {
       try {
         const { data, error } = await supabase
           .from('theme_settings')
@@ -40,47 +53,58 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .eq('theme_name', 'ramadan')
           .maybeSingle();
 
-        // Only update if we got a real response (not network error or null)
-        if (!cancelled && !error && data !== null) {
+        if (cancelled) return;
+
+        if (!error && data !== null) {
           const active = data.is_active ?? false;
           setIsRamadanMode(active);
-          await setItem(RAMADAN_CACHE_KEY, String(active));
+          setCachedRamadan(active);
           console.log('[ThemeContext] DB value:', active);
         } else if (error) {
-          console.log('[ThemeContext] DB fetch error, keeping cached value:', error.message);
+          console.log('[ThemeContext] DB error:', error.message);
+          // Retry up to 3 times with delay (handles Android cold start)
+          if (attempt < 3) {
+            retryTimeout = setTimeout(() => fetchTheme(attempt + 1), 2000 * (attempt + 1));
+          }
         }
       } catch (e) {
-        console.log('[ThemeContext] Network error, keeping cached value:', e);
+        console.log('[ThemeContext] Network error:', e);
+        if (attempt < 3) {
+          retryTimeout = setTimeout(() => fetchTheme(attempt + 1), 2000 * (attempt + 1));
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     };
 
-    init();
+    fetchTheme();
 
-    // Listen for realtime changes
+    // Realtime subscription - same as posters pattern
     const channel = supabase
       .channel('theme-changes')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'theme_settings',
-      }, async (payload: any) => {
+      }, (payload: any) => {
         const row = payload.new;
         if (row?.theme_name === 'ramadan') {
           const active = row.is_active ?? false;
           setIsRamadanMode(active);
-          await setItem(RAMADAN_CACHE_KEY, String(active));
+          setCachedRamadan(active);
+          console.log('[ThemeContext] Realtime update:', active);
         }
       })
       .subscribe();
 
     return () => {
       cancelled = true;
+      clearTimeout(retryTimeout);
       supabase.removeChannel(channel);
     };
   }, []);
 
+  // Sync DOM class with state
   useEffect(() => {
     if (isRamadanMode) {
       document.documentElement.classList.add('ramadan');
@@ -92,7 +116,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const toggleRamadanMode = useCallback(async () => {
     const newValue = !isRamadanMode;
     setIsRamadanMode(newValue);
-    await setItem(RAMADAN_CACHE_KEY, String(newValue));
+    setCachedRamadan(newValue);
 
     const { data: existing } = await supabase
       .from('theme_settings')
