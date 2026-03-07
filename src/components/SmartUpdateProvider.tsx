@@ -41,21 +41,13 @@ export const SmartUpdateProvider = ({
   const [hasShownSuccess, setHasShownSuccess] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // تهيئة وتأكيد البندل
+  // Bundle is already marked as ready in main.tsx IMMEDIATELY on startup.
+  // No need to call markBundleAsReady() here - it was causing delays that
+  // exceeded the readyTimeout, causing the bundle to roll back.
   useEffect(() => {
     if (!checkNativeApp() || isInitialized) return;
-
-    const init = async () => {
-      setIsInitialized(true);
-      
-      // تأخير لضمان تحميل التطبيق بالكامل
-      setTimeout(async () => {
-        await markBundleAsReady();
-        console.log("[SmartUpdateProvider] Bundle marked as ready");
-      }, 3000);
-    };
-
-    init();
+    setIsInitialized(true);
+    console.log("[SmartUpdateProvider] Initialized (bundle already marked ready in main.tsx)");
   }, [isInitialized]);
 
   // عرض رسالة النجاح بعد التحديث
