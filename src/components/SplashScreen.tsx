@@ -12,69 +12,18 @@ interface SplashScreenProps {
 }
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
-  const [phase, setPhase] = useState<'loading' | 'logo' | 'exit'>('loading');
-  // Track the actual working logo src - KEY FIX: update this when fallback is used
-  const [logoSrc, setLogoSrc] = useState<string>(splashLogoImport || FALLBACK_LOGO);
+  const [phase, setPhase] = useState<'logo' | 'exit'>('logo');
 
-  // Preload the image and find a working src before showing
-  useEffect(() => {
-    let cancelled = false;
-
-    const tryLoad = (src: string): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(src);
-        img.onerror = () => reject();
-        img.src = src;
-      });
-    };
-
-    const loadLogo = async () => {
-      // Try hashed import first
-      try {
-        const src = await tryLoad(splashLogoImport || '');
-        if (!cancelled) {
-          setLogoSrc(src);
-          setPhase('logo');
-          return;
-        }
-      } catch {
-        console.log('[SplashScreen] Hashed import failed, trying fallback...');
-      }
-
-      // Try static fallback path
-      try {
-        const src = await tryLoad(FALLBACK_LOGO);
-        if (!cancelled) {
-          setLogoSrc(src);
-          setPhase('logo');
-          return;
-        }
-      } catch {
-        console.log('[SplashScreen] Fallback also failed, showing without logo');
-      }
-
-      // Both failed - show splash without logo
-      if (!cancelled) {
-        setLogoSrc('');
-        setPhase('logo');
-      }
-    };
-
-    loadLogo();
-
-    // Safety: don't wait more than 500ms for image
-    const fallbackTimer = setTimeout(() => {
-      if (!cancelled && phase === 'loading') {
-        setPhase('logo');
-      }
-    }, 500);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(fallbackTimer);
-    };
-  }, []);
+  const LogoImage = (
+    <img
+      src={LOGO_SRC}
+      alt="شعار التطبيق"
+      className="w-56 h-56 object-contain drop-shadow-2xl"
+      onError={(e) => {
+        (e.target as HTMLImageElement).style.display = 'none';
+      }}
+    />
+  );
 
   useEffect(() => {
     if (phase === 'logo') {
