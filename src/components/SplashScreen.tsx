@@ -1,78 +1,29 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import splashLogoImport from "@/assets/splash-logo.svg";
 
-// Static fallback path (non-hashed, survives OTA bundle swaps)
-const FALLBACK_LOGO = "/assets/splash-logo.svg";
+// ALWAYS use the static path from public/ folder.
+// Hashed imports (from src/assets/) break after OTA bundle swaps because
+// the new JS references a hash that doesn't exist in the old native shell.
+// The public/ path is stable and always available.
+const LOGO_SRC = "/assets/splash-logo.svg";
 
 interface SplashScreenProps {
   onFinish: () => void;
 }
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
-  const [phase, setPhase] = useState<'loading' | 'logo' | 'exit'>('loading');
-  // Track the actual working logo src - KEY FIX: update this when fallback is used
-  const [logoSrc, setLogoSrc] = useState<string>(splashLogoImport || FALLBACK_LOGO);
+  const [phase, setPhase] = useState<'logo' | 'exit'>('logo');
 
-  // Preload the image and find a working src before showing
-  useEffect(() => {
-    let cancelled = false;
-
-    const tryLoad = (src: string): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(src);
-        img.onerror = () => reject();
-        img.src = src;
-      });
-    };
-
-    const loadLogo = async () => {
-      // Try hashed import first
-      try {
-        const src = await tryLoad(splashLogoImport || '');
-        if (!cancelled) {
-          setLogoSrc(src);
-          setPhase('logo');
-          return;
-        }
-      } catch {
-        console.log('[SplashScreen] Hashed import failed, trying fallback...');
-      }
-
-      // Try static fallback path
-      try {
-        const src = await tryLoad(FALLBACK_LOGO);
-        if (!cancelled) {
-          setLogoSrc(src);
-          setPhase('logo');
-          return;
-        }
-      } catch {
-        console.log('[SplashScreen] Fallback also failed, showing without logo');
-      }
-
-      // Both failed - show splash without logo
-      if (!cancelled) {
-        setLogoSrc('');
-        setPhase('logo');
-      }
-    };
-
-    loadLogo();
-
-    // Safety: don't wait more than 500ms for image
-    const fallbackTimer = setTimeout(() => {
-      if (!cancelled && phase === 'loading') {
-        setPhase('logo');
-      }
-    }, 500);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(fallbackTimer);
-    };
-  }, []);
+  const LogoImage = (
+    <img
+      src={LOGO_SRC}
+      alt="شعار التطبيق"
+      className="w-56 h-56 object-contain drop-shadow-2xl"
+      onError={(e) => {
+        (e.target as HTMLImageElement).style.display = 'none';
+      }}
+    />
+  );
 
   useEffect(() => {
     if (phase === 'logo') {
@@ -85,24 +36,6 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
     }
   }, [phase, onFinish]);
 
-  // Solid background while image loads
-  if (phase === 'loading') {
-    return (
-      <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-primary/10 via-background to-primary/5" />
-    );
-  }
-
-  const LogoImage = logoSrc ? (
-    <img
-      src={logoSrc}
-      alt="شعار التطبيق"
-      className="w-56 h-56 object-contain drop-shadow-2xl"
-      // Hide alt text if image still fails at render time
-      onError={(e) => {
-        (e.target as HTMLImageElement).style.display = 'none';
-      }}
-    />
-  ) : null;
 
   return (
     <AnimatePresence>

@@ -13,6 +13,25 @@ if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add(`capacitor-${platform}`);
 }
 
+// CRITICAL: Mark bundle as ready IMMEDIATELY on native platforms
+// This MUST happen before anything else to prevent Capawesome LiveUpdate
+// from rolling back to the default bundle due to readyTimeout expiration.
+// The readyTimeout is 10s, but splash screen + React init can take longer.
+const markBundleReadyImmediately = async () => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { LiveUpdate } = await import("@capawesome/capacitor-live-update");
+      await LiveUpdate.ready();
+      console.log("[main] ✅ Bundle marked as ready IMMEDIATELY");
+    } catch (e) {
+      console.log("[main] LiveUpdate.ready() not available:", e);
+    }
+  }
+};
+
+// Fire immediately - don't await, let it run in parallel
+markBundleReadyImmediately();
+
 // Configure status bar for native platforms (dynamic import to avoid web issues)
 const configureStatusBar = async () => {
   if (Capacitor.isNativePlatform()) {
