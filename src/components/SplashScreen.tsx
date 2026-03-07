@@ -1,9 +1,11 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import splashLogoImport from "@/assets/splash-logo.svg";
 
-// Static fallback path (non-hashed, survives OTA bundle swaps)
-const FALLBACK_LOGO = "/assets/splash-logo.svg";
+// ALWAYS use the static path from public/ folder.
+// Hashed imports (from src/assets/) break after OTA bundle swaps because
+// the new JS references a hash that doesn't exist in the old native shell.
+// The public/ path is stable and always available.
+const LOGO_SRC = "/assets/splash-logo.svg";
 
 interface SplashScreenProps {
   onFinish: () => void;
