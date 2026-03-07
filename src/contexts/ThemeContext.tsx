@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ThemeContextType {
@@ -11,7 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const RAMADAN_CACHE_KEY = 'ramadan_mode_active';
 
-// Synchronous localStorage read for instant UI on both PWA and Android WebView
+// Synchronous localStorage read for instant UI
 const getCachedRamadan = (): boolean => {
   try {
     return localStorage.getItem(RAMADAN_CACHE_KEY) === 'true';
@@ -20,16 +21,23 @@ const getCachedRamadan = (): boolean => {
   }
 };
 
+// Save to BOTH localStorage AND nativeStorage (for Android OTA persistence)
 const setCachedRamadan = (value: boolean) => {
   try {
     localStorage.setItem(RAMADAN_CACHE_KEY, String(value));
   } catch {
     // ignore
   }
+  // Also persist to native storage (survives OTA bundle swaps on Android)
+  if (Capacitor.isNativePlatform()) {
+    import('@/utils/nativeStorage').then(({ setItem }) => {
+      setItem(RAMADAN_CACHE_KEY, String(value)).catch(() => {});
+    }).catch(() => {});
+  }
 };
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize from localStorage synchronously - works on both PWA and Android WebView
+  // Initialize from localStorage synchronously
   const [isRamadanMode, setIsRamadanMode] = useState(() => getCachedRamadan());
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,7 +48,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  // Fetch from DB and subscribe to realtime - same pattern as posters
+  // Fetch from DB and subscribe to realtime
   useEffect(() => {
     let cancelled = false;
     let retryTimeout: ReturnType<typeof setTimeout>;
@@ -62,11 +70,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           console.log('[ThemeContext] DB value:', active);
         } else if (error) {
           console.log('[ThemeContext] DB error:', error.message);
-          // Retry up to 3 times with delay (handles Android cold start)
           if (attempt < 3) {
             retryTimeout = setTimeout(() => fetchTheme(attempt + 1), 2000 * (attempt + 1));
           }
         }
+        // If data is null (no row), keep cached value - DON'T reset to false
       } catch (e) {
         console.log('[ThemeContext] Network error:', e);
         if (attempt < 3) {
@@ -79,7 +87,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     fetchTheme();
 
-    // Realtime subscription - same as posters pattern
+    // Realtime subscription
     const channel = supabase
       .channel('theme-changes')
       .on('postgres_changes', {
