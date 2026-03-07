@@ -36,24 +36,6 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
     }
   }, [phase, onFinish]);
 
-  // Solid background while image loads
-  if (phase === 'loading') {
-    return (
-      <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-primary/10 via-background to-primary/5" />
-    );
-  }
-
-  const LogoImage = logoSrc ? (
-    <img
-      src={logoSrc}
-      alt="شعار التطبيق"
-      className="w-56 h-56 object-contain drop-shadow-2xl"
-      // Hide alt text if image still fails at render time
-      onError={(e) => {
-        (e.target as HTMLImageElement).style.display = 'none';
-      }}
-    />
-  ) : null;
 
   return (
     <AnimatePresence>
