@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2, Info, Palette } from "lucide-react";
+import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2, Info, Palettette } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useAppVersion } from "@/hooks/useAppVersion";
 import { supabase } from "@/integrations/supabase/client";
 import { lightHaptic, successHaptic, errorHaptic, warningHaptic } from "@/utils/haptics";
 import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTh, THEME_OPTIONS, ThemeNameeme } from "@/contexts/ThemeContext";
 import {
   AlertDialog,
   AlertDialogAction,
