@@ -29,7 +29,8 @@ interface ParentSettingsProps {
 }
 
 export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps) => {
-  const { version: appVersion } activeTheme, setActiveThemRamadanMode, toggleRamadanMode } = useTheme();
+  const { version: appVersion } = useAppVersion();
+  const { activeTheme, setActiveTheme } = useTheme();
   const [profile, setProfile] = useState({
     full_name: "",
     phone: "",
