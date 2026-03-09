@@ -36,7 +36,7 @@ export const RamadanDecorations = () => {
   if (!isRamadanMode) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[5] overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-[5] overflow-hidden backdrop-blur-[2px]">
       {/* Crescent Moon - top right */}
       <div className="absolute top-20 right-8 md:right-16 ramadan-float">
         <CrescentMoon className="w-16 h-16 md:w-24 md:h-24 text-[hsl(45,80%,60%)] drop-shadow-[0_0_15px_rgba(218,165,32,0.4)]" />
