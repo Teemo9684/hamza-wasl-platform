@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, Shield, Smartphone, Loader2, Tag, Download, RefreshCw, Package, CheckCircle, CloudDownload, Sparkles, GitBranch, Palette } from "lucide-react";
+import { Bell, Shield, Smartphone, Loader2, Tag, Download, RefreshCw, Package, CheckCircle, CloudDownload, Sparkles, GitBranch, Palettette } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
@@ -52,7 +52,7 @@ export const SettingsManager = () => {
   const [checkingBuild, setCheckingBuild] = useState(false);
 
   const { toast } = useToast();
-  const { isRamadanMode, toggleRamadanMode } = useTheme();
+  constactiveTheme, setActiveThemMode } = useTheme();
 
   useEffect(() => {
     fetchSettings();
