@@ -19,7 +19,7 @@ const Lantern = ({ className = "" }: { className?: string }) => (
 );
 
 const Star = ({ className = "", style }: { className?: string; style?: React.CSSProperties }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" style={style}>
     <path d="M12 2l2.09 6.26L20.18 9l-4.64 4.27L16.82 20 12 16.9 7.18 20l1.27-6.73L3.82 9l6.09-.74z" />
   </svg>
 );

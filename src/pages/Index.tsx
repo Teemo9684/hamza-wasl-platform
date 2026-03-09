@@ -497,8 +497,8 @@ const Index = () => {
           </motion.div>
         </motion.div>
 
-        {/* Ramadan Welcome Banner */}
-        <RamadanBanner />
+        {/* Theme Welcome Banner */}
+        <ThemeBanner />
 
         {/* Posters Carousel */}
         <motion.div variants={itemVariants} className="w-full">
