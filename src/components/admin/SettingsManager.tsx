@@ -51,7 +51,8 @@ export const SettingsManager = () => {
   const [lastBuildInfo, setLastBuildInfo] = useState<GitHubBuildInfo | null>(null);
   const [checkingBuild, setCheckingBuild] = useState(false);
 
-  const { toast } = useT { activeTheme, setActiveThemetActiveThemMode } = useTheme();
+  const { toast } = useToast();
+  const { activeTheme, setActiveTheme } = useTheme();
 
   useEffect(() => {
     fetchSettings();
