@@ -391,8 +391,8 @@ const Index = () => {
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 animated-gradient-bg" />
 
-      {/* Ramadan Decorations */}
-      <RamadanDecorations />
+      {/* Theme Decorations */}
+      <ThemeDecorations />
 
       {/* News Ticker */}
       {newsItems.length > 0 && (
