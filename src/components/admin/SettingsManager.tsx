@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/config/version";
 import { OTAUpdatesManager } from "./OTAUpdatesManager";
-import { useTheme, THEME_OPTIONS } from "@/contexts/ThemeContext";
+import { useTheme, THEME_OPTIONS, THEME_OPTIONS } from "@/contexts/ThemeContext";
 
 interface NotificationSettings {
   enabled: boolean;
@@ -51,8 +51,7 @@ export const SettingsManager = () => {
   const [lastBuildInfo, setLastBuildInfo] = useState<GitHubBuildInfo | null>(null);
   const [checkingBuild, setCheckingBuild] = useState(false);
 
-  const { toast } = useToast();
-  constactiveTheme, setActiveThemMode } = useTheme();
+  const { toast } = useT { activeTheme, setActiveThemetActiveThemMode } = useTheme();
 
   useEffect(() => {
     fetchSettings();
