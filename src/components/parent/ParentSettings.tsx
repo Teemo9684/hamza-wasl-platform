@@ -407,32 +407,56 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
         </Card>
       )}
 
-      {/* Ramadan Theme Toggle */}
-      <Card className="border-[hsl(45,60%,40%)]/30 bg-gradient-to-br from-[hsl(150,20%,15%)]/10 to-[hsl(230,20%,15%)]/10">
+      {/* Theme Selector */}
+      <Card>
         <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
           <CardTitle className="text-base md:text-lg flex items-center gap-2">
-            <Moon className="h-5 w-5 text-[hsl(45,70%,50%)]" />
-            الوضع الرمضاني
+            <Palette className="h-5 w-5 text-primary" />
+            أوضاع المناسبات
           </CardTitle>
-          <CardDescription>تفعيل تصميم خاص بشهر رمضان المبارك</CardDescription>
+          <CardDescription>اختر وضعاً خاصاً بمناسبة معينة</CardDescription>
         </CardHeader>
         <CardContent className="p-4 md:p-6 pt-2">
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[hsl(45,60%,50%)]/20 rounded-lg">
-                <Moon className="w-5 h-5 text-[hsl(45,70%,50%)]" />
+          <div className="grid grid-cols-1 gap-3">
+            {/* No theme option */}
+            <button
+              onClick={() => { lightHaptic(); setActiveTheme(null); }}
+              className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                activeTheme === null
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-primary/40 bg-muted/30'
+              }`}
+            >
+              <div className="p-2 bg-muted rounded-lg text-xl">🎨</div>
+              <div className="text-right flex-1">
+                <p className="font-medium text-sm">الوضع العادي</p>
+                <p className="text-xs text-muted-foreground">بدون تأثيرات خاصة</p>
               </div>
-              <div>
-                <Label className="text-base font-medium">وضع رمضان</Label>
-                <p className="text-sm text-muted-foreground">
-                  خلفية ليلية مع زخارف رمضانية أنيقة
-                </p>
-              </div>
-            </div>
-            <Switch
-              checked={isRamadanMode}
-              onCheckedChange={toggleRamadanMode}
-            />
+              {activeTheme === null && (
+                <div className="w-3 h-3 rounded-full bg-primary" />
+              )}
+            </button>
+
+            {THEME_OPTIONS.map((theme) => (
+              <button
+                key={theme.name}
+                onClick={() => { lightHaptic(); setActiveTheme(activeTheme === theme.name ? null : theme.name); }}
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                  activeTheme === theme.name
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-primary/40 bg-muted/30'
+                }`}
+              >
+                <div className="p-2 bg-muted rounded-lg text-xl">{theme.icon}</div>
+                <div className="text-right flex-1">
+                  <p className="font-medium text-sm">{theme.label}</p>
+                  <p className="text-xs text-muted-foreground">{theme.description}</p>
+                </div>
+                {activeTheme === theme.name && (
+                  <div className="w-3 h-3 rounded-full bg-primary" />
+                )}
+              </button>
+            ))}
           </div>
         </CardContent>
       </Card>
