@@ -32,8 +32,8 @@ const GeometricPattern = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-const Confetti = ({ className = "", style }: { className?: string; style?: React.CSSProperties string; style?: React.CSSProperties string; style?: React.CSSProperties }) => (
-  <svg viewBox="0 0 24 24" classstyle={style} Name={className} fill="currentColor"style={style} >
+const Confetti = ({ className = "", style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" style={style}>
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
