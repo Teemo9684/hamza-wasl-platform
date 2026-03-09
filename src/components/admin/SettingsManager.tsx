@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, Shield, Smartphone, Loader2, Tag, Download, RefreshCw, Package, CheckCircle, CloudDownload, Sparkles, GitBranch, Palette } from "lucide-react";
+import { Bell, Shield, Smartphone, Loader2, Tag, Download, RefreshCw, Package, CheckCircle, CloudDownload, Sparkles, GitBranch, Palettefrom "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/config/version";
 import { OTAUpdatesManager } from "./OTAUpdatesManager";
-import { useTheme, THEME_OPTIONS, THEME_OPTIONS } from "@/contexts/ThemeContext";
+import { useTheme, THEME_OPTIONS, Tfrom "@/contexts/ThemeContext";
 
 interface NotificationSettings {
   enabled: boolean;
