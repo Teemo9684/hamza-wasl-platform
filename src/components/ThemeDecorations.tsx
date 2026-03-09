@@ -18,7 +18,7 @@ const Lantern = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-const Star = ({ className = "" }: { className?: string }) => (
+const Star = ({ className = "", style }: { className?: string; style?: React.CSSProperties }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor">
     <path d="M12 2l2.09 6.26L20.18 9l-4.64 4.27L16.82 20 12 16.9 7.18 20l1.27-6.73L3.82 9l6.09-.74z" />
   </svg>
@@ -32,8 +32,8 @@ const GeometricPattern = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-const Confetti = ({ className = "", style }: { className?: string; style?: React.CSSProperties string; style?: React.CSSProperties }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="currentColor"style={style} >
+const Confetti = ({ className = "", style }: { className?: string; style?: React.CSSProperties string; style?: React.CSSProperties string; style?: React.CSSProperties }) => (
+  <svg viewBox="0 0 24 24" classstyle={style} Name={className} fill="currentColor"style={style} >
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
