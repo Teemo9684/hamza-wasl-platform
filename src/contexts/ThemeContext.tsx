@@ -2,53 +2,72 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 
+export type ThemeName = 'ramadan' | 'eid-fitr' | 'eid-adha' | 'mawlid' | 'independence' | null;
+
+export const THEME_OPTIONS: { name: ThemeName; label: string; icon: string; description: string; cssClass: string }[] = [
+  { name: 'ramadan', label: 'رمضان', icon: '☪', description: 'خلفية ليلية مع زخارف رمضانية', cssClass: 'ramadan' },
+  { name: 'eid-fitr', label: 'عيد الفطر', icon: '🎉', description: 'ألوان مبهجة واحتفالية', cssClass: 'eid-fitr' },
+  { name: 'eid-adha', label: 'عيد الأضحى', icon: '🐑', description: 'زخارف إسلامية دافئة', cssClass: 'eid-adha' },
+  { name: 'mawlid', label: 'المولد النبوي', icon: '🕌', description: 'أجواء روحانية هادئة', cssClass: 'mawlid' },
+  { name: 'independence', label: 'عيد الاستقلال', icon: '🇩🇿', description: 'ألوان العلم الجزائري', cssClass: 'independence' },
+];
+
 interface ThemeContextType {
   isLoading: boolean;
+  activeTheme: ThemeName;
+  setActiveTheme: (theme: ThemeName) => void;
+  // Backwards compat
   isRamadanMode: boolean;
   toggleRamadanMode: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const RAMADAN_CACHE_KEY = 'ramadan_mode_active';
+const THEME_CACHE_KEY = 'active_theme';
 
-// Synchronous localStorage read for instant UI
-const getCachedRamadan = (): boolean => {
+const getCachedTheme = (): ThemeName => {
   try {
-    return localStorage.getItem(RAMADAN_CACHE_KEY) === 'true';
+    const v = localStorage.getItem(THEME_CACHE_KEY);
+    if (v && v !== 'null') return v as ThemeName;
+    // Legacy support
+    if (localStorage.getItem('ramadan_mode_active') === 'true') return 'ramadan';
+    return null;
   } catch {
-    return false;
+    return null;
   }
 };
 
-// Save to BOTH localStorage AND nativeStorage (for Android OTA persistence)
-const setCachedRamadan = (value: boolean) => {
+const setCachedTheme = (value: ThemeName) => {
   try {
-    localStorage.setItem(RAMADAN_CACHE_KEY, String(value));
-  } catch {
-    // ignore
-  }
-  // Also persist to native storage (survives OTA bundle swaps on Android)
+    localStorage.setItem(THEME_CACHE_KEY, String(value));
+    // Legacy cleanup
+    localStorage.removeItem('ramadan_mode_active');
+  } catch {}
   if (Capacitor.isNativePlatform()) {
     import('@/utils/nativeStorage').then(({ setItem }) => {
-      setItem(RAMADAN_CACHE_KEY, String(value)).catch(() => {});
+      setItem(THEME_CACHE_KEY, String(value)).catch(() => {});
     }).catch(() => {});
   }
 };
 
+const ALL_THEME_CLASSES = THEME_OPTIONS.map(t => t.cssClass);
+
+const applyThemeClass = (theme: ThemeName) => {
+  ALL_THEME_CLASSES.forEach(cls => document.documentElement.classList.remove(cls));
+  if (theme) {
+    const opt = THEME_OPTIONS.find(t => t.name === theme);
+    if (opt) document.documentElement.classList.add(opt.cssClass);
+  }
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize from localStorage synchronously
-  const [isRamadanMode, setIsRamadanMode] = useState(() => getCachedRamadan());
+  const [activeTheme, setActiveThemeState] = useState<ThemeName>(() => getCachedTheme());
   const [isLoading, setIsLoading] = useState(true);
 
-  // Apply class immediately based on initial state
-  useEffect(() => {
-    if (isRamadanMode) {
-      document.documentElement.classList.add('ramadan');
-    }
-  }, []);
+  // Apply class immediately
+  useEffect(() => { applyThemeClass(activeTheme); }, []);
 
-  // Fetch from DB and subscribe to realtime
+  // Fetch all theme_settings from DB and find the active one
   useEffect(() => {
     let cancelled = false;
     let retryTimeout: ReturnType<typeof setTimeout>;
@@ -57,29 +76,25 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         const { data, error } = await supabase
           .from('theme_settings')
-          .select('is_active')
-          .eq('theme_name', 'ramadan')
+          .select('theme_name, is_active')
+          .eq('is_active', true)
           .maybeSingle();
 
         if (cancelled) return;
 
         if (!error && data !== null) {
-          const active = data.is_active ?? false;
-          setIsRamadanMode(active);
-          setCachedRamadan(active);
-          console.log('[ThemeContext] DB value:', active);
-        } else if (error) {
-          console.log('[ThemeContext] DB error:', error.message);
-          if (attempt < 3) {
-            retryTimeout = setTimeout(() => fetchTheme(attempt + 1), 2000 * (attempt + 1));
-          }
-        }
-        // If data is null (no row), keep cached value - DON'T reset to false
-      } catch (e) {
-        console.log('[ThemeContext] Network error:', e);
-        if (attempt < 3) {
+          const name = data.theme_name as ThemeName;
+          setActiveThemeState(name);
+          setCachedTheme(name);
+        } else if (!error && data === null) {
+          // No active theme
+          setActiveThemeState(null);
+          setCachedTheme(null);
+        } else if (error && attempt < 3) {
           retryTimeout = setTimeout(() => fetchTheme(attempt + 1), 2000 * (attempt + 1));
         }
+      } catch {
+        if (attempt < 3) retryTimeout = setTimeout(() => fetchTheme(attempt + 1), 2000 * (attempt + 1));
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -87,20 +102,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     fetchTheme();
 
-    // Realtime subscription
     const channel = supabase
       .channel('theme-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'theme_settings',
-      }, (payload: any) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'theme_settings' }, (payload: any) => {
         const row = payload.new;
-        if (row?.theme_name === 'ramadan') {
-          const active = row.is_active ?? false;
-          setIsRamadanMode(active);
-          setCachedRamadan(active);
-          console.log('[ThemeContext] Realtime update:', active);
+        if (row?.is_active) {
+          setActiveThemeState(row.theme_name as ThemeName);
+          setCachedTheme(row.theme_name as ThemeName);
+        } else if (payload.eventType === 'UPDATE' && !row?.is_active) {
+          // If the currently active theme was deactivated
+          setActiveThemeState(prev => prev === row?.theme_name ? null : prev);
         }
       })
       .subscribe();
@@ -112,40 +123,54 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
-  // Sync DOM class with state
-  useEffect(() => {
-    if (isRamadanMode) {
-      document.documentElement.classList.add('ramadan');
-    } else {
-      document.documentElement.classList.remove('ramadan');
-    }
-  }, [isRamadanMode]);
+  // Sync DOM
+  useEffect(() => { applyThemeClass(activeTheme); }, [activeTheme]);
 
-  const toggleRamadanMode = useCallback(async () => {
-    const newValue = !isRamadanMode;
-    setIsRamadanMode(newValue);
-    setCachedRamadan(newValue);
+  const setActiveTheme = useCallback(async (theme: ThemeName) => {
+    const prev = activeTheme;
+    setActiveThemeState(theme);
+    setCachedTheme(theme);
 
-    const { data: existing } = await supabase
-      .from('theme_settings')
-      .select('id')
-      .eq('theme_name', 'ramadan')
-      .maybeSingle();
-
-    if (existing) {
+    // Deactivate previous
+    if (prev) {
       await supabase
         .from('theme_settings')
-        .update({ is_active: newValue, updated_at: new Date().toISOString() })
-        .eq('id', existing.id);
-    } else {
-      await supabase
-        .from('theme_settings')
-        .insert({ theme_name: 'ramadan', is_active: newValue });
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('theme_name', prev);
     }
-  }, [isRamadanMode]);
+
+    if (theme) {
+      const { data: existing } = await supabase
+        .from('theme_settings')
+        .select('id')
+        .eq('theme_name', theme)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('theme_settings')
+          .update({ is_active: true, updated_at: new Date().toISOString() })
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('theme_settings')
+          .insert({ theme_name: theme, is_active: true });
+      }
+    }
+  }, [activeTheme]);
+
+  const toggleRamadanMode = useCallback(() => {
+    setActiveTheme(activeTheme === 'ramadan' ? null : 'ramadan');
+  }, [activeTheme, setActiveTheme]);
 
   return (
-    <ThemeContext.Provider value={{ isLoading, isRamadanMode, toggleRamadanMode }}>
+    <ThemeContext.Provider value={{
+      isLoading,
+      activeTheme,
+      setActiveTheme,
+      isRamadanMode: activeTheme === 'ramadan',
+      toggleRamadanMode,
+    }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, Shield, Smartphone, Loader2, Tag, Download, RefreshCw, Package, CheckCircle, CloudDownload, Sparkles, GitBranch, Moon } from "lucide-react";
+import { Bell, Shield, Smartphone, Loader2, Tag, Download, RefreshCw, Package, CheckCircle, CloudDownload, Sparkles, GitBranch, Palette } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/config/version";
 import { OTAUpdatesManager } from "./OTAUpdatesManager";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme, THEME_OPTIONS } from "@/contexts/ThemeContext";
 
 interface NotificationSettings {
   enabled: boolean;
@@ -52,7 +52,7 @@ export const SettingsManager = () => {
   const [checkingBuild, setCheckingBuild] = useState(false);
 
   const { toast } = useToast();
-  const { isRamadanMode, toggleRamadanMode } = useTheme();
+  const { activeTheme, setActiveTheme } = useTheme();
 
   useEffect(() => {
     fetchSettings();
@@ -510,32 +510,50 @@ export const SettingsManager = () => {
         </CardContent>
       </Card>
 
-      {/* Ramadan Theme */}
-      <Card className="border-[hsl(45,60%,40%)]/30">
+      {/* Theme Modes */}
+      <Card>
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center gap-2">
-            <Moon className="w-5 h-5 text-[hsl(45,70%,50%)]" />
-            الوضع الرمضاني
+            <Palette className="w-5 h-5 text-primary" />
+            أوضاع المناسبات
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors">
+        <CardContent className="space-y-3">
+          {/* No theme */}
+          <button
+            onClick={() => setActiveTheme(null)}
+            className={`w-full flex items-center justify-between p-4 rounded-xl transition-colors ${
+              activeTheme === null ? 'bg-primary/10 border-2 border-primary' : 'bg-muted/50 hover:bg-muted/70 border-2 border-transparent'
+            }`}
+          >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[hsl(45,60%,50%)]/20 rounded-lg">
-                <Moon className="w-5 h-5 text-[hsl(45,70%,50%)]" />
-              </div>
-              <div>
-                <Label className="text-base font-medium">تفعيل وضع رمضان</Label>
-                <p className="text-sm text-muted-foreground">
-                  تصميم خاص بشهر رمضان المبارك مع خلفية ليلية وزخارف إسلامية
-                </p>
+              <div className="p-2 bg-muted rounded-lg text-xl">🎨</div>
+              <div className="text-right">
+                <Label className="text-base font-medium">الوضع العادي</Label>
+                <p className="text-sm text-muted-foreground">بدون تأثيرات خاصة</p>
               </div>
             </div>
-            <Switch
-              checked={isRamadanMode}
-              onCheckedChange={toggleRamadanMode}
-            />
-          </div>
+            {activeTheme === null && <div className="w-3 h-3 rounded-full bg-primary" />}
+          </button>
+
+          {THEME_OPTIONS.map((theme) => (
+            <button
+              key={theme.name}
+              onClick={() => setActiveTheme(activeTheme === theme.name ? null : theme.name)}
+              className={`w-full flex items-center justify-between p-4 rounded-xl transition-colors ${
+                activeTheme === theme.name ? 'bg-primary/10 border-2 border-primary' : 'bg-muted/50 hover:bg-muted/70 border-2 border-transparent'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-muted rounded-lg text-xl">{theme.icon}</div>
+                <div className="text-right">
+                  <Label className="text-base font-medium">{theme.label}</Label>
+                  <p className="text-sm text-muted-foreground">{theme.description}</p>
+                </div>
+              </div>
+              {activeTheme === theme.name && <div className="w-3 h-3 rounded-full bg-primary" />}
+            </button>
+          ))}
         </CardContent>
       </Card>
       <Card>

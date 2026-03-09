@@ -66,16 +66,19 @@ const restoreNativeSettings = async () => {
   try {
     const { getItem } = await import('./utils/nativeStorage');
     
-    // Restore Ramadan mode cache
+    // Restore active theme cache
+    const themeCache = await getItem('active_theme');
+    if (themeCache !== null && themeCache !== 'null') {
+      localStorage.setItem('active_theme', themeCache);
+      document.documentElement.classList.add(themeCache === 'ramadan' ? 'ramadan' : themeCache);
+      console.log('[main] Restored active_theme from nativeStorage:', themeCache);
+    }
+    
+    // Legacy: restore ramadan_mode_active
     const ramadanCache = await getItem('ramadan_mode_active');
-    if (ramadanCache !== null) {
-      localStorage.setItem('ramadan_mode_active', ramadanCache);
-      console.log('[main] Restored ramadan_mode_active from nativeStorage:', ramadanCache);
-      
-      // Apply ramadan class immediately if active (before React renders)
-      if (ramadanCache === 'true') {
-        document.documentElement.classList.add('ramadan');
-      }
+    if (ramadanCache === 'true' && !themeCache) {
+      localStorage.setItem('active_theme', 'ramadan');
+      document.documentElement.classList.add('ramadan');
     }
   } catch (e) {
     console.log('[main] Failed to restore native settings:', e);
