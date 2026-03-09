@@ -1157,7 +1157,7 @@
     50% { opacity: 1; transform: scale(1.2); }
   }
 
-  .ramadan-twinkle {
+  .ramadan-twinkle, .theme-twinkle {
     animation: ramadan-twinkle 3s ease-in-out infinite;
   }
 
