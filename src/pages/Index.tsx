@@ -17,7 +17,7 @@ import { PostersCarousel } from "@/components/PostersCarousel";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { useAppVersion } from "@/hooks/useAppVersion";
-import { RamadanDecorations, RamadanBanner } from "@/components/RamadanDecorations";
+import { ThemeDecorations, ThemeBanner } from "@/components/ThemeDecorations";
 
 // Stagger animation variants
 const containerVariants = {
