@@ -87,18 +87,13 @@ export const RamadanBanner = () => {
   if (!isRamadanMode) return null;
 
   return (
-    <div className="w-full max-w-4xl mx-auto mb-6 px-4">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[hsl(150,40%,20%)] via-[hsl(230,40%,20%)] to-[hsl(150,40%,20%)] border border-[hsl(45,60%,40%)]/30 px-6 py-4 text-center shadow-[0_0_30px_rgba(218,165,32,0.15)]">
-        {/* Subtle glow */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[hsl(45,80%,50%)]/5 to-transparent" />
-        
-        <p className="relative text-lg md:text-xl font-bold font-cairo text-[hsl(45,70%,70%)] leading-relaxed">
-          ☪ رمضان مبارك ☪
-        </p>
-        <p className="relative text-sm md:text-base font-cairo text-[hsl(45,50%,60%)] mt-1">
-          تقبل الله منا ومنكم صالح الأعمال
-        </p>
-      </div>
+    <div className="w-full max-w-4xl mx-auto mb-4 px-4 text-center">
+      <p className="text-lg md:text-xl font-bold font-cairo text-[hsl(45,70%,70%)] leading-relaxed drop-shadow-[0_0_10px_rgba(218,165,32,0.3)]">
+        ☪ رمضان مبارك ☪
+      </p>
+      <p className="text-sm md:text-base font-cairo text-[hsl(45,50%,60%)] mt-1 drop-shadow-[0_0_8px_rgba(218,165,32,0.2)]">
+        تقبل الله منا ومنكم صالح الأعمال
+      </p>
     </div>
   );
 };
