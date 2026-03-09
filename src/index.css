@@ -1148,7 +1148,7 @@
     75% { transform: translateY(-6px) rotate(1deg); }
   }
 
-  .ramadan-float {
+  .ramadan-float, .theme-float {
     animation: ramadan-float 8s ease-in-out infinite;
   }
 
