@@ -52,7 +52,7 @@ export const SettingsManager = () => {
   const [checkingBuild, setCheckingBuild] = useState(false);
 
   const { toast } = useToast();
-  const { activeTheme, setActiveTheme } = useTheme();
+  
 
   useEffect(() => {
     fetchSettings();
