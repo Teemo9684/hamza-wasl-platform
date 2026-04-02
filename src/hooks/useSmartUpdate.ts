@@ -64,7 +64,7 @@ export const useSmartUpdate = () => {
 
   const isNative = isNativeApp();
   const checkInProgress = useRef(false);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasInitialized = useRef(false);
 
   // تحديث حالة الاتصال
