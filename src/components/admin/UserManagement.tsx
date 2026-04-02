@@ -32,6 +32,7 @@ interface UserProfile {
   phone: string | null;
   created_at: string;
   role?: string;
+  student_names?: string[];
 }
 
 interface PendingApproval {
