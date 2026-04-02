@@ -897,6 +897,8 @@ export type Database = {
           id: string
           phone: string
           role: Database["public"]["Enums"]["app_role"]
+          student_grade: string
+          student_name: string
         }[]
       }
       has_role: {

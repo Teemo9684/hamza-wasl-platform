@@ -40,6 +40,8 @@ interface PendingApproval {
   phone: string | null;
   created_at: string;
   role: "admin" | "teacher" | "parent" | null;
+  student_name: string | null;
+  student_grade: string | null;
 }
 
 
@@ -327,6 +329,18 @@ export const UserManagement = () => {
                                 {getRoleBadge(approval.role)}
                                 <span className="font-cairo">:الصفة</span>
                               </div>
+                            )}
+                            {approval.role === 'parent' && approval.student_name && (
+                              <p className="flex items-center justify-end gap-2 font-cairo">
+                                <span className="font-medium text-foreground">{approval.student_name}</span>
+                                <span>:اسم التلميذ</span>
+                              </p>
+                            )}
+                            {approval.role === 'parent' && approval.student_grade && (
+                              <p className="flex items-center justify-end gap-2 font-cairo">
+                                <span className="font-medium text-foreground">{approval.student_grade}</span>
+                                <span>:القسم</span>
+                              </p>
                             )}
                           </div>
                         </div>
