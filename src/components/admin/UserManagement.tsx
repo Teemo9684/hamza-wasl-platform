@@ -32,6 +32,7 @@ interface UserProfile {
   phone: string | null;
   created_at: string;
   role?: string;
+  student_names?: string[];
 }
 
 interface PendingApproval {
@@ -116,9 +117,35 @@ export const UserManagement = () => {
 
       if (profilesError) throw profilesError;
 
+      // For parents, fetch linked student names
+      let studentMap: Record<string, string[]> = {};
+      if (activeTab === "parents" && userIds.length > 0) {
+        const { data: parentStudents } = await supabase
+          .from("parent_students")
+          .select("parent_id, student_id")
+          .in("parent_id", userIds);
+
+        if (parentStudents && parentStudents.length > 0) {
+          const studentIds = [...new Set(parentStudents.map(ps => ps.student_id))];
+          const { data: students } = await supabase
+            .from("students")
+            .select("id, full_name")
+            .in("id", studentIds);
+
+          const studentsById = Object.fromEntries((students || []).map(s => [s.id, s.full_name]));
+          for (const ps of parentStudents) {
+            if (!studentMap[ps.parent_id]) studentMap[ps.parent_id] = [];
+            if (studentsById[ps.student_id]) {
+              studentMap[ps.parent_id].push(studentsById[ps.student_id]);
+            }
+          }
+        }
+      }
+
       const usersWithRoles = profiles?.map(profile => ({
         ...profile,
-        role: userRoles?.find(ur => ur.user_id === profile.id)?.role
+        role: userRoles?.find(ur => ur.user_id === profile.id)?.role,
+        student_names: studentMap[profile.id] || [],
       })) || [];
 
       setUsers(usersWithRoles);
@@ -399,6 +426,9 @@ export const UserManagement = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="font-cairo">الاسم الكامل</TableHead>
+                      {activeTab === "parents" && (
+                        <TableHead className="font-cairo">اسم التلميذ</TableHead>
+                      )}
                       <TableHead className="font-cairo">رقم الهاتف</TableHead>
                       <TableHead className="font-cairo">تاريخ التسجيل</TableHead>
                       <TableHead className="font-cairo">الحالة</TableHead>
@@ -411,6 +441,13 @@ export const UserManagement = () => {
                         <TableCell className="font-tajawal font-medium">
                           {user.full_name}
                         </TableCell>
+                        {activeTab === "parents" && (
+                          <TableCell className="font-tajawal">
+                            {user.student_names && user.student_names.length > 0
+                              ? user.student_names.join("، ")
+                              : "غير مرتبط"}
+                          </TableCell>
+                        )}
                         <TableCell className="font-tajawal">
                           {user.phone || "غير متوفر"}
                         </TableCell>
