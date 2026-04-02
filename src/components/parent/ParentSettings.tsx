@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2, Info, Palette } from "lucide-react";
+import { Settings, User, Phone, Lock, Save, Loader2, Eye, EyeOff, Trash2, Info } from "lucide-react";
 
 import { useAppVersion } from "@/hooks/useAppVersion";
 import { supabase } from "@/integrations/supabase/client";
 import { lightHaptic, successHaptic, errorHaptic, warningHaptic } from "@/utils/haptics";
 import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
-import { useTheme, THEME_OPTIONS, ThemeName } from "@/contexts/ThemeContext";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,7 @@ interface ParentSettingsProps {
 
 export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps) => {
   const { version: appVersion } = useAppVersion();
-  const { activeTheme, setActiveTheme } = useTheme();
+  
   const [profile, setProfile] = useState({
     full_name: "",
     phone: "",
@@ -407,60 +407,6 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
           </CardContent>
         </Card>
       )}
-
-      {/* Theme Selector */}
-      <Card>
-        <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
-          <CardTitle className="text-base md:text-lg flex items-center gap-2">
-            <Palette className="h-5 w-5 text-primary" />
-            أوضاع المناسبات
-          </CardTitle>
-          <CardDescription>اختر وضعاً خاصاً بمناسبة معينة</CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 md:p-6 pt-2">
-          <div className="grid grid-cols-1 gap-3">
-            {/* No theme option */}
-            <button
-              onClick={() => { lightHaptic(); setActiveTheme(null); }}
-              className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                activeTheme === null
-                  ? 'border-primary bg-primary/10'
-                  : 'border-border hover:border-primary/40 bg-muted/30'
-              }`}
-            >
-              <div className="p-2 bg-muted rounded-lg text-xl">🎨</div>
-              <div className="text-right flex-1">
-                <p className="font-medium text-sm">الوضع العادي</p>
-                <p className="text-xs text-muted-foreground">بدون تأثيرات خاصة</p>
-              </div>
-              {activeTheme === null && (
-                <div className="w-3 h-3 rounded-full bg-primary" />
-              )}
-            </button>
-
-            {THEME_OPTIONS.map((theme) => (
-              <button
-                key={theme.name}
-                onClick={() => { lightHaptic(); setActiveTheme(activeTheme === theme.name ? null : theme.name); }}
-                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                  activeTheme === theme.name
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/40 bg-muted/30'
-                }`}
-              >
-                <div className="p-2 bg-muted rounded-lg text-xl">{theme.icon}</div>
-                <div className="text-right flex-1">
-                  <p className="font-medium text-sm">{theme.label}</p>
-                  <p className="text-xs text-muted-foreground">{theme.description}</p>
-                </div>
-                {activeTheme === theme.name && (
-                  <div className="w-3 h-3 rounded-full bg-primary" />
-                )}
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* App Version */}
       <div className="text-center pt-4 pb-2">
