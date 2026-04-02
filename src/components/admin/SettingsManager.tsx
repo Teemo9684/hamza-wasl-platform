@@ -510,52 +510,6 @@ export const SettingsManager = () => {
         </CardContent>
       </Card>
 
-      {/* Theme Modes */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl flex items-center gap-2">
-            <Palette className="w-5 h-5 text-primary" />
-            أوضاع المناسبات
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* No theme */}
-          <button
-            onClick={() => setActiveTheme(null)}
-            className={`w-full flex items-center justify-between p-4 rounded-xl transition-colors ${
-              activeTheme === null ? 'bg-primary/10 border-2 border-primary' : 'bg-muted/50 hover:bg-muted/70 border-2 border-transparent'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-muted rounded-lg text-xl">🎨</div>
-              <div className="text-right">
-                <Label className="text-base font-medium">الوضع العادي</Label>
-                <p className="text-sm text-muted-foreground">بدون تأثيرات خاصة</p>
-              </div>
-            </div>
-            {activeTheme === null && <div className="w-3 h-3 rounded-full bg-primary" />}
-          </button>
-
-          {THEME_OPTIONS.map((theme) => (
-            <button
-              key={theme.name}
-              onClick={() => setActiveTheme(activeTheme === theme.name ? null : theme.name)}
-              className={`w-full flex items-center justify-between p-4 rounded-xl transition-colors ${
-                activeTheme === theme.name ? 'bg-primary/10 border-2 border-primary' : 'bg-muted/50 hover:bg-muted/70 border-2 border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-muted rounded-lg text-xl">{theme.icon}</div>
-                <div className="text-right">
-                  <Label className="text-base font-medium">{theme.label}</Label>
-                  <p className="text-sm text-muted-foreground">{theme.description}</p>
-                </div>
-              </div>
-              {activeTheme === theme.name && <div className="w-3 h-3 rounded-full bg-primary" />}
-            </button>
-          ))}
-        </CardContent>
-      </Card>
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center gap-2">
