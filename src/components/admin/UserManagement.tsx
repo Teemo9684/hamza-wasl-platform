@@ -441,6 +441,13 @@ export const UserManagement = () => {
                         <TableCell className="font-tajawal font-medium">
                           {user.full_name}
                         </TableCell>
+                        {activeTab === "parents" && (
+                          <TableCell className="font-tajawal">
+                            {user.student_names && user.student_names.length > 0
+                              ? user.student_names.join("، ")
+                              : "غير مرتبط"}
+                          </TableCell>
+                        )}
                         <TableCell className="font-tajawal">
                           {user.phone || "غير متوفر"}
                         </TableCell>
