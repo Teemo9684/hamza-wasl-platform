@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/config/version";
 import { OTAUpdatesManager } from "./OTAUpdatesManager";
-import { useTheme, THEME_OPTIONS } from "@/contexts/ThemeContext";
+
 
 interface NotificationSettings {
   enabled: boolean;

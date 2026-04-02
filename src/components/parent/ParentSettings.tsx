@@ -10,7 +10,7 @@ import { useAppVersion } from "@/hooks/useAppVersion";
 import { supabase } from "@/integrations/supabase/client";
 import { lightHaptic, successHaptic, errorHaptic, warningHaptic } from "@/utils/haptics";
 import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
-import { useTheme, THEME_OPTIONS, ThemeName } from "@/contexts/ThemeContext";
+
 import {
   AlertDialog,
   AlertDialogAction,
