@@ -426,6 +426,9 @@ export const UserManagement = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="font-cairo">الاسم الكامل</TableHead>
+                      {activeTab === "parents" && (
+                        <TableHead className="font-cairo">اسم التلميذ</TableHead>
+                      )}
                       <TableHead className="font-cairo">رقم الهاتف</TableHead>
                       <TableHead className="font-cairo">تاريخ التسجيل</TableHead>
                       <TableHead className="font-cairo">الحالة</TableHead>
