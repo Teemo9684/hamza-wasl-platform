@@ -40,6 +40,8 @@ interface PendingApproval {
   phone: string | null;
   created_at: string;
   role: "admin" | "teacher" | "parent" | null;
+  student_name: string | null;
+  student_grade: string | null;
 }
 
 
