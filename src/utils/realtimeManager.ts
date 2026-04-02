@@ -14,10 +14,10 @@ interface ChannelSubscription {
 class RealtimeManager {
   private subscriptions: Map<string, ChannelSubscription> = new Map();
   private isReconnecting = false;
-  private reconnectTimeout: NodeJS.Timeout | null = null;
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private visibilityHandler: (() => void) | null = null;
   private onlineHandler: (() => void) | null = null;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private appStateCleanup: (() => void) | null = null;
   private lastActiveTime: number = Date.now();
 

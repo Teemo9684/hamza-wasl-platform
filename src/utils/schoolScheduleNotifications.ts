@@ -193,7 +193,7 @@ const showBrowserNotification = (title: string, body: string) => {
 };
 
 // Interval reference for cleanup
-let checkInterval: NodeJS.Timeout | null = null;
+let checkInterval: ReturnType<typeof setInterval> | null = null;
 
 // Start the schedule notification system
 export const startSchoolScheduleNotifications = () => {
