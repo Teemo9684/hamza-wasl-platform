@@ -330,6 +330,18 @@ export const UserManagement = () => {
                                 <span className="font-cairo">:الصفة</span>
                               </div>
                             )}
+                            {approval.role === 'parent' && approval.student_name && (
+                              <p className="flex items-center justify-end gap-2 font-cairo">
+                                <span className="font-medium text-foreground">{approval.student_name}</span>
+                                <span>:اسم التلميذ</span>
+                              </p>
+                            )}
+                            {approval.role === 'parent' && approval.student_grade && (
+                              <p className="flex items-center justify-end gap-2 font-cairo">
+                                <span className="font-medium text-foreground">{approval.student_grade}</span>
+                                <span>:القسم</span>
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="flex gap-2 justify-end md:justify-start">
