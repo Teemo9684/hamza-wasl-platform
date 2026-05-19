@@ -485,6 +485,9 @@ const Index = () => {
           </div>
           
           <motion.div variants={itemVariants}>
+            <p className="text-3xl text-white font-ruqaa mb-2 tracking-wide drop-shadow-lg">
+              عطلة سعيدة
+            </p>
             <p className="text-2xl text-white/90 font-cairo mb-2">
               جسر التواصل بين المدرسة والبيت
             </p>
