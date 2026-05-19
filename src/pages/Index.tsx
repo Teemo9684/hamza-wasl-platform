@@ -485,9 +485,26 @@ const Index = () => {
           </div>
           
           <motion.div variants={itemVariants}>
-            <p className="text-3xl text-white font-ruqaa mb-2 tracking-wide drop-shadow-lg">
+            <motion.p 
+              className="text-3xl text-white font-ruqaa mb-2 tracking-wide drop-shadow-lg"
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1, 
+                y: 0,
+                rotate: [0, -3, 3, -2, 2, -1, 1, 0] 
+              }}
+              transition={{ 
+                duration: 0.6,
+                rotate: {
+                  delay: 0.4,
+                  duration: 0.8,
+                  ease: "easeInOut"
+                }
+              }}
+            >
               عطلة سعيدة
-            </p>
+            </motion.p>
             <p className="text-2xl text-white/90 font-cairo mb-2">
               جسر التواصل بين المدرسة والبيت
             </p>
