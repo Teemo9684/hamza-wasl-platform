@@ -284,6 +284,17 @@ export const SettingsManager = () => {
         const settings = autoApprovalData.setting_value as unknown as AutoApprovalSettings;
         setAutoApprove(settings.enabled);
       }
+
+      const { data: autoUpdateData } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "auto_update_enabled")
+        .maybeSingle();
+
+      if (autoUpdateData) {
+        const settings = autoUpdateData.setting_value as unknown as { enabled: boolean };
+        setAutoUpdateEnabled(settings.enabled);
+      }
     } catch (error) {
       console.error("Error fetching settings:", error);
     } finally {
