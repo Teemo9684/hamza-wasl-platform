@@ -486,17 +486,24 @@ const Index = () => {
           
           <motion.div variants={itemVariants}>
             <motion.p 
-              className="text-3xl text-white font-ruqaa mb-2 tracking-wide"
+              className="text-3xl font-ruqaa mb-2 tracking-wide"
+              style={{ color: "#ffffff" }}
               initial={{ opacity: 0, scale: 0.5, y: 30 }}
               animate={{ 
                 opacity: 1,
                 y: 0,
                 scale: [1, 1.08, 1],
                 rotate: [0, -5, 5, -3, 3, -2, 2, 0, 0, 0],
-                textShadow: [
-                  "0 0 8px rgba(255,255,255,0.4), 0 0 16px rgba(255,215,0,0.3)",
-                  "0 0 20px rgba(255,255,255,0.9), 0 0 40px rgba(255,215,0,0.8), 0 0 60px rgba(255,165,0,0.6)",
-                  "0 0 8px rgba(255,255,255,0.4), 0 0 16px rgba(255,215,0,0.3)",
+                color: [
+                  "#ffffff",
+                  "#fff9c4",
+                  "#ffecb3",
+                  "#ffe082",
+                  "#ffca28",
+                  "#ffe082",
+                  "#ffecb3",
+                  "#fff9c4",
+                  "#ffffff",
                 ],
               }}
               transition={{ 
@@ -504,7 +511,7 @@ const Index = () => {
                 y: { duration: 0.6, delay: 0.4 },
                 rotate: { duration: 1, delay: 1, ease: "easeInOut" },
                 scale: { duration: 1.8, delay: 2, repeat: Infinity, ease: "easeInOut" },
-                textShadow: { duration: 1.8, delay: 2, repeat: Infinity, ease: "easeInOut" },
+                color: { duration: 2.5, delay: 2, repeat: Infinity, ease: "easeInOut" },
               }}
             >
               عطلة سعيدة
