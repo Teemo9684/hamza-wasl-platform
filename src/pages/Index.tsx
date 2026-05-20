@@ -487,20 +487,18 @@ const Index = () => {
           <motion.div variants={itemVariants}>
             <motion.p 
               className="text-3xl text-white font-ruqaa mb-2 tracking-wide drop-shadow-lg"
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              initial={{ opacity: 0, scale: 0.5, y: 30 }}
               animate={{ 
                 opacity: 1, 
                 scale: 1, 
                 y: 0,
-                rotate: [0, -3, 3, -2, 2, -1, 1, 0] 
+                rotate: [0, -5, 5, -3, 3, -2, 2, 0],
               }}
               transition={{ 
-                duration: 0.6,
-                rotate: {
-                  delay: 0.4,
-                  duration: 0.8,
-                  ease: "easeInOut"
-                }
+                opacity: { duration: 0.6, delay: 0.4 },
+                scale: { duration: 0.6, delay: 0.4, type: "spring", stiffness: 200 },
+                y: { duration: 0.6, delay: 0.4 },
+                rotate: { duration: 1, delay: 1, ease: "easeInOut" },
               }}
             >
               عطلة سعيدة
