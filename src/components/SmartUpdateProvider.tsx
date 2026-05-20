@@ -3,6 +3,7 @@ import { useSmartUpdate } from "@/hooks/useSmartUpdate";
 import { MandatoryUpdateScreen } from "@/components/MandatoryUpdateScreen";
 import { markBundleAsReady, isNativeApp as checkNativeApp } from "@/utils/liveUpdate";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SmartUpdateProviderProps {
   children: React.ReactNode;
