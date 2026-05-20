@@ -37,6 +37,7 @@ interface GitHubBuildInfo {
 export const SettingsManager = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
+  const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [buildingApk, setBuildingApk] = useState(false);
@@ -283,6 +284,17 @@ export const SettingsManager = () => {
         const settings = autoApprovalData.setting_value as unknown as AutoApprovalSettings;
         setAutoApprove(settings.enabled);
       }
+
+      const { data: autoUpdateData } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "auto_update_enabled")
+        .maybeSingle();
+
+      if (autoUpdateData) {
+        const settings = autoUpdateData.setting_value as unknown as { enabled: boolean };
+        setAutoUpdateEnabled(settings.enabled);
+      }
     } catch (error) {
       console.error("Error fetching settings:", error);
     } finally {
@@ -328,6 +340,11 @@ export const SettingsManager = () => {
   const handleAutoApproveChange = async (value: boolean) => {
     setAutoApprove(value);
     await handleSaveSettings("auto_approve_registrations", value);
+  };
+
+  const handleAutoUpdateChange = async (value: boolean) => {
+    setAutoUpdateEnabled(value);
+    await handleSaveSettings("auto_update_enabled", value);
   };
 
   if (fetching) {
@@ -504,6 +521,25 @@ export const SettingsManager = () => {
             <Switch 
               checked={autoApprove} 
               onCheckedChange={handleAutoApproveChange}
+              disabled={saving}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <CloudDownload className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <Label className="text-base font-medium">التحديث التلقائي للتطبيق</Label>
+                <p className="text-sm text-muted-foreground">
+                  فحص وتنزيل تحديثات OTA في الخلفية تلقائياً على الأندرويد
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={autoUpdateEnabled}
+              onCheckedChange={handleAutoUpdateChange}
               disabled={saving}
             />
           </div>
