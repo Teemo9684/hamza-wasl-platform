@@ -128,9 +128,9 @@ export const SmartUpdateProvider = ({
     return () => clearTimeout(timer);
   }, [isInitialized, hasShownSuccess, getAppliedUpdate, clearAppliedUpdate]);
 
-  // الفحص الدوري
+  // الفحص الدوري (يحترم إعداد التحديث التلقائي من لوحة الإدارة)
   useEffect(() => {
-    if (!isNativeApp || !autoCheck || !isInitialized) return;
+    if (!isNativeApp || !autoCheck || !isInitialized || !remoteAutoUpdate) return;
 
     console.log("[SmartUpdateProvider] Setting up periodic check every", checkInterval / 1000 / 60, "minutes");
 
@@ -140,7 +140,7 @@ export const SmartUpdateProvider = ({
     }, checkInterval);
 
     return () => clearInterval(intervalId);
-  }, [isNativeApp, autoCheck, checkInterval, checkUpdate, isInitialized, currentVersion]);
+  }, [isNativeApp, autoCheck, checkInterval, checkUpdate, isInitialized, currentVersion, remoteAutoUpdate]);
 
   // عرض شاشة التحديث الإجباري
   if (isMandatoryUpdate && updateInfo?.version) {
