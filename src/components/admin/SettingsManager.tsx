@@ -37,6 +37,7 @@ interface GitHubBuildInfo {
 export const SettingsManager = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
+  const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [buildingApk, setBuildingApk] = useState(false);
