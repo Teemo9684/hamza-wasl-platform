@@ -524,6 +524,25 @@ export const SettingsManager = () => {
               disabled={saving}
             />
           </div>
+
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <CloudDownload className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <Label className="text-base font-medium">التحديث التلقائي للتطبيق</Label>
+                <p className="text-sm text-muted-foreground">
+                  فحص وتنزيل تحديثات OTA في الخلفية تلقائياً على الأندرويد
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={autoUpdateEnabled}
+              onCheckedChange={handleAutoUpdateChange}
+              disabled={saving}
+            />
+          </div>
         </CardContent>
       </Card>
 
