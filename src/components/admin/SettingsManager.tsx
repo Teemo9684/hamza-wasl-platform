@@ -342,6 +342,11 @@ export const SettingsManager = () => {
     await handleSaveSettings("auto_approve_registrations", value);
   };
 
+  const handleAutoUpdateChange = async (value: boolean) => {
+    setAutoUpdateEnabled(value);
+    await handleSaveSettings("auto_update_enabled", value);
+  };
+
   if (fetching) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
