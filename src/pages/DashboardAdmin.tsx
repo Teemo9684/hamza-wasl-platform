@@ -639,11 +639,8 @@ const DashboardAdmin = () => {
 
 
 
-            <Card className="glass-card hover-lift hover-glow cursor-pointer relative border-2 border-primary/40" onClick={() => handleOpenSection("ota")}>
-              <Badge className="absolute -top-2 -right-2 bg-gradient-primary text-white shadow-lg flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                موصى به
-              </Badge>
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("ota")}>
+
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
