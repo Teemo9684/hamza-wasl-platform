@@ -635,8 +635,29 @@ const DashboardAdmin = () => {
                   </Button>
                 </div>
               </CardContent>
+
+            <Card className="glass-card hover-lift hover-glow cursor-pointer relative border-2 border-primary/40" onClick={() => handleOpenSection("ota")}>
+              <Badge className="absolute -top-2 -right-2 bg-gradient-primary text-white shadow-lg flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                موصى به
+              </Badge>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
+                    <CloudDownload className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 font-cairo">نشر تحديث OTA تلقائي</h3>
+                  <p className="text-sm text-muted-foreground font-cairo mb-4">
+                    أسهل وأنجح طريقة لتحديث تطبيق الأندرويد مباشرة من GitHub
+                  </p>
+                  <Button className="w-full bg-gradient-primary text-white font-cairo">
+                    نشر تحديث الآن
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
             </div>
+
             </>
           )}
         </main>
