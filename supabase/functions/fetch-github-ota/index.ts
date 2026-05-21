@@ -211,25 +211,56 @@ serve(async (req) => {
       zip.file('index.html', indexHtml);
       fetchedCount++;
 
-      // Extract JS and CSS file references from index.html
-      const jsMatches = indexHtml.match(/src="\/assets\/[^"]+\.js"/g) || [];
-      const cssMatches = indexHtml.match(/href="\/assets\/[^"]+\.css"/g) || [];
-      
-      const assetUrls = [
-        ...jsMatches.map(m => m.match(/["']([^"']+)["']/)?.[1]).filter(Boolean),
-        ...cssMatches.map(m => m.match(/["']([^"']+)["']/)?.[1]).filter(Boolean),
-      ];
+      // Extract initial JS and CSS file references from index.html
+      const jsMatches = indexHtml.match(/["'](\/assets\/[^"']+\.js)["']/g) || [];
+      const cssMatches = indexHtml.match(/["'](\/assets\/[^"']+\.css)["']/g) || [];
 
-      console.log(`Found ${assetUrls.length} assets to download`);
+      const initialAssets = new Set<string>();
+      [...jsMatches, ...cssMatches].forEach((m) => {
+        const match = m.match(/["']([^"']+)["']/);
+        if (match?.[1]) initialAssets.add(match[1]);
+      });
 
-      // Download each asset
-      for (const assetUrl of assetUrls) {
-        if (!assetUrl) continue;
+      // Recursively discover ALL chunks referenced from JS files (Vite code-splitting)
+      // This is CRITICAL: without it, lazy-loaded routes/components fail after OTA
+      const discoveredAssets = new Set<string>(initialAssets);
+      const toScan: string[] = [...initialAssets];
+      const scanned = new Set<string>();
+
+      while (toScan.length > 0) {
+        const assetUrl = toScan.shift()!;
+        if (scanned.has(assetUrl)) continue;
+        scanned.add(assetUrl);
+
+        // Only scan JS files for nested chunk references
+        if (!assetUrl.endsWith('.js')) continue;
+
+        try {
+          const resp = await fetch(`${publishedUrl}${assetUrl}`);
+          if (!resp.ok) continue;
+          const code = await resp.text();
+          // Match referenced asset paths inside JS bundles
+          const nested = code.match(/["'`](\/assets\/[A-Za-z0-9._\-]+\.(?:js|css|woff2?|ttf|otf|png|jpe?g|svg|gif|webp|ico|json|map))["'`]/g) || [];
+          for (const n of nested) {
+            const m = n.match(/["'`]([^"'`]+)["'`]/);
+            if (m?.[1] && !discoveredAssets.has(m[1])) {
+              discoveredAssets.add(m[1]);
+              toScan.push(m[1]);
+            }
+          }
+        } catch {
+          // ignore individual chunk scan failures
+        }
+      }
+
+      console.log(`Discovered ${discoveredAssets.size} total assets (recursive)`);
+
+      // Download each discovered asset
+      for (const assetUrl of discoveredAssets) {
         try {
           const assetResponse = await fetch(`${publishedUrl}${assetUrl}`);
           if (assetResponse.ok) {
             const content = await assetResponse.arrayBuffer();
-            // Remove leading slash for zip path
             zip.file(assetUrl.startsWith('/') ? assetUrl.slice(1) : assetUrl, content);
             fetchedCount++;
           }
@@ -245,6 +276,7 @@ serve(async (req) => {
         '/icon-192.png',
         '/icon-512.png',
         '/apple-touch-icon.png',
+        '/manifest.webmanifest',
       ];
 
       for (const asset of commonAssets) {
@@ -259,6 +291,8 @@ serve(async (req) => {
           // Asset not found, skip
         }
       }
+
+
 
       console.log(`Fetched ${fetchedCount} files for bundle`);
 
