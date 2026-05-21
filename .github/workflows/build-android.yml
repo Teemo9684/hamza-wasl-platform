@@ -440,6 +440,14 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug
 
+      - name: Upload web bundle (dist) for OTA
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-bundle
+          path: dist/
+          retention-days: 30
+          if-no-files-found: error
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         id: upload-apk
@@ -447,6 +455,7 @@ jobs:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
 
       - name: Send Email Notification
         if: env.NOTIFY_EMAIL != ''
