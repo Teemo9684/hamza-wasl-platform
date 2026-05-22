@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { PostersCarousel } from "@/components/PostersCarousel";
+import { ResultsCountdown } from "@/components/ResultsCountdown";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { useAppVersion } from "@/hooks/useAppVersion";
@@ -530,6 +531,11 @@ const Index = () => {
 
         {/* Theme Welcome Banner */}
         <ThemeBanner />
+
+        {/* Results Countdown */}
+        <motion.div variants={itemVariants} className="w-full">
+          <ResultsCountdown />
+        </motion.div>
 
         {/* Posters Carousel */}
         <motion.div variants={itemVariants} className="w-full">
