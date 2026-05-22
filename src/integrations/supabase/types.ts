@@ -644,6 +644,42 @@ export type Database = {
         }
         Relationships: []
       }
+      results_countdown: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          is_enabled: boolean
+          result_message: string | null
+          subtitle: string | null
+          target_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_enabled?: boolean
+          result_message?: string | null
+          subtitle?: string | null
+          target_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_enabled?: boolean
+          result_message?: string | null
+          subtitle?: string | null
+          target_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       school_posters: {
         Row: {
           created_at: string
