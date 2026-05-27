@@ -658,6 +658,24 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("gradePromotion")}>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mb-4">
+                    <ArrowUp className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 font-cairo">ترقية نهاية السنة</h3>
+                  <p className="text-sm text-muted-foreground font-cairo mb-4">
+                    نقل جميع التلاميذ إلى المستوى الأعلى وتخريج السنة الخامسة
+                  </p>
+                  <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-cairo">
+                    بدء الترقية
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+
 
 
 
