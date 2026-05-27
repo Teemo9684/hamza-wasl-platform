@@ -242,6 +242,7 @@ const App = () => {
                   <BrowserRouter>
                     <BackButtonHandler />
                     <AnimatedRoutes />
+                    <EndOfYearOverlay />
                   </BrowserRouter>
                 </SmartUpdateProvider>
               </TooltipProvider>
