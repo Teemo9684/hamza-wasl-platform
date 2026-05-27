@@ -124,14 +124,13 @@ export const GradePromotionManager = () => {
         const gradeInfo = grades.find((g) => g.grade_level === currentGrade);
         if (!gradeInfo || gradeInfo.count === 0) continue;
 
-        const { error: updateErr, count } = await supabase
+        const { error: updateErr } = await supabase
           .from("students")
           .update({ grade_level: nextGrade })
-          .eq("grade_level", currentGrade)
-          .select("id", { count: "exact", head: true });
+          .eq("grade_level", currentGrade);
 
         if (updateErr) throw updateErr;
-        promotedCount += count || gradeInfo.count;
+        promotedCount += gradeInfo.count;
       }
 
       // المستويات غير المعروفة
