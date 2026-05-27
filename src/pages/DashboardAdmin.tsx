@@ -335,6 +335,7 @@ const DashboardAdmin = () => {
                   {activeSection === "posters" && <PostersManager />}
                   {activeSection === "resultsCountdown" && <ResultsCountdownManager />}
                   {activeSection === "gradePromotion" && <GradePromotionManager />}
+                  {activeSection === "endOfYear" && <EndOfYearManager />}
                 </div>
               </AnimatedSection>
             </AnimatePresence>
