@@ -19,6 +19,7 @@ import { SmartUpdateProvider } from "@/components/SmartUpdateProvider";
 import { SchoolScheduleAlert } from "@/components/SchoolScheduleAlert";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import SplashScreen from "@/components/SplashScreen";
+import { EndOfYearOverlay } from "@/components/EndOfYearOverlay";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import RegisterParent from "./pages/RegisterParent";
@@ -242,6 +243,7 @@ const App = () => {
                   <BrowserRouter>
                     <BackButtonHandler />
                     <AnimatedRoutes />
+                    <EndOfYearOverlay />
                   </BrowserRouter>
                 </SmartUpdateProvider>
               </TooltipProvider>
