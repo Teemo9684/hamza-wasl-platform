@@ -16,6 +16,7 @@ import { DocumentRequestsManager } from "@/components/admin/DocumentRequestsMana
 import { PostersManager } from "@/components/admin/PostersManager";
 import { QuickOTADeploy } from "@/components/admin/QuickOTADeploy";
 import { ResultsCountdownManager } from "@/components/admin/ResultsCountdownManager";
+import { GradePromotionManager } from "@/components/admin/GradePromotionManager";
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
