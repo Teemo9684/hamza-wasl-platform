@@ -677,6 +677,23 @@ const DashboardAdmin = () => {
               </CardContent>
             </Card>
 
+            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("endOfYear")}>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mb-4">
+                    <Sparkles className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 font-cairo">وضع نهاية العام</h3>
+                  <p className="text-sm text-muted-foreground font-cairo mb-4">
+                    حجب التطبيق وعرض رسالة نهاية العام الدراسي للجميع
+                  </p>
+                  <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-cairo">
+                    إدارة الشاشة
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
 
 
 
