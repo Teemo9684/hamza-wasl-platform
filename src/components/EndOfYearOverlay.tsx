@@ -63,10 +63,10 @@ export const EndOfYearOverlay = () => {
     };
   }, []);
 
-  // السماح للمسؤول بالوصول للوحته لإيقاف الوضع
+  // السماح للمسؤول بالوصول للوحته وصفحات تسجيل الدخول لإيقاف الوضع
   const isAdminRoute =
     location.pathname.startsWith("/dashboard/admin") ||
-    location.pathname.startsWith("/login/admin");
+    location.pathname.startsWith("/login");
 
   if (!loaded || !setting.enabled || isAdminRoute) return null;
 
