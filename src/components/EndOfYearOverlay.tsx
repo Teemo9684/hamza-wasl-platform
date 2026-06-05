@@ -209,6 +209,15 @@ export const EndOfYearOverlay = () => {
           >
             همزة وصل — المدرسة الابتدائية
           </motion.p>
+
+          {/* زر وصول الإدارة - مخفي بشكل أنيق */}
+          <Link
+            to="/login/admin"
+            className="absolute bottom-4 left-4 p-2 rounded-full bg-white/5 hover:bg-white/20 backdrop-blur-sm border border-white/10 transition-all opacity-40 hover:opacity-100"
+            aria-label="دخول الإدارة"
+          >
+            <Shield className="w-4 h-4 text-white/70" />
+          </Link>
         </div>
       </motion.div>
     </AnimatePresence>
