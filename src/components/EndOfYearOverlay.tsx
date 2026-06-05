@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation } from "react-router-dom";
-import { GraduationCap, Sparkles, Sun } from "lucide-react";
+import { GraduationCap, Sparkles, Sun, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface EndOfYearSetting {
   enabled: boolean;
