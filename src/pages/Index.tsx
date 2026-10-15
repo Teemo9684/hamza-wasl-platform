@@ -100,6 +100,24 @@ const Index = () => {
   const loginSectionRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Detect Lovable editor preview (iframe or preview hosts) so the admin card is always visible there
+  const isLovablePreview = (() => {
+    try {
+      const host = window.location.hostname;
+      const inIframe = window.self !== window.top;
+      return (
+        host === 'localhost' ||
+        host.includes('lovableproject.com') ||
+        host.startsWith('id-preview--') ||
+        host.includes('preview--') ||
+        (inIframe && (host.includes('lovable.app') || host.includes('lovable.dev')))
+      );
+    } catch {
+      // Cross-origin access to window.top throws when embedded in an iframe
+      return true;
+    }
+  })();
+
   useEffect(() => {
     // Check if app is installed (running in standalone mode)
     const checkInstalled = () => {
