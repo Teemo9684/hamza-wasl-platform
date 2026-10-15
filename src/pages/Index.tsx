@@ -618,8 +618,8 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* Admin Card - Hidden on native app AND installed PWA, only visible on web preview */}
-          {!Capacitor.isNativePlatform() && !isInstalled && (
+          {/* Admin Card - Hidden on native app AND installed PWA, but always visible in Lovable preview */}
+          {!Capacitor.isNativePlatform() && (!isInstalled || window.location.hostname.includes('lovable.app') || window.location.hostname === 'localhost') && (
             <motion.div 
               onClick={() => handleCardClick("admin")}
               className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
