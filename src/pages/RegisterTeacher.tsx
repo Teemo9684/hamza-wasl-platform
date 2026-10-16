@@ -210,9 +210,7 @@ const RegisterTeacher = () => {
                 <div className="space-y-2">
                   <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
                     <p className="text-sm font-cairo text-foreground">
-                      {formData.subject === "فرنسية"
-                        ? "سيتم تسجيلك تلقائياً لتدريس المستويين: السنة الرابعة والسنة الخامسة"
-                        : "سيتم تسجيلك تلقائياً لتدريس المستويات الثلاثة: السنة الثالثة، السنة الرابعة، والسنة الخامسة"}
+                      سيتم تسجيلك تلقائياً لتدريس المستويات الثلاثة: السنة الثالثة، السنة الرابعة، والسنة الخامسة
                     </p>
                   </div>
                 </div>

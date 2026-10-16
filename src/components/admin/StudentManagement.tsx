@@ -70,14 +70,6 @@ const subjects = [
   { id: "إنجليزية", label: "الإنجليزية", icon: "🇬🇧" },
 ];
 
-// الفرنسية تدرس فقط في السنة الرابعة والخامسة
-const getSubjectsForGrade = (gradeLevel: string) => {
-  if (gradeLevel === "السنة الثالثة ابتدائي") {
-    return subjects.filter((s) => s.id !== "فرنسية");
-  }
-  return subjects;
-};
-
 export const StudentManagement = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -911,12 +903,12 @@ export const StudentManagement = () => {
                   
                   {/* عرض الأساتذة حسب المستوى */}
                   {isMultiTeacher ? (
-                    // للمستويات العليا: أساتذة المواد (الفرنسية من السنة الرابعة فقط)
+                    // للمستويات العليا: 3 أساتذة (عربية، فرنسية، إنجليزية)
                     <div className="border-t pt-4 space-y-3">
                       <span className="text-sm text-muted-foreground font-cairo block mb-2">
                         الأساتذة المسؤولون
                       </span>
-                      {getSubjectsForGrade(level).map((subject) => {
+                      {subjects.map((subject) => {
                         const subjectTeacher = subjectTeachers[subject.id];
                         return (
                           <div key={subject.id} className="flex items-center justify-between gap-2 bg-muted/30 rounded-lg p-2">

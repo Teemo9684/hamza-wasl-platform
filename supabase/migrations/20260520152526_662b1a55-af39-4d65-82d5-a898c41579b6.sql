@@ -1,1 +1,0 @@
-INSERT INTO public.app_settings (setting_key, setting_value) VALUES ('auto_update_enabled', '{"enabled": true}'::jsonb) ON CONFLICT (setting_key) DO NOTHING;

@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home, Calendar, FileText, Image, CloudDownload, Sparkles } from "lucide-react";
+import { LogOut, Shield, Users, UserCheck, GraduationCap, Bell, BarChart3, Settings, Megaphone, MessageSquare, Home, Calendar, FileText, Image } from "lucide-react";
 import { NewsTickerManager } from "@/components/NewsTickerManager";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { StudentManagement } from "@/components/admin/StudentManagement";
@@ -636,28 +636,7 @@ const DashboardAdmin = () => {
                 </div>
               </CardContent>
             </Card>
-
-
-
-            <Card className="glass-card hover-lift hover-glow cursor-pointer" onClick={() => handleOpenSection("ota")}>
-
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
-                    <CloudDownload className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 font-cairo">نشر تحديث OTA تلقائي</h3>
-                  <p className="text-sm text-muted-foreground font-cairo mb-4">
-                    أسهل وأنجح طريقة لتحديث تطبيق الأندرويد مباشرة من GitHub
-                  </p>
-                  <Button className="w-full bg-gradient-primary text-white font-cairo">
-                    نشر تحديث الآن
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
             </div>
-
             </>
           )}
         </main>

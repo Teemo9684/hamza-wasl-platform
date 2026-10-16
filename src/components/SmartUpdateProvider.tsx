@@ -3,7 +3,6 @@ import { useSmartUpdate } from "@/hooks/useSmartUpdate";
 import { MandatoryUpdateScreen } from "@/components/MandatoryUpdateScreen";
 import { markBundleAsReady, isNativeApp as checkNativeApp } from "@/utils/liveUpdate";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface SmartUpdateProviderProps {
   children: React.ReactNode;
@@ -41,46 +40,10 @@ export const SmartUpdateProvider = ({
 
   const [hasShownSuccess, setHasShownSuccess] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [remoteAutoUpdate, setRemoteAutoUpdate] = useState<boolean>(true);
-
-  // Fetch admin "auto update enabled" toggle from app_settings + subscribe to changes
-  useEffect(() => {
-    if (!checkNativeApp()) return;
-
-    const load = async () => {
-      try {
-        const { data } = await supabase
-          .from("app_settings")
-          .select("setting_value")
-          .eq("setting_key", "auto_update_enabled")
-          .maybeSingle();
-        const enabled = (data?.setting_value as { enabled?: boolean } | null)?.enabled;
-        if (typeof enabled === "boolean") setRemoteAutoUpdate(enabled);
-        console.log("[SmartUpdateProvider] auto_update_enabled =", enabled);
-      } catch (e) {
-        console.log("[SmartUpdateProvider] Failed to read auto_update_enabled:", e);
-      }
-    };
-    load();
-
-    const channel = supabase
-      .channel("auto-update-setting")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "app_settings", filter: "setting_key=eq.auto_update_enabled" },
-        (payload) => {
-          const next = (payload.new as { setting_value?: { enabled?: boolean } } | null)?.setting_value?.enabled;
-          if (typeof next === "boolean") setRemoteAutoUpdate(next);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
 
   // Bundle is already marked as ready in main.tsx IMMEDIATELY on startup.
+  // No need to call markBundleAsReady() here - it was causing delays that
+  // exceeded the readyTimeout, causing the bundle to roll back.
   useEffect(() => {
     if (!checkNativeApp() || isInitialized) return;
     setIsInitialized(true);
@@ -128,9 +91,9 @@ export const SmartUpdateProvider = ({
     return () => clearTimeout(timer);
   }, [isInitialized, hasShownSuccess, getAppliedUpdate, clearAppliedUpdate]);
 
-  // الفحص الدوري (يحترم إعداد التحديث التلقائي من لوحة الإدارة)
+  // الفحص الدوري
   useEffect(() => {
-    if (!isNativeApp || !autoCheck || !isInitialized || !remoteAutoUpdate) return;
+    if (!isNativeApp || !autoCheck || !isInitialized) return;
 
     console.log("[SmartUpdateProvider] Setting up periodic check every", checkInterval / 1000 / 60, "minutes");
 
@@ -140,7 +103,7 @@ export const SmartUpdateProvider = ({
     }, checkInterval);
 
     return () => clearInterval(intervalId);
-  }, [isNativeApp, autoCheck, checkInterval, checkUpdate, isInitialized, currentVersion, remoteAutoUpdate]);
+  }, [isNativeApp, autoCheck, checkInterval, checkUpdate, isInitialized, currentVersion]);
 
   // عرض شاشة التحديث الإجباري
   if (isMandatoryUpdate && updateInfo?.version) {
