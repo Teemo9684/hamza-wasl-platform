@@ -57,7 +57,11 @@ export const TeacherOverviewContent = () => {
       
       if (isLanguage) {
         const assignedGrades = teacherGradeLevels?.map(r => r.grade_level) || [];
-        const targetGrades = assignedGrades.length > 0 ? assignedGrades : ['السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة'];
+        // الفرنسية تدرس فقط في السنة الرابعة والخامسة
+        const fallbackGrades = teacherSubject.includes('فرنسية')
+          ? ['السنة الرابعة', 'السنة الخامسة']
+          : ['السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة'];
+        const targetGrades = assignedGrades.length > 0 ? assignedGrades : fallbackGrades;
         
         const { data, error } = await supabase
           .from('students')
