@@ -87,6 +87,21 @@ const Index = () => {
   const navigate = useNavigate();
   const { version: appVersion } = useAppVersion();
   const [isInstalled, setIsInstalled] = useState(false);
+  // Editor preview runs inside an iframe (or on preview hosts); the parent app may report
+  // display-mode standalone, which would wrongly hide the admin card.
+  const isEditorPreview = (() => {
+    try {
+      const host = window.location.hostname;
+      return (
+        window.self !== window.top ||
+        host.includes("id-preview--") ||
+        host.endsWith("lovableproject.com") ||
+        host === "localhost"
+      );
+    } catch {
+      return true;
+    }
+  })();
   const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -587,8 +602,8 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* Admin Card - Hidden on native app AND installed PWA, only visible on web preview */}
-          {!Capacitor.isNativePlatform() && !isInstalled && (
+          {/* Admin Card - Hidden on native app AND installed PWA; always visible inside the editor preview */}
+          {(isEditorPreview || (!Capacitor.isNativePlatform() && !isInstalled)) && (
             <motion.div 
               onClick={() => handleCardClick("admin")}
               className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
