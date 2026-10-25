@@ -474,7 +474,7 @@ const Index = () => {
 
       {/* Main Content */}
       <motion.div 
-        className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32"
+        className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 pb-8 pt-32 md:p-8 md:pt-32"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
