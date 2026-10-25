@@ -1181,3 +1181,27 @@
     animation: none;
   }
 }
+
+/* ===== Hero fantasy cosmos ===== */
+.hero-cosmos { position:absolute; inset:0; overflow:hidden; border-radius:inherit; }
+.hero-aurora { position:absolute; inset:-60%; background:conic-gradient(from 0deg, hsl(280 90% 70% / .55), hsl(200 95% 65% / .45), hsl(160 85% 60% / .4), hsl(45 95% 65% / .45), hsl(330 90% 68% / .5), hsl(280 90% 70% / .55)); filter:blur(48px); animation:hero-spin 18s linear infinite; opacity:.7; }
+.hero-aurora-2 { inset:-40%; animation-duration:26s; animation-direction:reverse; opacity:.45; mix-blend-mode:screen; }
+.hero-core { position:absolute; top:50%; left:50%; width:140px; height:140px; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(circle, hsl(0 0% 100% / .55), hsl(45 100% 75% / .25) 40%, transparent 70%); animation:hero-pulse 4s ease-in-out infinite; }
+.hero-orbit { position:absolute; top:50%; left:50%; border:1px dashed hsl(0 0% 100% / .22); border-radius:50%; transform:translate(-50%,-50%); animation:hero-spin linear infinite; }
+.hero-orbit span { position:absolute; top:-5px; left:50%; width:10px; height:10px; border-radius:50%; background:hsl(0 0% 100%); box-shadow:0 0 12px 4px hsl(45 100% 75% / .9), 0 0 30px 8px hsl(280 90% 70% / .6); }
+.hero-orbit-1 { width:200px; height:200px; animation-duration:9s; }
+.hero-orbit-2 { width:300px; height:300px; animation-duration:15s; animation-direction:reverse; }
+.hero-orbit-2 span { background:hsl(190 100% 80%); box-shadow:0 0 14px 5px hsl(190 100% 70% / .9); }
+.hero-orbit-3 { width:420px; height:420px; animation-duration:24s; }
+.hero-orbit-3 span { width:7px; height:7px; background:hsl(330 100% 85%); box-shadow:0 0 12px 4px hsl(330 100% 70% / .9); }
+.hero-star { position:absolute; width:3px; height:3px; border-radius:50%; background:hsl(0 0% 100%); box-shadow:0 0 6px 2px hsl(0 0% 100% / .8); animation:hero-twinkle 3.2s ease-in-out infinite; }
+.hero-letter { position:absolute; bottom:-40px; font-size:2rem; font-style:normal; color:hsl(0 0% 100% / .35); text-shadow:0 0 14px hsl(45 100% 75% / .7); animation:hero-rise linear infinite; }
+.hero-shine { position:absolute; inset:0; background:linear-gradient(115deg, transparent 35%, hsl(0 0% 100% / .25) 50%, transparent 65%); transform:translateX(-120%); animation:hero-sweep 6s ease-in-out infinite; }
+@keyframes hero-spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+.hero-aurora { animation-name:hero-spin-plain; }
+@keyframes hero-spin-plain { to { transform:rotate(360deg); } }
+@keyframes hero-pulse { 0%,100% { transform:translate(-50%,-50%) scale(.85); opacity:.7; } 50% { transform:translate(-50%,-50%) scale(1.25); opacity:1; } }
+@keyframes hero-twinkle { 0%,100% { opacity:.15; transform:scale(.6); } 50% { opacity:1; transform:scale(1.4); } }
+@keyframes hero-rise { 0% { transform:translateY(0) rotate(0); opacity:0; } 15% { opacity:1; } 85% { opacity:.8; } 100% { transform:translateY(-420px) rotate(25deg); opacity:0; } }
+@keyframes hero-sweep { 0%,60% { transform:translateX(-120%); } 100% { transform:translateX(120%); } }
+@media (prefers-reduced-motion: reduce) { .hero-cosmos * { animation:none !important; } }
