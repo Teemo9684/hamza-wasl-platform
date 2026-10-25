@@ -493,9 +493,6 @@ const Index = () => {
             <div className="hero-cosmos pointer-events-none" aria-hidden="true">
               <div className="hero-aurora" />
               <div className="hero-aurora hero-aurora-2" />
-              <div className="hero-orbit hero-orbit-1"><span /></div>
-              <div className="hero-orbit hero-orbit-2"><span /></div>
-              <div className="hero-orbit hero-orbit-3"><span /></div>
               <div className="hero-core" />
               {Array.from({ length: 24 }).map((_, i) => (
                 <i
