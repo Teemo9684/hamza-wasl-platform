@@ -489,8 +489,36 @@ const Index = () => {
             variants={headerVariants}
             className="col-span-2 md:col-span-4 relative overflow-hidden rounded-[2rem] bg-white/10 backdrop-blur-xl border border-white/20 p-6 md:p-8 shadow-2xl"
           >
-            <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-white/20 blur-3xl" />
-            <div className="absolute -bottom-20 -right-10 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
+            {/* Fantasy cosmic background */}
+            <div className="hero-cosmos pointer-events-none" aria-hidden="true">
+              <div className="hero-aurora" />
+              <div className="hero-aurora hero-aurora-2" />
+              <div className="hero-orbit hero-orbit-1"><span /></div>
+              <div className="hero-orbit hero-orbit-2"><span /></div>
+              <div className="hero-orbit hero-orbit-3"><span /></div>
+              <div className="hero-core" />
+              {Array.from({ length: 24 }).map((_, i) => (
+                <i
+                  key={i}
+                  className="hero-star"
+                  style={{
+                    top: `${(i * 37) % 100}%`,
+                    left: `${(i * 61) % 100}%`,
+                    animationDelay: `${(i % 8) * 0.4}s`,
+                  }}
+                />
+              ))}
+              {["ء", "ب", "ت", "ج", "د", "ع", "ق", "ن"].map((ch, i) => (
+                <b
+                  key={ch}
+                  className="hero-letter font-ruqaa"
+                  style={{ left: `${8 + i * 11.5}%`, animationDelay: `${i * 1.3}s`, animationDuration: `${10 + (i % 3) * 3}s` }}
+                >
+                  {ch}
+                </b>
+              ))}
+              <div className="hero-shine" />
+            </div>
             <div className="relative flex flex-col md:flex-row items-center gap-6">
               <div className="relative h-36 w-full md:w-64 shrink-0">
                 <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
