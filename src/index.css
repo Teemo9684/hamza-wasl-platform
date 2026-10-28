@@ -1181,3 +1181,48 @@
     animation: none;
   }
 }
+
+/* ===== Modern Editorial (Home) ===== */
+:root {
+  --ed-ink: 222 45% 9%;
+  --ed-ink-2: 220 38% 14%;
+  --ed-sand: 38 45% 92%;
+  --ed-gold: 40 78% 62%;
+  --ed-emerald: 162 55% 42%;
+  --ed-line: 38 45% 92% / 0.12;
+}
+.ed-bg {
+  background:
+    radial-gradient(60% 40% at 85% 0%, hsl(var(--ed-gold) / 0.18), transparent 70%),
+    radial-gradient(50% 40% at 0% 100%, hsl(var(--ed-emerald) / 0.22), transparent 70%),
+    linear-gradient(180deg, hsl(var(--ed-ink)), hsl(var(--ed-ink-2)));
+}
+.ed-pattern {
+  background-image:
+    linear-gradient(hsl(var(--ed-line)) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--ed-line)) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+.ed-text { color: hsl(var(--ed-sand)); }
+.ed-muted { color: hsl(var(--ed-sand) / 0.6); }
+.ed-gold { color: hsl(var(--ed-gold)); }
+.ed-card {
+  background: hsl(var(--ed-sand) / 0.04);
+  border: 1px solid hsl(var(--ed-line));
+  backdrop-filter: blur(18px);
+}
+.ed-card-feature {
+  background:
+    radial-gradient(80% 80% at 100% 0%, hsl(var(--ed-gold) / 0.35), transparent 60%),
+    linear-gradient(135deg, hsl(var(--ed-emerald)), hsl(170 60% 24%));
+  border: 1px solid hsl(var(--ed-gold) / 0.35);
+  box-shadow: 0 30px 60px -25px hsl(var(--ed-emerald) / 0.6);
+}
+.ed-chip {
+  background: hsl(var(--ed-sand) / 0.08);
+  border: 1px solid hsl(var(--ed-line));
+  color: hsl(var(--ed-sand) / 0.85);
+}
+.ed-rule { background: linear-gradient(90deg, transparent, hsl(var(--ed-gold) / 0.7), transparent); height: 1px; }
+.ed-icon { background: hsl(var(--ed-gold) / 0.12); color: hsl(var(--ed-gold)); border: 1px solid hsl(var(--ed-gold) / 0.3); }
