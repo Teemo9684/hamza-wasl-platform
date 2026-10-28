@@ -87,21 +87,6 @@ const Index = () => {
   const navigate = useNavigate();
   const { version: appVersion } = useAppVersion();
   const [isInstalled, setIsInstalled] = useState(false);
-  // Editor preview runs inside an iframe (or on preview hosts); the parent app may report
-  // display-mode standalone, which would wrongly hide the admin card.
-  const isEditorPreview = (() => {
-    try {
-      const host = window.location.hostname;
-      return (
-        window.self !== window.top ||
-        host.includes("id-preview--") ||
-        host.endsWith("lovableproject.com") ||
-        host === "localhost"
-      );
-    } catch {
-      return true;
-    }
-  })();
   const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -402,24 +387,46 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden ed-bg pt-[env(safe-area-inset-top)]">
-      <div className="absolute inset-0 ed-pattern pointer-events-none" />
+    <div className="min-h-screen w-full relative overflow-hidden pt-[env(safe-area-inset-top)]">
+      {/* Animated Gradient Background */}
+      <div className="absolute inset-0 animated-gradient-bg" />
+
+      {/* Theme Decorations */}
       <ThemeDecorations />
 
       {/* News Ticker */}
       {newsItems.length > 0 && (
-        <div className="relative z-20 ed-card border-x-0 border-t-0 overflow-hidden">
-          <div className="ticker-animation py-2.5 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
+        <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
+          <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
+            {/* Repeat items 3 times for seamless scrolling */}
             {[...Array(3)].map((_, repeatIndex) => (
-              newsItems.map((item) => (
+              newsItems.map((item, itemIndex) => (
                 <div key={`${repeatIndex}-${item.id}`} className="flex items-center gap-8">
-                  <span className="ed-text font-cairo text-sm flex items-center gap-2">
-                    <span className={`${item.badge_color} text-white px-2.5 py-0.5 rounded-full text-xs font-bold`}>
+                  <span className="text-white font-cairo flex items-center gap-2">
+                    <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
                       {item.icon_type}
                     </span>
                     {item.content}
                   </span>
-                  <span className="ed-gold text-lg">✦</span>
+                  
+                  {/* Logo separator */}
+                  <div className="relative h-8 w-12 flex-shrink-0">
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="text-sm font-bold text-white/80 font-ruqaa leading-[0.8]">
+                        {itemIndex % 2 === 0 ? (
+                          <>
+                            <div>همزة</div>
+                            <div>وصل</div>
+                          </>
+                        ) : (
+                          <>
+                            <div>العربي</div>
+                            <div>التبسي</div>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               ))
             ))}
@@ -427,138 +434,206 @@ const Index = () => {
         </div>
       )}
 
-      <motion.div
-        className="relative z-10 min-h-screen flex flex-col items-center px-4 pb-10 pt-6 md:px-8"
+      {/* Date and Time Display - Below News Ticker */}
+      <motion.div 
+        className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
+          {/* Date */}
+          <div className="font-medium">
+            {formatDateWithWeekday(currentTime)}
+          </div>
+          
+          {/* Separator */}
+          <div className="w-px h-4 bg-white/30"></div>
+          
+          {/* Time */}
+          <div className="font-mono font-medium" dir="ltr">
+            {format(currentTime, "HH:mm:ss")}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main Content */}
+      <motion.div 
+        className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <div className="w-full max-w-5xl">
-          {/* Masthead */}
-          <motion.div variants={itemVariants} className="flex items-center justify-between ed-muted font-cairo text-xs mb-6">
-            <span>{formatDateWithWeekday(currentTime)}</span>
-            <span className="font-mono ed-gold" dir="ltr">{format(currentTime, "HH:mm:ss")}</span>
-          </motion.div>
-
-          {/* Hero editorial */}
-          <motion.div variants={headerVariants} className="text-center mb-8">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full ed-chip text-[11px] font-cairo mb-5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--ed-emerald))] animate-pulse" />
-              المدرسة الابتدائية العربي التبسي
-            </span>
-            <div className="relative h-36 md:h-44">
-              <div className="absolute inset-0 flex items-center justify-center magic-rotate-1">
-                <h1 className="text-7xl md:text-8xl font-bold ed-text font-ruqaa leading-[0.9]">همزة وصل</h1>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center magic-rotate-2">
-                <h1 className="text-7xl md:text-8xl font-bold ed-gold font-ruqaa leading-[0.9]">العربي التبسي</h1>
-              </div>
+        {/* Logo and Title */}
+        <motion.div className="text-center mb-8" variants={headerVariants}>
+          <div className="relative h-48 mb-6">
+            {/* همزة وصل */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
+                <div>همزة</div>
+                <div>وصل</div>
+              </h1>
             </div>
-            <div className="ed-rule w-40 mx-auto my-4" />
-            <p className="text-xl md:text-2xl font-bold ed-text font-cairo">جسر التواصل بين المدرسة والبيت</p>
-            <p className="text-sm ed-muted font-cairo mt-2 max-w-md mx-auto leading-relaxed">
+            
+            {/* العربي التبسي */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
+                <div>العربي</div>
+                <div>التبسي</div>
+              </h1>
+            </div>
+          </div>
+          
+          <motion.div variants={itemVariants}>
+            <p className="text-2xl text-white/90 font-cairo mb-2">
+              جسر التواصل بين المدرسة والبيت
+            </p>
+            <p className="text-lg text-white/80 font-cairo mb-3 max-w-3xl mx-auto leading-relaxed">
               منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية
             </p>
+            <p className="text-lg text-white/70 font-ruqaa">
+              المدرسة الابتدائية العربي التبسي
+            </p>
           </motion.div>
+        </motion.div>
 
-          <motion.div variants={itemVariants} className="mb-6 rounded-[1.75rem] overflow-hidden">
-            <ThemeBanner />
-            <PostersCarousel />
-          </motion.div>
+        {/* Theme Welcome Banner */}
+        <ThemeBanner />
 
-          <motion.div variants={itemVariants} className="flex items-center gap-3 mb-4">
-            <span className="ed-gold font-cairo text-xs font-bold tracking-wide">بوابات الدخول</span>
-            <div className="flex-1 h-px bg-[hsl(var(--ed-line))]" />
-          </motion.div>
+        {/* Posters Carousel */}
+        <motion.div variants={itemVariants} className="w-full">
+          <PostersCarousel />
+        </motion.div>
 
-          <motion.div className="grid grid-cols-2 md:grid-cols-4 gap-3" variants={containerVariants}>
-            {/* Parent feature */}
-            <motion.div
-              onClick={() => handleCardClick("parent")}
-              variants={cardVariants}
-              whileTap={{ scale: 0.98 }}
-              whileHover={{ y: -4 }}
-              className={`col-span-2 md:row-span-2 relative overflow-hidden rounded-[1.75rem] p-6 cursor-pointer ed-card-feature ${selectedUserType === "parent" ? "ring-2 ring-[hsl(var(--ed-gold))]" : ""}`}
-            >
-              <span className="absolute -left-4 -bottom-10 font-ruqaa text-[9rem] leading-none ed-text opacity-10 select-none">أ</span>
-              <div className="relative flex flex-col justify-between gap-10 min-h-[220px]">
-                <div className="flex items-start justify-between">
-                  <div className="rounded-2xl p-3.5 bg-[hsl(var(--ed-sand)/0.15)] icon-float">
-                    <Users className="w-9 h-9 ed-text" strokeWidth={1.6} />
-                  </div>
-                  <span className="px-3 py-1 rounded-full bg-[hsl(var(--ed-ink)/0.3)] ed-text text-[11px] font-cairo">الأكثر استخداماً</span>
+
+
+        {/* Cards Grid */}
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl"
+          variants={containerVariants}
+        >
+          {/* Parent Card */}
+          <motion.div 
+            onClick={() => handleCardClick("parent")}
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
+              selectedUserType === "parent" 
+                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
+            }`}
+            variants={cardVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="flex flex-col items-center text-center space-y-6">
+              {/* Icon Container */}
+              <div className="relative icon-float">
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
+                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                  <Users className="w-16 h-16 text-white" strokeWidth={1.5} />
                 </div>
-                <div>
-                  <span className="ed-gold font-mono text-xs">01</span>
-                  <h2 className="text-3xl font-bold ed-text font-cairo mb-1">أولياء الأمور</h2>
-                  <p className="ed-text opacity-80 font-cairo text-sm mb-4">تابع الواجبات والحضور والرسائل لحظة بلحظة</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap gap-1.5">
-                      {["الواجبات", "الحضور", "الرسائل", "الجدول"].map((t) => (
-                        <span key={t} className="px-2.5 py-1 rounded-lg bg-[hsl(var(--ed-ink)/0.25)] ed-text text-[11px] font-cairo">{t}</span>
-                      ))}
-                    </div>
-                    <span className="w-10 h-10 rounded-full bg-[hsl(var(--ed-sand))] flex items-center justify-center shrink-0">
-                      <ArrowRight className="w-5 h-5 rotate-180 text-[hsl(var(--ed-ink))]" />
-                    </span>
+              </div>
+              
+              {/* Text */}
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">أولياء الأمور</h2>
+                <p className="text-white/80 font-cairo">تابع مستوى أبنائك الدراسي</p>
+              </div>
+
+
+              {/* Arrow Icon */}
+              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Teacher Card */}
+          <motion.div 
+            onClick={() => setShowTeacherWarning(true)}
+            className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
+              selectedUserType === "teacher" 
+                ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
+            }`}
+            variants={cardVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+          >
+
+            <div className="flex flex-col items-center text-center space-y-6">
+              {/* Icon Container */}
+              <div className="relative icon-float" style={{ animationDelay: "0.5s" }}>
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
+                <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                  <GraduationCap className="w-16 h-16 text-white" strokeWidth={1.5} />
+                </div>
+              </div>
+              
+              {/* Text */}
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2 font-cairo">المعلمين</h2>
+                <p className="text-white/80 font-cairo">إدارة الأقسام والتلاميذ</p>
+              </div>
+
+
+              {/* Arrow Icon */}
+              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Admin Card - Hidden on native app AND installed PWA, only visible on web preview */}
+          {!Capacitor.isNativePlatform() && !isInstalled && (
+            <motion.div 
+              onClick={() => handleCardClick("admin")}
+              className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
+                selectedUserType === "admin" 
+                  ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                  : "bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/40"
+              }`}
+              variants={cardVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="flex flex-col items-center text-center space-y-6">
+                {/* Icon Container */}
+                <div className="relative icon-float" style={{ animationDelay: "1s" }}>
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 icon-pulse" />
+                  <div className="relative bg-white/20 backdrop-blur-sm rounded-full p-8 group-hover:bg-white/30 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                    <Shield className="w-16 h-16 text-white" strokeWidth={1.5} />
                   </div>
+                </div>
+                
+                {/* Text */}
+                <div>
+                  <h2 className="text-3xl font-bold text-white mb-2 font-cairo">الإدارة</h2>
+                  <p className="text-white/80 font-cairo">لوحة التحكم الإدارية</p>
+                </div>
+
+                {/* Arrow Icon */}
+                <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:-translate-x-2">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </div>
               </div>
             </motion.div>
+          )}
+        </motion.div>
 
-            {/* Teacher */}
-            <motion.div
-              onClick={() => setShowTeacherWarning(true)}
-              variants={cardVariants}
-              whileTap={{ scale: 0.98 }}
-              whileHover={{ y: -4 }}
-              className={`col-span-1 md:col-span-2 rounded-[1.75rem] p-5 cursor-pointer ed-card ${selectedUserType === "teacher" ? "ring-2 ring-[hsl(var(--ed-gold))]" : ""}`}
-            >
-              <div className="flex flex-col justify-between gap-6 min-h-[150px]">
-                <div className="flex justify-between items-start">
-                  <div className="rounded-xl p-2.5 ed-icon"><GraduationCap className="w-7 h-7" strokeWidth={1.6} /></div>
-                  <span className="ed-gold font-mono text-xs">02</span>
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold ed-text font-cairo">المعلمين</h2>
-                  <p className="ed-muted font-cairo text-xs">إدارة الأقسام والتلاميذ</p>
-                </div>
-              </div>
-            </motion.div>
 
-            {/* Admin */}
-            {(isEditorPreview || (!Capacitor.isNativePlatform() && !isInstalled)) ? (
-              <motion.div
-                onClick={() => handleCardClick("admin")}
-                variants={cardVariants}
-                whileTap={{ scale: 0.98 }}
-                whileHover={{ y: -4 }}
-                className={`col-span-1 md:col-span-2 rounded-[1.75rem] p-5 cursor-pointer ed-card ${selectedUserType === "admin" ? "ring-2 ring-[hsl(var(--ed-gold))]" : ""}`}
-              >
-                <div className="flex flex-col justify-between gap-6 min-h-[150px]">
-                  <div className="flex justify-between items-start">
-                    <div className="rounded-xl p-2.5 ed-icon"><Shield className="w-7 h-7" strokeWidth={1.6} /></div>
-                    <span className="ed-gold font-mono text-xs">03</span>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold ed-text font-cairo">الإدارة</h2>
-                    <p className="ed-muted font-cairo text-xs">لوحة التحكم الإدارية</p>
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div variants={cardVariants} className="col-span-1 md:col-span-2 rounded-[1.75rem] p-5 ed-card flex flex-col justify-center items-center text-center min-h-[150px]">
-                <p className="text-4xl font-bold ed-gold font-ruqaa">همزة وصل</p>
-                <p className="ed-muted font-cairo text-xs mt-2">تواصل أسهل وأسرع</p>
-              </motion.div>
-            )}
-          </motion.div>
 
-          <motion.div className="mt-10 text-center" variants={itemVariants}>
-            <div className="ed-rule w-24 mx-auto mb-3" />
-            <p className="ed-muted font-cairo text-xs">جميع الحقوق محفوظة-العربي التبسي 2026©</p>
-          </motion.div>
-        </div>
+        {/* Copyright */}
+        <motion.div className="mt-8 text-center" variants={itemVariants}>
+          <p className="text-white/60 font-cairo text-sm">
+            جميع الحقوق محفوظة-العربي التبسي 2026©
+          </p>
+        </motion.div>
       </motion.div>
 
       {/* Login Section */}
