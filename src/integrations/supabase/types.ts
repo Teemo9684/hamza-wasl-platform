@@ -584,6 +584,36 @@ export type Database = {
           },
         ]
       }
+      pilot_app_versions: {
+        Row: {
+          bundle_url: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_mandatory: boolean
+          release_notes: string | null
+          version: string
+        }
+        Insert: {
+          bundle_url: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          release_notes?: string | null
+          version: string
+        }
+        Update: {
+          bundle_url?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          release_notes?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
