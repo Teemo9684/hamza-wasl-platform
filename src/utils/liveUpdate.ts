@@ -160,7 +160,7 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
     }
     
     console.log("[LiveUpdate] Calling check-app-update function...");
-    const { data, error } = await supabase.functions.invoke("check-app-update", {
+    const { data, error } = await supabase.functions.invoke("check-pilot-update", {
       body: {
         currentVersion: effectiveVersion,
         platform: Capacitor.getPlatform(),
