@@ -21,3 +21,4 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npm run build:${{ matrix.audience }}
       - run: test -s dist-${{ matrix.audience }}/index.html
+      - run: node scripts/verify-app-build.mjs ${{ matrix.audience }}
