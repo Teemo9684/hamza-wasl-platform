@@ -1,54 +1,40 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
-// Parent APK only: Android 12+ requires a system launch window.
-// Display the SAME school emblem there, so no blank/black transition
-// precedes the existing React intro and welcome message.
-const mainActivity = 'android/app/src/main/java/app/hamzawasl/parents/MainActivity.java';
-const stylesFile = 'android/app/src/main/res/values/styles.xml';
-const emblemSource = 'public/assets/parents-launch-emblem.png';
-const emblemDrawable = 'android/app/src/main/res/drawable-nodpi/parents_splash_emblem.png';
-if (!existsSync(mainActivity) || !readFileSync(mainActivity, 'utf8').includes('package app.hamzawasl.parents;')) {
-  throw new Error('Refusing to patch non-parent Android project');
-}
-if (!existsSync(emblemSource)) throw new Error('Missing approved parent splash emblem: ' + emblemSource);
-if (!existsSync(stylesFile)) throw new Error('Android launch styles missing');
-mkdirSync(dirname(emblemDrawable), { recursive: true });
-copyFileSync(emblemSource, emblemDrawable);
+// Only modify the generated Android project for the standalone parents app.
+// Keep the official React welcome screen exactly as it is.
+const activity = 'android/app/src/main/java/app/hamzawasl/parents/MainActivity.java';
+const stylesPath = 'android/app/src/main/res/values/styles.xml';
+const sourceImage = 'public/assets/parents-launch-emblem.png';
+const nativeImage = 'android/app/src/main/res/drawable-nodpi/parents_launch_emblem.png';
+assert.ok(existsSync(activity) && readFileSync(activity, 'utf8').includes('package app.hamzawasl.parents;'), 'Not the parents APK');
+assert.ok(existsSync(sourceImage), 'The original school image is missing from the uploaded parent assets');
+assert.ok(existsSync(stylesPath), 'Missing Android styles.xml');
 
-const color = '#FFFFFF';
-let xml = readFileSync(stylesFile, 'utf8');
-const startMatch = /<style\s+name="AppTheme\.NoActionBarLaunch"[^>]*>/.exec(xml);
-if (!startMatch) throw new Error('Capacitor Android launch style changed; review manually');
-const start = startMatch.index + startMatch[0].length;
+mkdirSync(dirname(nativeImage), { recursive: true });
+copyFileSync(sourceImage, nativeImage);
+
+let xml = readFileSync(stylesPath, 'utf8');
+const opening = /<style\s+name="AppTheme\.NoActionBarLaunch"[^>]*>/;
+const match = opening.exec(xml);
+assert.ok(match, 'Could not find Capacitor launch theme');
+const start = match.index + match[0].length;
 const end = xml.indexOf('</style>', start);
-if (end === -1) throw new Error('Invalid Android launch theme');
+assert.ok(end > start, 'Invalid Capacitor launch theme');
 let body = xml.slice(start, end);
+// API 31+ uses the system launch icon; never use the square launcher icon.
+// On older Android versions the normal white Capacitor launch background remains.
 for (const [name, value] of [
-  ['windowSplashScreenAnimatedIcon', '@drawable/parents_splash_emblem'],
-  ['windowSplashScreenBackground', color],
-  ['android:windowSplashScreenAnimatedIcon', '@drawable/parents_splash_emblem'],
-  ['android:windowSplashScreenBackground', color],
-  ['android:windowBackground', color],
+  ['android:windowSplashScreenAnimatedIcon', '@drawable/parents_launch_emblem'],
+  ['android:windowSplashScreenBackground', '#FFFFFF'],
+  ['android:windowBackground', '#FFFFFF'],
 ]) {
-  const regex = new RegExp('<item\\s+name="' + name + '"[^>]*>[\\s\\S]*?<\\/item>', 'g');
-  body = body.replace(regex, '');
+  const escaped = name.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
+  body = body.replace(new RegExp('<item\\s+name="' + escaped + '"[^>]*>[\\s\\S]*?<\\/item>', 'g'), '');
   body += '\n        <item name="' + name + '">' + value + '</item>';
 }
 xml = xml.slice(0, start) + body + '\n    ' + xml.slice(end);
-// The app window behind Android's splash must share the same white
-// background. Otherwise some Android versions briefly expose a black frame.
-const mainStyle = /<style\s+name="AppTheme\.NoActionBar"[^>]*>/.exec(xml);
-if (!mainStyle) throw new Error('Missing parent app theme style');
-const mainStart = mainStyle.index + mainStyle[0].length;
-const mainEnd = xml.indexOf('</style>', mainStart);
-if (mainEnd < 0) throw new Error('Main app theme not closed');
-let mainBody = xml.slice(mainStart, mainEnd);
-mainBody = mainBody.replace(/<item\s+name="android:windowBackground"[^>]*>[\s\S]*?<\/item>/g, '');
-mainBody += '\n        <item name="android:windowBackground">#FFFFFF</item>\n    ';
-xml = xml.slice(0, mainStart) + mainBody + xml.slice(mainEnd);
-writeFileSync(stylesFile, xml);
-if (!readFileSync(stylesFile, 'utf8').includes('@drawable/parents_splash_emblem')) {
-  throw new Error('Native splash emblem integration failed');
-}
-console.log('Parent native splash now uses the school emblem on white, not a transparent drawable.');
+writeFileSync(stylesPath, xml);
+assert.ok(readFileSync(stylesPath, 'utf8').includes('@drawable/parents_launch_emblem'));
+console.log('Parent Android first launch screen: approved school portrait, white background. Official welcome unchanged.');
