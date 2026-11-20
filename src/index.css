@@ -1228,12 +1228,31 @@
 .ed-icon { background: hsl(var(--ed-gold) / 0.12); color: hsl(var(--ed-gold)); border: 1px solid hsl(var(--ed-gold) / 0.3); }
 
 
-/* Parent-only landing appearance: match the approved purple pilot design.
-   Keep all other app modes and dashboard layouts unchanged. */
-.parent-landing > .animated-gradient-bg {
-  background: linear-gradient(165deg, #9533df 0%, #7924ea 46%, #613be3 100%);
-  animation: none;
-}
+/* Parent landing inherits the original animated-gradient-bg unchanged.
+   Only mobile typography and spacing are scoped here. */
 .parent-landing .ticker-animation {
   max-width: none;
+}
+@media (max-width: 640px) {
+  .parent-landing .parent-hero-logo {
+    height: 9.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .parent-landing .parent-hero-logo h1 {
+    font-size: 2.8rem;
+  }
+  .parent-landing .parent-hero-title {
+    font-size: 1.1rem;
+    line-height: 1.65;
+  }
+  .parent-landing .parent-hero-description {
+    font-size: 0.9rem;
+    line-height: 1.85;
+  }
+  .parent-landing .parent-school-name {
+    font-size: 1rem;
+  }
+  .parent-landing .parent-hero-content {
+    padding-top: 1.25rem;
+  }
 }
