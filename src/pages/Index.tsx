@@ -397,7 +397,7 @@ const Index = () => {
   };
 
   return (
-    <div className={`min-h-screen w-full relative overflow-clip ${APP_AUDIENCE === "parent" ? "parent-landing" : ""}`}>
+    <div className={`min-h-screen w-full relative ${APP_AUDIENCE === "parent" ? "parent-landing overflow-x-clip" : "overflow-clip"}`}>
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 animated-gradient-bg" />
 
