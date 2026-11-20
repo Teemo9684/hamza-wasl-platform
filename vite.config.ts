@@ -122,17 +122,22 @@ export default defineConfig(({ mode }) => {
               }
             },
           ]),
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+          // School images may be private student photos or attachments.
+          // Parent builds should fetch them over the network, not persist
+          // them in a shared Workbox image cache.
+          ...(audience === 'parent' ? [] : [
+            {
+              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'images-cache',
+                expiration: {
+                  maxEntries: 60,
+                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                }
               }
-            }
-          },
+            },
+          ]),
           {
             urlPattern: /\.(?:js|css)$/i,
             handler: 'StaleWhileRevalidate',
