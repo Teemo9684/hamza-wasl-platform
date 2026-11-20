@@ -5,7 +5,10 @@ import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+  const audience = ["parent", "teacher", "admin"].includes(mode) ? mode : "combined";
+  const audienceNames: Record<string, string> = { parent: "همزة وصل – الأولياء", teacher: "همزة وصل – الأساتذة", admin: "همزة وصل – الإدارة", combined: "العربي التبسي" };
+  return ({
   server: {
     host: "::",
     port: 8080,
@@ -17,8 +20,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'العربي التبسي',
-        short_name: 'العربي التبسي',
+        name: audienceNames[audience],
+        short_name: audienceNames[audience],
         description: 'جسر التواصل بين المدرسة والبيت - منصة تعليمية شاملة للمدرسة الابتدائية العربي التبسي',
         theme_color: '#1e40af',
         background_color: '#ffffff',
@@ -49,7 +52,7 @@ export default defineConfig(({ mode }) => ({
             type: 'image/png'
           }
         ],
-        shortcuts: [
+        shortcuts: audience === 'combined' ? [
           {
             name: 'تسجيل الدخول - أولياء الأمور',
             short_name: 'أولياء',
@@ -64,7 +67,7 @@ export default defineConfig(({ mode }) => ({
             url: '/login/teacher',
             icons: [{ src: '/icon-192.png', sizes: '192x192' }]
           }
-        ]
+        ] : []
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
@@ -145,4 +148,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-}));
+});
+});
