@@ -1,10 +1,15 @@
 // ملف إدارة رقم الإصدار
 // قم بتحديث هذا الرقم مع كل تحديث جديد للتطبيق
 
-export const APP_VERSION = "1.2.69";
+export const APP_VERSION = "1.2.70";
 
 // سجل التحديثات
 export const VERSION_HISTORY = [
+  {
+    version: "1.2.70",
+    date: "2026-11-20",
+    changes: ["عرض رقم التحديث التجريبي المثبت على شاشة الدخول"],
+  },
   {
     version: "1.2.69",
     date: "2026-01-23",
