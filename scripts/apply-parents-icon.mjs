@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 
 const mode = process.argv[2];
 if (!['web', 'android'].includes(mode)) throw new Error('Usage: node scripts/apply-parents-icon.mjs web|android');
-const zip = 'hamza_parents_icon_assets.zip';
+const zip = 'hamza_parents_icon_assets_final.zip';
 // Fail closed: never publish a successful preview with the default Capacitor icon.
 if (!existsSync(zip)) throw new Error('[Parent icon] Required uploaded icon ZIP is missing');
 const temp = mkdtempSync(join(tmpdir(), 'parents-icon-'));
