@@ -476,10 +476,10 @@ const Index = () => {
           
           <motion.div variants={itemVariants}>
             <p className="text-2xl text-white/90 font-cairo mb-2">
-              جسر التواصل بين المدرسة والبيت
+              {APP_AUDIENCE === "teacher" ? "فضاء الأساتذة" : APP_AUDIENCE === "admin" ? "فضاء الإدارة" : "جسر التواصل بين المدرسة والبيت"}
             </p>
             <p className="text-lg text-white/80 font-cairo mb-3 max-w-3xl mx-auto leading-relaxed">
-              منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية
+              {APP_AUDIENCE === "parent" ? "تابع أبنائك وتواصل مع المدرسة في فضاء مخصص للأولياء" : APP_AUDIENCE === "teacher" ? "إدارة الأقسام والواجبات والغيابات والتواصل مع أولياء التلاميذ" : APP_AUDIENCE === "admin" ? "لوحة إدارة المدرسة والتحكم في الحسابات والإعلانات والبيانات المدرسية" : "منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية"}
             </p>
             <p className="text-lg text-white/70 font-ruqaa">
               المدرسة الابتدائية العربي التبسي
