@@ -11,7 +11,7 @@
 | الإدارة | `VITE_APP_AUDIENCE=admin` | `/` | الإدارة فقط |
 | تجربة 1.2.75 القديمة | متغير غير محدد | `/` | الواجهة المشتركة القديمة |
 
-البناء: `npm run build:parent` أو `npm run build:teacher` أو `npm run build:admin`؛ كلها تنتج `dist/` بشكل منفصل. لا تنشر ناتج بناء فوق إصدار آخر.
+البناء: `npm run build:parent` ينتج `dist-parent/`؛ و`npm run build:teacher` ينتج `dist-teacher/`؛ و`npm run build:admin` ينتج `dist-admin/`. لا تنشر ناتج بناء فوق إصدار آخر. لا تنشر ناتج بناء فوق إصدار آخر.
 
 ## الأمان والعزل
 
