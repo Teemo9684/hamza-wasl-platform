@@ -22,7 +22,7 @@ if (end < 0) throw new Error('Launch theme is not closed');
 const current = xml.slice(start, end);
 const lines = [
   '<item name="windowSplashScreenAnimatedIcon">@drawable/parents_blank_splash</item>',
-  '<item name="windowSplashScreenBackground">#FFFFFF</item>'
+  '<item name="windowSplashScreenBackground">#14243A</item>'
 ];
 let updated = current;
 for (const line of lines) {
