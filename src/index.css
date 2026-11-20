@@ -1228,31 +1228,15 @@
 .ed-icon { background: hsl(var(--ed-gold) / 0.12); color: hsl(var(--ed-gold)); border: 1px solid hsl(var(--ed-gold) / 0.3); }
 
 
-/* Parent landing inherits the original animated-gradient-bg unchanged.
-   Only mobile typography and spacing are scoped here. */
-.parent-landing .ticker-animation {
-  max-width: none;
-}
-@media (max-width: 640px) {
-  .parent-landing .parent-hero-logo {
-    height: 9.5rem;
-    margin-bottom: 1.25rem;
-  }
-  .parent-landing .parent-hero-logo h1 {
-    font-size: 2.8rem;
-  }
-  .parent-landing .parent-hero-title {
-    font-size: 1.1rem;
-    line-height: 1.65;
-  }
-  .parent-landing .parent-hero-description {
-    font-size: 0.9rem;
-    line-height: 1.85;
-  }
-  .parent-landing .parent-school-name {
-    font-size: 1rem;
-  }
-  .parent-landing .parent-hero-content {
-    padding-top: 1.25rem;
-  }
+/* Standalone parents app: preserve the same type sizes as the original app.
+   On Android 15+/Capacitor 8 the system status bar can be transparent.
+   Keep a fixed white surface behind its icons as the page scrolls. */
+html.capacitor-android.parent-audience::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  background: #f8fafc;
+  pointer-events: none;
+  z-index: 9999;
 }
