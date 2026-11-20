@@ -474,14 +474,14 @@ const Index = () => {
 
       {/* Main Content */}
       <motion.div 
-        className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 sm:p-8"
+        className="parent-hero-content relative z-10 min-h-screen flex flex-col items-center justify-center p-4 sm:p-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* Logo and Title */}
         <motion.div className="text-center mb-8" variants={headerVariants}>
-          <div className="relative h-36 sm:h-48 mb-5 sm:mb-6">
+          <div className="parent-hero-logo relative h-36 sm:h-48 mb-5 sm:mb-6">
             {/* همزة وصل */}
             <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
               <h1 className="text-5xl sm:text-6xl font-bold text-white font-ruqaa leading-[0.9]">
@@ -500,13 +500,13 @@ const Index = () => {
           </div>
           
           <motion.div variants={itemVariants}>
-            <p className="text-lg sm:text-2xl text-white/90 font-cairo mb-2">
+            <p className="parent-hero-title text-lg sm:text-2xl text-white/90 font-cairo mb-2">
               {APP_AUDIENCE === "teacher" ? "فضاء الأساتذة" : APP_AUDIENCE === "admin" ? "فضاء الإدارة" : "جسر التواصل بين المدرسة والبيت"}
             </p>
-            <p className="text-sm sm:text-lg text-white/80 font-cairo mb-3 max-w-3xl mx-auto leading-relaxed">
-              {APP_AUDIENCE === "parent" ? "تابع أبنائك وتواصل مع المدرسة في فضاء مخصص للأولياء" : APP_AUDIENCE === "teacher" ? "إدارة الأقسام والواجبات والغيابات والتواصل مع أولياء التلاميذ" : APP_AUDIENCE === "admin" ? "لوحة إدارة المدرسة والتحكم في الحسابات والإعلانات والبيانات المدرسية" : "منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية"}
+            <p className="parent-hero-description text-sm sm:text-lg text-white/80 font-cairo mb-3 max-w-3xl mx-auto leading-relaxed">
+              {APP_AUDIENCE === "teacher" ? "إدارة الأقسام والواجبات والغيابات والتواصل مع أولياء التلاميذ" : APP_AUDIENCE === "admin" ? "لوحة إدارة المدرسة والتحكم في الحسابات والإعلانات والبيانات المدرسية" : "منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية"}
             </p>
-            <p className="text-base sm:text-lg text-white/70 font-ruqaa">
+            <p className="parent-school-name text-base sm:text-lg text-white/70 font-ruqaa">
               المدرسة الابتدائية العربي التبسي
             </p>
           </motion.div>
