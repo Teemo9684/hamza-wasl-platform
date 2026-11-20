@@ -21,6 +21,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Apply parents PWA icon if uploaded
+        run: node scripts/apply-parents-icon.mjs web
       - name: Build parent-only frontend
         run: npm run build:parent
       - name: Verify separated manifest and output
@@ -91,12 +93,16 @@ jobs:
           echo "Android SDK ready at $SDK"
       - name: Install dependencies
         run: npm ci
+      - name: Apply parents PWA icon if uploaded
+        run: node scripts/apply-parents-icon.mjs web
       - name: Build parent-only assets
         run: npm run build:parent
       - name: Generate isolated Android project
         run: |
           npx cap add android
           npx cap sync android
+      - name: Apply parents Android launcher icons if uploaded
+        run: node scripts/apply-parents-icon.mjs android
       - name: Match native parent WebView typography to main app
         run: node scripts/patch-parents-android.mjs
       - name: Verify Android identity and disabled OTA
