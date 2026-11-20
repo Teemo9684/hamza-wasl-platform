@@ -803,7 +803,7 @@ const Index = () => {
       
       {/* App Version Display */}
       <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
-        تجريبي · {APP_VERSION}
+        {APP_AUDIENCE === "combined" ? "تجريبي" : APP_AUDIENCE === "parent" ? "الأولياء" : APP_AUDIENCE === "teacher" ? "الأساتذة" : "الإدارة"} · {APP_VERSION}
       </div>
 
       {/* Teacher Warning Dialog */}
