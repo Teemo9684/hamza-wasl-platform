@@ -5,7 +5,7 @@
  */
 export type AppAudience = "combined" | "parent" | "teacher" | "admin";
 
-const configured = import.meta.env.VITE_APP_AUDIENCE;
+const configured = import.meta.env.VITE_APP_AUDIENCE || import.meta.env.MODE;
 
 export const APP_AUDIENCE: AppAudience =
   configured === "parent" || configured === "teacher" || configured === "admin"
