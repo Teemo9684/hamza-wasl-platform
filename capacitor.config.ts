@@ -62,7 +62,9 @@ const config: CapacitorConfig = {
     },
     SplashScreen: {
       launchShowDuration: 0,
-      launchAutoHide: true,
+      // Keep the parent Android splash visible until its React welcome view
+      // explicitly signals readiness; avoid exposing a black empty WebView.
+      launchAutoHide: audience !== 'parent',
       backgroundColor: "#ffffff",
       showSpinner: false
     },
