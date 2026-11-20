@@ -16,7 +16,7 @@ if (!existsSync(stylesFile)) throw new Error('Android launch styles missing');
 mkdirSync(dirname(emblemDrawable), { recursive: true });
 copyFileSync(emblemSource, emblemDrawable);
 
-const color = '#14243A';
+const color = '#FFFFFF';
 let xml = readFileSync(stylesFile, 'utf8');
 const startMatch = /<style\s+name="AppTheme\.NoActionBarLaunch"[^>]*>/.exec(xml);
 if (!startMatch) throw new Error('Capacitor Android launch style changed; review manually');
@@ -36,7 +36,7 @@ for (const [name, value] of [
   body += '\n        <item name="' + name + '">' + value + '</item>';
 }
 xml = xml.slice(0, start) + body + '\n    ' + xml.slice(end);
-// The app window behind Android's splash must share the same dark navy
+// The app window behind Android's splash must share the same white
 // background. Otherwise some Android versions briefly expose a black frame.
 const mainStyle = /<style\s+name="AppTheme\.NoActionBar"[^>]*>/.exec(xml);
 if (!mainStyle) throw new Error('Missing parent app theme style');
@@ -45,10 +45,10 @@ const mainEnd = xml.indexOf('</style>', mainStart);
 if (mainEnd < 0) throw new Error('Main app theme not closed');
 let mainBody = xml.slice(mainStart, mainEnd);
 mainBody = mainBody.replace(/<item\s+name="android:windowBackground"[^>]*>[\s\S]*?<\/item>/g, '');
-mainBody += '\n        <item name="android:windowBackground">#14243A</item>\n    ';
+mainBody += '\n        <item name="android:windowBackground">#FFFFFF</item>\n    ';
 xml = xml.slice(0, mainStart) + mainBody + xml.slice(mainEnd);
 writeFileSync(stylesFile, xml);
 if (!readFileSync(stylesFile, 'utf8').includes('@drawable/parents_splash_emblem')) {
   throw new Error('Native splash emblem integration failed');
 }
-console.log('Parent native splash now uses the school emblem on soft navy, not a transparent drawable.');
+console.log('Parent native splash now uses the school emblem on white, not a transparent drawable.');
