@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
       - name: Install dependencies
         run: npm ci
@@ -35,5 +35,50 @@ jobs:
           path: dist-parent/
           retention-days: 7
 
-# Deliberately no automatic deployment or OTA release.
-# Release to parents-updates only after approval and Android validation.
+  parents-android:
+    name: Build independent Android debug package
+    needs: parents-web
+    runs-on: ubuntu-latest
+    env:
+      APP_AUDIENCE: parent
+      PARENT_OTA_ENABLED: 'false'
+      VITE_PARENT_OTA_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Build parent-only assets
+        run: npm run build:parent
+      - name: Generate isolated Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+      - name: Verify Android identity and disabled OTA
+        run: |
+          grep -q 'app.hamzawasl.parents' android/app/build.gradle
+          grep -q "enabled: audience === 'combined' ||" capacitor.config.ts
+          test "${PARENT_OTA_ENABLED}" = 'false'
+          test "${VITE_PARENT_OTA_ENABLED}" = 'false'
+      - name: Build debug APK (testing only)
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
+      - name: Upload test APK (not a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: parents-preview-android-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+# No production deployment, no live updates, and no release publication.
+# Android debug APKs are test artifacts, not installs for school users.
