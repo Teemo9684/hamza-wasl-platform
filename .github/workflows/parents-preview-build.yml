@@ -1,0 +1,39 @@
+name: Parents preview build
+
+on:
+  push:
+    branches:
+      - 'apps/parents-preview'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parents-web:
+    name: Verify parent-only bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build parent-only frontend
+        run: npm run build:parent
+      - name: Verify separated manifest and output
+        run: |
+          test -f dist-parent/index.html
+          test -f dist-parent/manifest.webmanifest
+          grep -q 'همزة وصل – الأولياء' dist-parent/manifest.webmanifest
+      - name: Upload verification artifact (not an OTA release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: parents-preview-web
+          path: dist-parent/
+          retention-days: 7
+
+# Deliberately no automatic deployment or OTA release.
+# Release to parents-updates only after approval and Android validation.
