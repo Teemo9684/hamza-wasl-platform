@@ -29,6 +29,7 @@ import LoginAdmin from "./pages/LoginAdmin";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
+import { APP_AUDIENCE, isAudienceEnabled } from "@/config/appAudience";
 
 // Dashboard Layouts
 import { ParentDashboardLayout } from "./components/ParentDashboardLayout";
@@ -59,15 +60,15 @@ const AnimatedRoutes = () => {
   return (
     <Routes location={location}>
       <Route path="/" element={<PageTransition><Index /></PageTransition>} />
-      <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
-      <Route path="/register/parent" element={<PageTransition><RegisterParent /></PageTransition>} />
-      <Route path="/register/teacher" element={<PageTransition><RegisterTeacher /></PageTransition>} />
-      <Route path="/login/parent" element={<PageTransition><LoginParent /></PageTransition>} />
-      <Route path="/login/teacher" element={<PageTransition><LoginTeacher /></PageTransition>} />
-      <Route path="/login/admin" element={<PageTransition><LoginAdmin /></PageTransition>} />
+      {APP_AUDIENCE === "combined" && <Route path="/register" element={<PageTransition><Register /></PageTransition>} />}
+      {isAudienceEnabled("parent") && <Route path="/register/parent" element={<PageTransition><RegisterParent /></PageTransition>} />}
+      {APP_AUDIENCE === "combined" && <Route path="/register/teacher" element={<PageTransition><RegisterTeacher /></PageTransition>} />}
+      {isAudienceEnabled("parent") && <Route path="/login/parent" element={<PageTransition><LoginParent /></PageTransition>} />}
+      {isAudienceEnabled("teacher") && <Route path="/login/teacher" element={<PageTransition><LoginTeacher /></PageTransition>} />}
+      {isAudienceEnabled("admin") && <Route path="/login/admin" element={<PageTransition><LoginAdmin /></PageTransition>} />}
       
       {/* Parent Dashboard with shared layout */}
-      <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentDashboardLayout /></ProtectedRoute>}>
+      {isAudienceEnabled("parent") && <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentDashboardLayout /></ProtectedRoute>}>
         <Route index element={<ParentOverviewContent />} />
         <Route path="overview" element={<ParentOverviewContent />} />
         <Route path="attendance" element={<ParentAttendanceContent />} />
@@ -76,22 +77,22 @@ const AnimatedRoutes = () => {
         <Route path="messages" element={<ParentMessagesContent />} />
         <Route path="documents" element={<ParentDocumentRequestsContent />} />
         <Route path="settings" element={<ParentSettingsContent />} />
-      </Route>
+      </Route>}
       
       {/* Teacher Dashboard with shared layout */}
-      <Route path="/dashboard/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherDashboardLayout /></ProtectedRoute>}>
+      {isAudienceEnabled("teacher") && <Route path="/dashboard/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherDashboardLayout /></ProtectedRoute>}>
         <Route index element={<TeacherOverviewContent />} />
         <Route path="overview" element={<TeacherOverviewContent />} />
         <Route path="attendance" element={<TeacherAttendanceContent />} />
         <Route path="homework" element={<TeacherHomeworkContent />} />
         <Route path="messages" element={<TeacherMessagesContent />} />
         <Route path="groupMessages" element={<TeacherGroupMessagesContent />} />
-      </Route>
+      </Route>}
       
       {/* Admin Dashboard */}
-      <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><DashboardAdmin /></ProtectedRoute>} />
+      {isAudienceEnabled("admin") && <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><DashboardAdmin /></ProtectedRoute>} />}
       
-      <Route path="/install" element={<PageTransition><InstallApp /></PageTransition>} />
+      {APP_AUDIENCE === "combined" && <Route path="/install" element={<PageTransition><InstallApp /></PageTransition>} />}
       <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
     </Routes>
   );
@@ -235,7 +236,7 @@ const App = () => {
           <ThemeProvider>
             <NotificationProvider>
               <TooltipProvider>
-                <SmartUpdateProvider autoCheck={true} checkInterval={30 * 60 * 1000}>
+                <SmartUpdateProvider autoCheck={APP_AUDIENCE === "combined"} checkInterval={30 * 60 * 1000}>
                   <Toaster />
                   <Sonner />
                   <SchoolScheduleAlert />
