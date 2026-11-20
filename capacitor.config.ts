@@ -77,7 +77,7 @@ const config: CapacitorConfig = {
     },
     LiveUpdate: {
       // Only the existing pilot has a verified OTA feed.
-      enabled: audience === 'combined',
+      enabled: audience === 'combined' || (audience === 'parent' && process.env.PARENT_OTA_ENABLED === 'true'),
       autoDeleteBundles: true,
       readyTimeout: 10000
     }
