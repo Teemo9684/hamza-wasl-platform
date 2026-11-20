@@ -98,6 +98,14 @@ const AnimatedRoutes = () => {
   );
 };
 
+// Keep native OTA entirely outside standalone targets until each app
+// has its own verified update channel. Disabling periodic checks alone is not enough:
+ // useSmartUpdate also checks when the native app starts or resumes.
+const AppUpdateBoundary = ({ children }: { children: React.ReactNode }) =>
+  APP_AUDIENCE === "combined"
+    ? <SmartUpdateProvider autoCheck={true} checkInterval={30 * 60 * 1000}>{children}</AppUpdateBoundary>
+    : <>{children}</>;
+
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -236,7 +244,7 @@ const App = () => {
           <ThemeProvider>
             <NotificationProvider>
               <TooltipProvider>
-                <SmartUpdateProvider autoCheck={APP_AUDIENCE === "combined"} checkInterval={30 * 60 * 1000}>
+                <AppUpdateBoundary>
                   <Toaster />
                   <Sonner />
                   <SchoolScheduleAlert />
