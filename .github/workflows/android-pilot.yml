@@ -19,6 +19,9 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npm run build
       - run: npx cap add android
+      - uses: ./.github/actions/android-display
+        with:
+          app-package: app.hamzawasl.app.pilot
       - run: bash gradlew assembleDebug
         working-directory: android
       - uses: actions/upload-artifact@v4
