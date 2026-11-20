@@ -53,7 +53,8 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
       // Check cache first
       const cacheKey = `${session.user.id}-${requiredRole}`;
       const cached = authCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      // Parent approval and role changes must not be hidden by a cached decision.
+      if (APP_AUDIENCE !== "parent" && cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         setIsAuthorized(cached.isAuthorized);
         setIsLoading(false);
         return;
