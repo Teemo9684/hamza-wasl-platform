@@ -374,79 +374,81 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden pt-[env(safe-area-inset-top)]">
+    <div className="min-h-screen w-full relative overflow-clip">
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 animated-gradient-bg" />
 
       {/* Theme Decorations */}
       <ThemeDecorations />
 
-      {/* News Ticker */}
-      {newsItems.length > 0 && (
-        <div className="absolute top-0 left-0 right-0 z-20 bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
-          <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
-            {/* Repeat items 3 times for seamless scrolling */}
-            {[...Array(3)].map((_, repeatIndex) => (
-              newsItems.map((item, itemIndex) => (
-                <div key={`${repeatIndex}-${item.id}`} className="flex items-center gap-8">
-                  <span className="text-white font-cairo flex items-center gap-2">
-                    <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
-                      {item.icon_type}
-                    </span>
-                    {item.content}
-                  </span>
-                  
-                  {/* Logo separator */}
-                  <div className="relative h-8 w-12 flex-shrink-0">
-                    <div className="flex flex-col items-center justify-center">
-                      <span className="text-sm font-bold text-white/80 font-ruqaa leading-[0.8]">
-                        {itemIndex % 2 === 0 ? (
-                          <>
-                            <div>همزة</div>
-                            <div>وصل</div>
-                          </>
-                        ) : (
-                          <>
-                            <div>العربي</div>
-                            <div>التبسي</div>
-                          </>
-                        )}
+      <header className="sticky top-0 z-30 bg-indigo-900/80 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+        {/* News Ticker */}
+        {newsItems.length > 0 && (
+          <div className="bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
+            <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
+              {/* Repeat items 3 times for seamless scrolling */}
+              {[...Array(3)].map((_, repeatIndex) => (
+                newsItems.map((item, itemIndex) => (
+                  <div key={`${repeatIndex}-${item.id}`} className="flex items-center gap-8">
+                    <span className="text-white font-cairo flex items-center gap-2">
+                      <span className={`${item.badge_color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
+                        {item.icon_type}
                       </span>
+                      {item.content}
+                    </span>
+  
+                    {/* Logo separator */}
+                    <div className="relative h-8 w-12 flex-shrink-0">
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-sm font-bold text-white/80 font-ruqaa leading-[0.8]">
+                          {itemIndex % 2 === 0 ? (
+                            <>
+                              <div>همزة</div>
+                              <div>وصل</div>
+                            </>
+                          ) : (
+                            <>
+                              <div>العربي</div>
+                              <div>التبسي</div>
+                            </>
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            ))}
+                ))
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Date and Time Display - Below News Ticker */}
-      <motion.div 
-        className="absolute top-16 left-0 right-0 z-20 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-      >
-        <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
-          {/* Date */}
-          <div className="font-medium">
-            {formatDateWithWeekday(currentTime)}
+        {/* Date and Time Display - Below News Ticker */}
+        <motion.div
+          className="bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
+            {/* Date */}
+            <div className="font-medium">
+              {formatDateWithWeekday(currentTime)}
+            </div>
+  
+            {/* Separator */}
+            <div className="w-px h-4 bg-white/30"></div>
+  
+            {/* Time */}
+            <div className="font-mono font-medium" dir="ltr">
+              {format(currentTime, "HH:mm:ss")}
+            </div>
           </div>
-          
-          {/* Separator */}
-          <div className="w-px h-4 bg-white/30"></div>
-          
-          {/* Time */}
-          <div className="font-mono font-medium" dir="ltr">
-            {format(currentTime, "HH:mm:ss")}
-          </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </header>
 
       {/* Main Content */}
       <motion.div 
-        className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8 pt-32"
+        className="relative z-10 min-h-screen flex flex-col items-center justify-center p-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
