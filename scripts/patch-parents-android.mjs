@@ -81,7 +81,7 @@ for (const style of ['AppTheme', 'AppTheme.NoActionBar', 'AppTheme.NoActionBarLa
   const end = styles.indexOf('</style>', start);
   assert.ok(end >= 0, 'Unclosed Android theme: ' + style);
   let body = styles.slice(start, end);
-  body = body.replace(/<item\\s+name="android:windowBackground"[^>]*>[\\s\\S]*?<\\/item>/g, '');
+  body = body.replace(/<item\s+name="android:windowBackground"[^>]*>[\s\S]*?<\/item>/g, '');
   body += '\n        <item name="android:windowBackground">#FFFFFF</item>\n    ';
   styles = styles.slice(0, start) + body + styles.slice(end);
 }
