@@ -73,7 +73,6 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
             transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
           >
             {APP_AUDIENCE !== 'parent' && (
-              {/* Logo */}
               <motion.div
                 className="relative"
                 animate={{ y: [0, -10, 0] }}
