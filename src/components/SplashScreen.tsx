@@ -40,10 +40,18 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   // Parent Android only: tell the native layer that the original welcome
   // screen is ready before it hands over from the system splash.
   useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      window.dispatchEvent(new Event('parents-welcome-ready'));
+    // Wait for two paint opportunities after mounting the original welcome.
+    // A single animation frame can run before Android has displayed it.
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => {
+        window.dispatchEvent(new Event('parents-welcome-ready'));
+      });
     });
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
+    };
   }, []);
 
   return (
