@@ -1,0 +1,27 @@
+name: Android pilot update bundle
+on:
+  push:
+    branches: [testing/android-pilot]
+    paths: [src/config/version.ts]
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build
+      - name: Verify pilot bundle
+        run: |
+          test -s dist/index.html
+          grep -rq 'check-pilot-update' dist/assets
+          test -z "$(find dist -name '*.apk')"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hamza-wasl-pilot-update
+          path: dist/
+          if-no-files-found: error
