@@ -342,6 +342,7 @@ const playAnnouncementNotificationSound = (ctx: AudioContext, gainNode: GainNode
 };
 
 export const initializePushNotifications = async () => {
+  if (!isPushNotificationsAvailable()) return;
   try {
     // Request permission immediately
     let permStatus = await PushNotifications.checkPermissions();
@@ -484,16 +485,18 @@ export const registerPushTokenForUser = async () => {
 };
 
 export const removePushNotificationListeners = async () => {
+  if (!isPushNotificationsAvailable()) return;
   await PushNotifications.removeAllListeners();
 };
 
 // Function to check if push notifications are supported (native only)
 export const isPushNotificationsAvailable = (): boolean => {
-  return Capacitor.isNativePlatform();
+  return Capacitor.isNativePlatform() && Capacitor.isPluginAvailable('PushNotifications');
 };
 
 // Function to get current notification badges
 export const getNotificationBadge = async () => {
+  if (!isPushNotificationsAvailable()) return 0;
   try {
     const deliveredNotifications = await PushNotifications.getDeliveredNotifications();
     return deliveredNotifications.notifications.length;
@@ -505,6 +508,7 @@ export const getNotificationBadge = async () => {
 
 // Function to clear all notifications
 export const clearAllNotifications = async () => {
+  if (!isPushNotificationsAvailable()) return;
   try {
     await PushNotifications.removeAllDeliveredNotifications();
   } catch (error) {
