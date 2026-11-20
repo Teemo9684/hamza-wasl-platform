@@ -14,10 +14,6 @@ if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add(`capacitor-${platform}`);
   if (APP_AUDIENCE === "parent") {
     document.documentElement.classList.add("parent-audience");
-    // White window surface during Android's native-to-WebView handoff.
-    // Restore normal theme handling as soon as the original welcome is ready.
-    document.documentElement.style.backgroundColor = "#ffffff";
-    document.body.style.backgroundColor = "#ffffff";
   }
 }
 
@@ -129,30 +125,16 @@ if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
   });
 }
 
-// Start the app - restore native settings BEFORE rendering
+// Match the official app's startup sequence. Android handles its short
+// mandatory system launch window; React shows the original welcome screen.
 const startApp = async () => {
+  hideNativeSplash();
   configureStatusBar();
 
-  // CRITICAL: Restore cached settings from nativeStorage to localStorage
-  // before React renders, so ThemeContext reads the correct initial value.
+  // Keep parent-specific session restoration, without introducing additional
+  // splash pages or waiting for custom hand-off events.
   await restoreNativeSettings();
-
-  if (APP_AUDIENCE === "parent" && Capacitor.isNativePlatform()) {
-    window.addEventListener('parents-welcome-ready', () => {
-      requestAnimationFrame(() => {
-        hideNativeSplash();
-        document.documentElement.style.removeProperty("background-color");
-        document.body.style.removeProperty("background-color");
-      });
-    }, { once: true });
-  }
   createRoot(document.getElementById("root")!).render(<App />);
-
-  // Parent Android: keep the system emblem visible until the actual
-  // React welcome screen has committed. Never expose an empty WebView.
-  if (!(APP_AUDIENCE === "parent" && Capacitor.isNativePlatform())) {
-    hideNativeSplash();
-  }
 };
 
 startApp();
