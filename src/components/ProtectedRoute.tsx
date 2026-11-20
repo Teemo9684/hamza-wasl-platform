@@ -22,10 +22,13 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
   
   // Check if admin access is blocked on native app
   const isAdminBlockedOnNative = requiredRole === "admin" && APP_AUDIENCE !== "admin" && Capacitor.isNativePlatform();
+  // Parent standalone must not render non-parent protected screens even if
+  // future routing changes accidentally expose a staff route.
+  const isBlockedForParentApp = APP_AUDIENCE === "parent" && requiredRole !== "parent";
 
   useEffect(() => {
     // Skip auth check if admin is blocked on native
-    if (isAdminBlockedOnNative) {
+    if (isAdminBlockedOnNative || isBlockedForParentApp) {
       setIsLoading(false);
       return;
     }
@@ -35,7 +38,7 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
     hasChecked.current = true;
     
     checkAuth();
-  }, [requiredRole, isAdminBlockedOnNative]);
+  }, [requiredRole, isAdminBlockedOnNative, isBlockedForParentApp]);
 
   const checkAuth = async () => {
     try {
@@ -104,7 +107,7 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
   };
 
   // Block admin access on native app - redirect to home
-  if (isAdminBlockedOnNative) {
+  if (isAdminBlockedOnNative || isBlockedForParentApp) {
     return <Navigate to="/" replace />;
   }
 
