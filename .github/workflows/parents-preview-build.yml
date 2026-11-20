@@ -52,14 +52,43 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Verify hosted Android SDK
+      - name: Prepare Android SDK (hosted or verified fallback)
         run: |
           set -euo pipefail
-          echo "ANDROID_HOME=${ANDROID_HOME:-}"
-          test -d "${ANDROID_HOME:?Android SDK must be available on runner}"
-          command -v sdkmanager
-          sdkmanager --version
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "Hosted Android SDK directory: $SDK"
           java -version
+          if [[ -d "$SDK" ]]; then
+            find "$SDK/cmdline-tools" -maxdepth 4 -name sdkmanager -type f -print 2>/dev/null || true
+          fi
+          SDKMANAGER=""
+          if [[ -x "$SDK/cmdline-tools/latest/bin/sdkmanager" ]]; then
+            SDKMANAGER="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          elif command -v sdkmanager >/dev/null 2>&1; then
+            SDKMANAGER="$(command -v sdkmanager)"
+          else
+            SDKMANAGER="$(find "$SDK/cmdline-tools" -maxdepth 4 -name sdkmanager -type f -print -quit 2>/dev/null || true)"
+          fi
+          if [[ -z "$SDKMANAGER" ]]; then
+            echo "Android command-line tools not found: installing official checksum-verified tools"
+            SDK="$RUNNER_TEMP/parents-android-sdk"
+            mkdir -p "$SDK/cmdline-tools/latest"
+            curl --fail --location --retry 3 --output "$RUNNER_TEMP/android-tools.zip" \
+              "https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip"
+            echo "4e4c464f145a7512b57d088ac6c278c03c9eea610886b35a5e0804e74eedf583  $RUNNER_TEMP/android-tools.zip" | sha256sum -c -
+            unzip -q "$RUNNER_TEMP/android-tools.zip" -d "$RUNNER_TEMP/parents-android-cmdline"
+            mv "$RUNNER_TEMP/parents-android-cmdline/cmdline-tools/"* "$SDK/cmdline-tools/latest/"
+            SDKMANAGER="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          fi
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          echo "$(dirname "$SDKMANAGER")" >> "$GITHUB_PATH"
+          "$SDKMANAGER" --version
+          if [[ "$SDK" == "$RUNNER_TEMP/parents-android-sdk" ]]; then
+            yes | "$SDKMANAGER" --sdk_root="$SDK" --licenses >/dev/null || test "${PIPESTATUS[1]}" -eq 0
+            "$SDKMANAGER" --sdk_root="$SDK" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          fi
+          echo "Android SDK ready at $SDK"
       - name: Install dependencies
         run: npm ci
       - name: Build parent-only assets
