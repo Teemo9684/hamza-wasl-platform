@@ -74,7 +74,7 @@ const stylesFile = 'android/app/src/main/res/values/styles.xml';
 assert.ok(existsSync(stylesFile), 'Expected generated Android styles.xml');
 let styles = readFileSync(stylesFile, 'utf8');
 for (const style of ['AppTheme', 'AppTheme.NoActionBar', 'AppTheme.NoActionBarLaunch']) {
-  const opening = new RegExp('<style\\\\s+name="' + style.replaceAll('.', '\\\\.') + '"[^>]*>');
+  const opening = new RegExp('<style\\s+name="' + style.replaceAll('.', '\\.') + '"[^>]*>');
   const match = opening.exec(styles);
   assert.ok(match, 'Missing generated Android theme: ' + style);
   const start = match.index + match[0].length;
@@ -82,7 +82,7 @@ for (const style of ['AppTheme', 'AppTheme.NoActionBar', 'AppTheme.NoActionBarLa
   assert.ok(end >= 0, 'Unclosed Android theme: ' + style);
   let body = styles.slice(start, end);
   body = body.replace(/<item\\s+name="android:windowBackground"[^>]*>[\\s\\S]*?<\\/item>/g, '');
-  body += '\\n        <item name="android:windowBackground">#FFFFFF</item>\\n    ';
+  body += '\n        <item name="android:windowBackground">#FFFFFF</item>\n    ';
   styles = styles.slice(0, start) + body + styles.slice(end);
 }
 writeFileSync(stylesFile, styles);
