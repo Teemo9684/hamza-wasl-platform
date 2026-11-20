@@ -668,7 +668,7 @@ const Index = () => {
               
               <form onSubmit={handleLogin}>
                 <CardContent className="space-y-4">
-                  {(selectedUserType === "parent" || (APP_AUDIENCE === "combined" && selectedUserType === "teacher")) && (
+                  {selectedUserType !== "admin" && (
                     <div className="space-y-2">
                       <Label htmlFor="email" className="font-cairo">البريد الإلكتروني</Label>
                       <Input
@@ -783,7 +783,7 @@ const Index = () => {
                     <ArrowRight className="mr-2 h-5 w-5" />
                   </Button>
                   
-                  {selectedUserType !== "admin" && (
+                  {(selectedUserType === "parent" || (APP_AUDIENCE === "combined" && selectedUserType === "teacher")) && (
                     <Button
                       type="button"
                       variant="ghost"
