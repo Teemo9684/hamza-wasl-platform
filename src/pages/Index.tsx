@@ -1,3 +1,4 @@
+import { APP_AUDIENCE, isAudienceEnabled } from "@/config/appAudience";
 import { useNavigate } from "react-router-dom";
 import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -498,10 +499,11 @@ const Index = () => {
 
         {/* Cards Grid */}
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl"
+          className={`grid grid-cols-1 ${APP_AUDIENCE === "combined" ? "md:grid-cols-3 max-w-6xl" : "max-w-md"} gap-8 w-full`}
           variants={containerVariants}
         >
           {/* Parent Card */}
+          {isAudienceEnabled("parent") && (
           <motion.div 
             onClick={() => handleCardClick("parent")}
             className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
@@ -538,9 +540,12 @@ const Index = () => {
             </div>
           </motion.div>
 
+          )}
+
           {/* Teacher Card */}
+          {isAudienceEnabled("teacher") && (
           <motion.div 
-            onClick={() => setShowTeacherWarning(true)}
+            onClick={() => APP_AUDIENCE === "combined" ? setShowTeacherWarning(true) : handleCardClick("teacher")}
             className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
               selectedUserType === "teacher" 
                 ? "bg-white/25 border-white/60 scale-105 ring-2 ring-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
@@ -576,6 +581,9 @@ const Index = () => {
             </div>
           </motion.div>
 
+          )}
+
+          {isAudienceEnabled("admin") && (
           <motion.div 
             onClick={() => handleCardClick("admin")}
             className={`group relative backdrop-blur-lg rounded-3xl p-8 cursor-pointer transition-all duration-500 hover:scale-105 border ${
@@ -610,6 +618,7 @@ const Index = () => {
               </div>
             </div>
           </motion.div>
+          )}
         </motion.div>
 
 
