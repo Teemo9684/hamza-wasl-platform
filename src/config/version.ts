@@ -1,10 +1,15 @@
 // ملف إدارة رقم الإصدار
 // قم بتحديث هذا الرقم مع كل تحديث جديد للتطبيق
 
-export const APP_VERSION = "1.2.71";
+export const APP_VERSION = "1.2.72";
 
 // سجل التحديثات
 export const VERSION_HISTORY = [
+  {
+    version: "1.2.72",
+    date: "2026-11-20",
+    changes: ["مطابقة بطاقات الدخول والتصميم مع معاينة المدرسة"],
+  },
   {
     version: "1.2.71",
     date: "2026-11-20",
