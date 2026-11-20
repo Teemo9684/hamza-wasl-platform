@@ -14,6 +14,10 @@ if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add(`capacitor-${platform}`);
   if (APP_AUDIENCE === "parent") {
     document.documentElement.classList.add("parent-audience");
+    // White window surface during Android's native-to-WebView handoff.
+    // Restore normal theme handling as soon as the original welcome is ready.
+    document.documentElement.style.backgroundColor = "#ffffff";
+    document.body.style.backgroundColor = "#ffffff";
   }
 }
 
@@ -135,7 +139,11 @@ const startApp = async () => {
 
   if (APP_AUDIENCE === "parent" && Capacitor.isNativePlatform()) {
     window.addEventListener('parents-welcome-ready', () => {
-      requestAnimationFrame(() => hideNativeSplash());
+      requestAnimationFrame(() => {
+        hideNativeSplash();
+        document.documentElement.style.removeProperty("background-color");
+        document.body.style.removeProperty("background-color");
+      });
     }, { once: true });
   }
   createRoot(document.getElementById("root")!).render(<App />);
