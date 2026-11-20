@@ -381,10 +381,10 @@ const Index = () => {
       {/* Theme Decorations */}
       <ThemeDecorations />
 
-      <header className="sticky top-0 z-30 bg-indigo-900/80 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+      <header className="sticky top-0 z-30 flow-root pt-[env(safe-area-inset-top)]">
         {/* News Ticker */}
         {newsItems.length > 0 && (
-          <div className="bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
+          <div className="absolute inset-x-0 top-[env(safe-area-inset-top)] bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
             <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
               {/* Repeat items 3 times for seamless scrolling */}
               {[...Array(3)].map((_, repeatIndex) => (
@@ -424,7 +424,7 @@ const Index = () => {
 
         {/* Date and Time Display - Below News Ticker */}
         <motion.div
-          className="bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
+          className="mt-16 bg-white/5 backdrop-blur-sm border-b border-white/10 py-2"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
