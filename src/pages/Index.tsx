@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { PostersCarousel } from "@/components/PostersCarousel";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
-import { useAppVersion } from "@/hooks/useAppVersion";
+import { APP_VERSION } from "@/config/version";
 import { ThemeDecorations, ThemeBanner } from "@/components/ThemeDecorations";
 
 // Stagger animation variants
@@ -85,7 +85,6 @@ type UserType = "parent" | "teacher" | "admin" | null;
 
 const Index = () => {
   const navigate = useNavigate();
-  const { version: appVersion } = useAppVersion();
   const [isInstalled, setIsInstalled] = useState(false);
   // Editor preview runs inside an iframe (or on preview hosts); the parent app may report
   // display-mode standalone, which would wrongly hide the admin card.
@@ -733,7 +732,7 @@ const Index = () => {
       
       {/* App Version Display */}
       <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
-        v{appVersion}
+        تجريبي · {APP_VERSION}
       </div>
 
       {/* Teacher Warning Dialog */}
