@@ -97,6 +97,8 @@ jobs:
         run: |
           npx cap add android
           npx cap sync android
+      - name: Match native parent WebView typography to main app
+        run: node scripts/patch-parents-android.mjs
       - name: Verify Android identity and disabled OTA
         run: |
           grep -q 'app.hamzawasl.parents' android/app/build.gradle
