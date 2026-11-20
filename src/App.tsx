@@ -102,7 +102,8 @@ const AnimatedRoutes = () => {
 // has its own verified update channel. Disabling periodic checks alone is not enough:
  // useSmartUpdate also checks when the native app starts or resumes.
 const AppUpdateBoundary = ({ children }: { children: React.ReactNode }) =>
-  APP_AUDIENCE === "combined"
+  (APP_AUDIENCE === "combined" ||
+    (APP_AUDIENCE === "parent" && import.meta.env.VITE_PARENT_OTA_ENABLED === "true"))
     ? <SmartUpdateProvider autoCheck={true} checkInterval={30 * 60 * 1000}>{children}</SmartUpdateProvider>
     : <>{children}</>;
 
