@@ -127,14 +127,23 @@ if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
 
 // Start the app - restore native settings BEFORE rendering
 const startApp = async () => {
-  hideNativeSplash();
   configureStatusBar();
-  
+
   // CRITICAL: Restore cached settings from nativeStorage to localStorage
-  // before React renders, so ThemeContext reads the correct initial value
+  // before React renders, so ThemeContext reads the correct initial value.
   await restoreNativeSettings();
-  
+
   createRoot(document.getElementById("root")!).render(<App />);
+
+  // On the standalone parents app, do not expose an empty Android WebView
+  // before React paints the school emblem. The original welcome remains.
+  if (APP_AUDIENCE === "parent" && Capacitor.isNativePlatform()) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => hideNativeSplash());
+    });
+  } else {
+    hideNativeSplash();
+  }
 };
 
 startApp();
