@@ -13,8 +13,10 @@ interface SplashScreenProps {
 }
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
-  const [phase, setPhase] = useState<'intro' | 'logo' | 'exit'>(() => APP_AUDIENCE === 'parent' ? 'intro' : 'logo');
+  const [phase, setPhase] = useState<'logo' | 'exit'>('logo');
 
+  // Android already displays the approved school emblem on its native splash.
+  // Parent React welcome must not show another emblem before its text.
   const LogoImage = (
     <img
       src={LOGO_SRC}
@@ -27,10 +29,6 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   );
 
   useEffect(() => {
-    if (phase === 'intro') {
-      const timer = setTimeout(() => setPhase('logo'), 1300);
-      return () => clearTimeout(timer);
-    }
     if (phase === 'logo') {
       const logoTimer = setTimeout(() => setPhase('exit'), 4000);
       return () => clearTimeout(logoTimer);
@@ -42,24 +40,18 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   }, [phase, onFinish]);
 
 
+  // Notify the native shell only after the actual welcome view is committed.
+  useEffect(() => {
+    if (APP_AUDIENCE !== 'parent') return;
+    const frame = requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('parents-welcome-ready'));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   return (
     <AnimatePresence>
-      {phase === 'intro' ? (
-        <motion.div
-          className="fixed inset-0 z-[9999] flex items-center justify-center px-8"
-          style={{ backgroundColor: "#14243A" }}
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <img
-            src="/assets/parents-launch-emblem.png"
-            alt="شعار المدرسة الابتدائية العربي التبسي"
-            className="block w-full max-w-[350px] max-h-[70vh] object-contain"
-            onError={() => setPhase("logo")}
-          />
-        </motion.div>
-      ) : phase === 'logo' ? (
+      {phase === 'logo' ? (
         <motion.div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5"
           initial={{ opacity: 0 }}
@@ -80,15 +72,17 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
           >
-            {/* Logo */}
-            <motion.div
-              className="relative"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              {LogoImage}
-              <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full -z-10 scale-150" />
-            </motion.div>
+            {APP_AUDIENCE !== 'parent' && (
+              {/* Logo */}
+              <motion.div
+                className="relative"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                {LogoImage}
+                <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full -z-10 scale-150" />
+              </motion.div>
+            )}
 
             {/* Welcome Text */}
             <motion.div
@@ -134,10 +128,12 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
           </motion.div>
 
           <div className="relative z-10 flex flex-col items-center gap-6">
-            <motion.div className="relative" initial={{ scale: 1, opacity: 1, y: 0 }} animate={{ scale: 1.2, opacity: 0, y: -30 }} transition={{ duration: 0.8, ease: "easeOut" }}>
-              {LogoImage}
-              <motion.div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full -z-10 scale-150" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 0.4 }} />
-            </motion.div>
+            {APP_AUDIENCE !== 'parent' && (
+              <motion.div className="relative" initial={{ scale: 1, opacity: 1, y: 0 }} animate={{ scale: 1.2, opacity: 0, y: -30 }} transition={{ duration: 0.8, ease: "easeOut" }}>
+                {LogoImage}
+                <motion.div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full -z-10 scale-150" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 0.4 }} />
+              </motion.div>
+            )}
 
             <motion.div className="text-center space-y-3 max-w-xs px-4" initial={{ opacity: 1, y: 0 }} animate={{ opacity: 0, y: 20 }} transition={{ duration: 0.5, delay: 0.1 }}>
               <p className="text-xl font-semibold text-foreground">مرحباً بكم</p>
