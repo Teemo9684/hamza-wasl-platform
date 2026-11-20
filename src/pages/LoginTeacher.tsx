@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { APP_AUDIENCE } from "@/config/appAudience";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -287,6 +288,7 @@ const LoginTeacher = () => {
                 <ArrowRight className="mr-2 h-5 w-5" />
               </Button>
               
+              {APP_AUDIENCE === "combined" ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -296,6 +298,11 @@ const LoginTeacher = () => {
                 ليس لديك حساب؟{" "}
                 <span className="text-purple-500 animate-pulse font-bold">سجل الآن</span>
               </Button>
+              ) : (
+                <p className="text-center text-sm text-muted-foreground font-cairo">
+                  يتم إنشاء حسابات الأساتذة حصرياً من طرف إدارة المدرسة.
+                </p>
+              )}
             </CardFooter>
           </form>
         </Card>
