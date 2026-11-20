@@ -24,6 +24,14 @@ try {
   if (mode === 'web') {
     copy('icon-192.png', 'public/icon-192.png');
     copy('icon-512.png', 'public/icon-512.png');
+    // Original circular school portrait without an additional square frame.
+    // Optional for previous ZIPs: once uploaded, the custom parent intro
+    // appears before the existing welcome message.
+    if (existsSync(join(temp, 'parents-launch-emblem.png'))) {
+      copy('parents-launch-emblem.png', 'public/assets/parents-launch-emblem.png');
+    } else {
+      console.log('[Parent icon] Original launch emblem not yet uploaded.');
+    }
   } else {
     for (const density of ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']) {
       for (const icon of ['ic_launcher.png', 'ic_launcher_round.png']) {
