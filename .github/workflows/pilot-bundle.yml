@@ -4,7 +4,10 @@ on:
     branches: [testing/android-pilot]
     paths: [src/config/version.ts]
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: publish-pilot-update
+  cancel-in-progress: false
 jobs:
   bundle:
     runs-on: ubuntu-latest
@@ -18,10 +21,39 @@ jobs:
       - name: Verify pilot bundle
         run: |
           test -s dist/index.html
-          grep -rq 'check-pilot-update' dist/assets
+          grep -rq 'hamza-wasl-platform/pilot-updates' dist/assets
           test -z "$(find dist -name '*.apk')"
       - uses: actions/upload-artifact@v4
         with:
           name: hamza-wasl-pilot-update
           path: dist/
           if-no-files-found: error
+      - name: Publish pilot bundle and version together
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(sed -nE 's/^export const APP_VERSION = "([0-9]+\.[0-9]+\.[0-9]+)";$/\1/p' src/config/version.ts)
+          test -n "$version"
+          archive="$RUNNER_TEMP/pilot.zip"
+          (cd dist && zip -qr "$archive" .)
+          unzip -tq "$archive"
+          feed="$RUNNER_TEMP/pilot-feed"
+          if git ls-remote --exit-code origin refs/heads/pilot-updates >/dev/null; then
+            git fetch --depth=1 origin refs/heads/pilot-updates
+            git worktree add --detach "$feed" FETCH_HEAD
+          else
+            git worktree add --detach "$feed" HEAD
+            git -C "$feed" switch --orphan pilot-feed-init
+          fi
+          cd "$feed"
+          if test -e latest.json; then
+            current=$(jq -er .version latest.json)
+            if test "$version" = "$current"; then exit 0; fi
+            test "$(printf '%s\n' "$version" "$current" | sort -V | tail -1)" = "$version"
+          fi
+          mkdir -p bundles
+          cp "$archive" "bundles/$version.zip"
+          jq -n --arg version "$version" '{version:$version}' > latest.json
+          git add -- latest.json "bundles/$version.zip"
+          git -c user.name=github-actions -c user.email=github-actions[bot]@users.noreply.github.com commit -m "Publish pilot $version"
+          git push origin HEAD:refs/heads/pilot-updates

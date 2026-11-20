@@ -1,5 +1,4 @@
 import { Capacitor } from "@capacitor/core";
-import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/config/version";
 import { setItem, removeItem, getItem } from "@/utils/nativeStorage";
 
@@ -132,83 +131,21 @@ const logUpdateCheck = async (version: string, serverVersion: string | undefined
   }
 };
 
-// Check for updates - يقارن مع السيرفر بشكل ذكي
-// يستخدم bundle_id المخزن محلياً أو APP_VERSION للمقارنة
+const pilotFeed = "https://raw.githubusercontent.com/Teemo9684/hamza-wasl-platform/pilot-updates";
+
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
-  try {
-    // الحصول على الإصدار المُطبق محلياً
-    const lastAppliedVersion = await getLastAppliedVersion();
-    // استخدام الإصدار المُطبق إذا وجد، وإلا استخدام APP_VERSION
-    const effectiveVersion = lastAppliedVersion || APP_VERSION;
-    
-    console.log("[LiveUpdate] ====== UPDATE CHECK START ======");
-    console.log("[LiveUpdate] APP_VERSION (baked in):", APP_VERSION);
-    console.log("[LiveUpdate] Last applied version:", lastAppliedVersion || "none");
-    console.log("[LiveUpdate] Effective version for check:", effectiveVersion);
-    console.log("[LiveUpdate] Platform:", Capacitor.getPlatform());
-    
-    // Check if update is already in progress
-    const updateInProgress = await getUpdateInProgress();
-    if (updateInProgress) {
-      // If the in-progress version matches last applied, update was completed
-      if (updateInProgress === lastAppliedVersion) {
-        console.log("[LiveUpdate] Update to", lastAppliedVersion, "completed");
-        await setUpdateInProgress(null);
-      } else {
-        console.log("[LiveUpdate] Update to", updateInProgress, "still in progress");
-      }
-    }
-    
-    console.log("[LiveUpdate] Calling check-app-update function...");
-    const { data, error } = await supabase.functions.invoke("check-pilot-update", {
-      body: {
-        currentVersion: effectiveVersion,
-        platform: Capacitor.getPlatform(),
-      },
-    });
+  const response = await fetch(`${pilotFeed}/latest.json`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Pilot update check failed (${response.status})`);
 
-    if (error) {
-      console.error("[LiveUpdate] Error from edge function:", error);
-      await logUpdateCheck(effectiveVersion, undefined, "error: " + error.message);
-      return { hasUpdate: false };
-    }
-
-    console.log("[LiveUpdate] Server response:", JSON.stringify(data));
-    
-    // Check if server indicates update available
-    if (data?.hasUpdate && data?.version && data?.bundleUrl) {
-      console.log("[LiveUpdate] Server indicates update to version:", data.version);
-      
-      // Compare versions: server version must be GREATER than effective version
-      const comparison = compareVersions(data.version, effectiveVersion);
-      console.log("[LiveUpdate] Comparison:", data.version, "vs", effectiveVersion, "=", comparison);
-      
-      if (comparison <= 0) {
-        console.log("[LiveUpdate] Already on latest version or newer");
-        await logUpdateCheck(effectiveVersion, data.version, "already_up_to_date");
-        return { hasUpdate: false };
-      }
-      
-      // Check if we're currently updating to this version
-      if (updateInProgress === data.version) {
-        console.log("[LiveUpdate] Already updating to", data.version);
-        await logUpdateCheck(effectiveVersion, data.version, "in_progress");
-        return { hasUpdate: false };
-      }
-      
-      console.log("[LiveUpdate] ✅ UPDATE AVAILABLE:", effectiveVersion, "->", data.version);
-      await logUpdateCheck(effectiveVersion, data.version, "update_available");
-      return data as UpdateInfo;
-    }
-    
-    console.log("[LiveUpdate] No update available");
-    await logUpdateCheck(effectiveVersion, data?.version, "no_update");
-    console.log("[LiveUpdate] ====== UPDATE CHECK END ======");
-    return { hasUpdate: false };
-  } catch (error) {
-    console.error("[LiveUpdate] Error checking for update:", error);
-    return { hasUpdate: false };
+  const { version } = await response.json();
+  if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/.test(version)) {
+    throw new Error("Invalid pilot version");
   }
+  const hasUpdate = compareVersions(version, APP_VERSION) > 0;
+  await logUpdateCheck(APP_VERSION, version, hasUpdate ? "update_available" : "already_up_to_date");
+  return hasUpdate
+    ? { hasUpdate, version, bundleUrl: `${pilotFeed}/bundles/${version}.zip`, isMandatory: false }
+    : { hasUpdate };
 };
 
 // Download and apply update
