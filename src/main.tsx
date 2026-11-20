@@ -90,8 +90,10 @@ const restoreNativeSettings = async () => {
 // Earlier combined-mode builds cached Supabase network responses, which may
 // include personal school data and must not survive into the parent app.
 if (APP_AUDIENCE === "parent" && !Capacitor.isNativePlatform() && "caches" in window) {
-  void window.caches.delete("api-cache").catch((error) => {
-    console.warn("[Parents] Could not clear legacy API cache", error);
+  void Promise.all(["api-cache", "images-cache"].map((cacheName) =>
+    window.caches.delete(cacheName)
+  )).catch((error) => {
+    console.warn("[Parents] Could not clear legacy school caches", error);
   });
 }
 
