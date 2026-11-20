@@ -71,7 +71,19 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
         showError("permission denied");
         setIsAuthorized(false);
       } else {
-        const authorized = !!roleData;
+        // Parent standalone must also honor approval on every fresh
+        // authorization check, including restored native sessions.
+        // Other application roles retain their established behavior.
+        let approved = true;
+        if (APP_AUDIENCE === "parent" && requiredRole === "parent" && roleData) {
+          const { data: profile, error: approvalError } = await supabase
+            .from("profiles")
+            .select("is_approved")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          approved = !approvalError && profile?.is_approved === true;
+        }
+        const authorized = !!roleData && approved;
         setIsAuthorized(authorized);
         
         // Cache the result
