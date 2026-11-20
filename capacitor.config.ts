@@ -8,6 +8,17 @@ const config: CapacitorConfig = {
     contentInset: 'always'
   },
   android: {
+    // The pilot Android package has no Firebase registration yet.
+    includePlugins: [
+      '@capacitor/app',
+      '@capacitor/haptics',
+      '@capacitor/local-notifications',
+      '@capacitor/preferences',
+      '@capacitor/splash-screen',
+      '@capacitor/status-bar',
+      '@capawesome/capacitor-badge',
+      '@capawesome/capacitor-live-update',
+    ],
     allowMixedContent: true,
     initialFocus: false,
     webContentsDebuggingEnabled: false,
