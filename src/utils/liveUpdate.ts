@@ -153,7 +153,7 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
     throw new Error("Invalid OTA manifest");
   }
   const { version } = manifest as { version: unknown; audience?: unknown };
-  if (typeof version !== "string" || !/^\\d+\\.\\d+\\.\\d+$/.test(version)) {
+  if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/.test(version)) {
     throw new Error("Invalid OTA version");
   }
   if (APP_AUDIENCE === "parent" && (manifest as { audience?: unknown }).audience !== "parent") {
