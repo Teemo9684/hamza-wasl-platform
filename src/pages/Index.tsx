@@ -404,10 +404,10 @@ const Index = () => {
       {/* Theme Decorations */}
       <ThemeDecorations />
 
-      <header className="sticky top-0 z-30 flow-root pt-[env(safe-area-inset-top)]">
+      <header className={`sticky top-0 z-30 flow-root ${APP_AUDIENCE === "parent" ? "pt-0" : "pt-[env(safe-area-inset-top)]"}`}>
         {/* News Ticker */}
         {(newsItems.length > 0 || APP_AUDIENCE === "parent") && (
-          <div className="absolute inset-x-0 top-[env(safe-area-inset-top)] bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
+          <div className={`absolute inset-x-0 ${APP_AUDIENCE === "parent" ? "top-0" : "top-[env(safe-area-inset-top)]"} bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]`}>
             <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
               {newsItems.length === 0 && APP_AUDIENCE === "parent" ? (
                 <span className="inline-block px-4 text-white/85 font-cairo text-sm">
