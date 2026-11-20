@@ -177,6 +177,18 @@ export const downloadAndApplyUpdate = async (
     return false;
   }
 
+  // Defense in depth: never install a foreign bundle in the parents app,
+  // even if a caller accidentally supplies an OTA URL for another audience.
+  if (APP_AUDIENCE === "parent" && (
+    import.meta.env.VITE_PARENT_OTA_ENABLED !== "true" ||
+    !bundleUrl.startsWith(`${parentsFeed}/bundles/`) ||
+    !/^\d+\.\d+\.\d+$/.test(version) ||
+    bundleUrl !== `${parentsFeed}/bundles/${version}.zip`
+  )) {
+    console.error("[LiveUpdate] Rejected unauthorized parent OTA bundle");
+    return false;
+  }
+
   try {
     console.log("[LiveUpdate] ====== STARTING UPDATE ======");
     console.log("[LiveUpdate] URL:", bundleUrl);
