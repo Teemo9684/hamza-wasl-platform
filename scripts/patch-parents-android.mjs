@@ -47,7 +47,7 @@ source = source.replace(
   }
 
   @Override
-  protected void onResume() {
+  public void onResume() {
     super.onResume();
     applyDarkNavigationButtons();
   }
