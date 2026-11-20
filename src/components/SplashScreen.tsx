@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { APP_AUDIENCE } from "@/config/appAudience";
 
 // ALWAYS use the static path from public/ folder.
 // Hashed imports (from src/assets/) break after OTA bundle swaps because
@@ -12,7 +13,7 @@ interface SplashScreenProps {
 }
 
 const SplashScreen = ({ onFinish }: SplashScreenProps) => {
-  const [phase, setPhase] = useState<'logo' | 'exit'>('logo');
+  const [phase, setPhase] = useState<'intro' | 'logo' | 'exit'>(() => APP_AUDIENCE === 'parent' ? 'intro' : 'logo');
 
   const LogoImage = (
     <img
@@ -26,6 +27,10 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
   );
 
   useEffect(() => {
+    if (phase === 'intro') {
+      const timer = setTimeout(() => setPhase('logo'), 1300);
+      return () => clearTimeout(timer);
+    }
     if (phase === 'logo') {
       const logoTimer = setTimeout(() => setPhase('exit'), 4000);
       return () => clearTimeout(logoTimer);
@@ -39,7 +44,22 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
   return (
     <AnimatePresence>
-      {phase === 'logo' ? (
+      {phase === 'intro' ? (
+        <motion.div
+          className="fixed inset-0 z-[9999] flex items-center justify-center px-8"
+          style={{ backgroundColor: "#14243A" }}
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <img
+            src="/assets/parents-launch-emblem.png"
+            alt="شعار المدرسة الابتدائية العربي التبسي"
+            className="block w-full max-w-[350px] max-h-[70vh] object-contain"
+            onError={() => setPhase("logo")}
+          />
+        </motion.div>
+      ) : phase === 'logo' ? (
         <motion.div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5"
           initial={{ opacity: 0 }}
