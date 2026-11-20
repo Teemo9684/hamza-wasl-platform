@@ -22,6 +22,18 @@ Safe next actions:
 4. Test admin, approved parent, unapproved parent, teacher, other-parent access, and anonymous access with synthetic accounts.
 5. Apply an approved migration to production only after backups and functional verification.
 
+
+## Additional verified risk: teacher role via signup metadata
+
+Live database trigger `handle_teacher_registration()` currently inserts `teacher` into `user_roles` when a new `auth.users` record contains a non-null `raw_user_meta_data.subject`. This metadata can be submitted by a registering client, so removing the registration button from the teacher frontend does **not** enforce admin-only account creation.
+
+**Required backend mitigation before any standalone staff launch:**
+1. Prepare and test a migration replacing the trigger with a trustworthy, admin-authorized teacher provisioning flow.
+2. Provision staff identities through a verified admin-only Edge Function using server-side admin API; never put service-role credentials in a client.
+3. Admin-only writes must verify the calling user's JWT and admin role, rather than trusting metadata or frontend state.
+4. Verify user approval and teacher-grade assignment in isolation, and ensure parent self-registration continues to work.
+5. Review duplicate auth triggers and role grants before applying any change to the production school database.
+
 ## Release gates
 
 - Three separate deployment origins and Android application IDs
