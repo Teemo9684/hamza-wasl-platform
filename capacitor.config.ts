@@ -1,9 +1,26 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
+/**
+ * Native applications get distinct Android identities and web bundles.
+ * The current pilot remains the default for its existing build workflow.
+ * Use APP_AUDIENCE=parent|teacher|admin with the corresponding build command.
+ */
+const audience = process.env.APP_AUDIENCE || "combined";
+const identities: Record<string, { appId: string; appName: string; webDir: string }> = {
+  combined: { appId: "app.hamzawasl.app.pilot", appName: "همزة وصل – تجريبي", webDir: "dist" },
+  parent: { appId: "app.hamzawasl.parents", appName: "همزة وصل – الأولياء", webDir: "dist-parent" },
+  teacher: { appId: "app.hamzawasl.teachers", appName: "همزة وصل – الأساتذة", webDir: "dist-teacher" },
+  admin: { appId: "app.hamzawasl.admin", appName: "همزة وصل – الإدارة", webDir: "dist-admin" },
+};
+if (!identities[audience]) {
+  throw new Error("Unsupported APP_AUDIENCE for Capacitor build: " + audience);
+}
+const identity = identities[audience];
+
 const config: CapacitorConfig = {
-  appId: 'app.hamzawasl.app.pilot',
-  appName: 'همزة وصل – تجريبي',
-  webDir: 'dist',
+  appId: identity.appId,
+  appName: identity.appName,
+  webDir: identity.webDir,
   ios: {
     contentInset: 'always'
   },
@@ -59,7 +76,8 @@ const config: CapacitorConfig = {
       style: "LIGHT"
     },
     LiveUpdate: {
-      enabled: true,
+      // Only the existing pilot has a verified OTA feed.
+      enabled: audience === 'combined',
       autoDeleteBundles: true,
       readyTimeout: 10000
     }
