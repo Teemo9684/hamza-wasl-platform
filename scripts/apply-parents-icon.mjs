@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, copyFileSync, mkdtempSync, rmSync, unlinkSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, copyFileSync, mkdtempSync, rmSync, unlinkSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
@@ -22,6 +22,17 @@ try {
     console.log('[Parent icon] Verified ' + target);
   };
   if (mode === 'web') {
+    // Prevent the initial WebView/document paint from appearing black while
+    // JavaScript and the native-to-React splash handoff are initializing.
+    // This change is applied only during the isolated parent build.
+    const htmlPath = 'index.html';
+    let html = readFileSync(htmlPath, 'utf8');
+    if (!html.includes('parents-initial-white-surface')) {
+      const initialStyle = '<style id="parents-initial-white-surface">html,body,#root{background-color:#fff}</style>';
+      if (!html.includes('</head>')) throw new Error('HTML head missing');
+      html = html.replace('</head>', initialStyle + '\\n  </head>');
+      writeFileSync(htmlPath, html);
+    }
     copy('icon-192.png', 'public/icon-192.png');
     copy('icon-512.png', 'public/icon-512.png');
     // Original circular school portrait without an additional square frame.
