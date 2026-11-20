@@ -26,8 +26,7 @@ jobs:
       - name: Verify separated manifest and output
         run: |
           test -f dist-parent/index.html
-          test -f dist-parent/manifest.webmanifest
-          grep -q 'همزة وصل – الأولياء' dist-parent/manifest.webmanifest
+          node scripts/verify-parents-build.mjs
       - name: Upload verification artifact (not an OTA release)
         uses: actions/upload-artifact@v4
         with:
