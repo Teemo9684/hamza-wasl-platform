@@ -103,7 +103,7 @@ const AnimatedRoutes = () => {
  // useSmartUpdate also checks when the native app starts or resumes.
 const AppUpdateBoundary = ({ children }: { children: React.ReactNode }) =>
   APP_AUDIENCE === "combined"
-    ? <SmartUpdateProvider autoCheck={true} checkInterval={30 * 60 * 1000}>{children}</AppUpdateBoundary>
+    ? <SmartUpdateProvider autoCheck={true} checkInterval={30 * 60 * 1000}>{children}</SmartUpdateProvider>
     : <>{children}</>;
 
 const App = () => {
@@ -252,7 +252,7 @@ const App = () => {
                     <BackButtonHandler />
                     <AnimatedRoutes />
                   </BrowserRouter>
-                </SmartUpdateProvider>
+                </AppUpdateBoundary>
               </TooltipProvider>
             </NotificationProvider>
           </ThemeProvider>
