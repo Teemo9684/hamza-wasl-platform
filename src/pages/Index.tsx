@@ -148,6 +148,14 @@ const Index = () => {
 
 
   const handleCardClick = (userType: UserType) => {
+    // Standalone staff apps reuse their established, role-specific auth flows:
+    // admin-login invokes the verified admin-login Edge Function,
+    // and teacher-login verifies approval plus teacher role.
+    // The combined pilot and the parent landing interaction stay unchanged.
+    if (APP_AUDIENCE !== "combined" && (userType === "teacher" || userType === "admin")) {
+      navigate(`/login/${userType}`);
+      return;
+    }
     setSelectedUserType(userType);
     setEmail("");
     setPassword("");
