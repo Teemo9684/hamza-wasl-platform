@@ -1,3 +1,4 @@
+import { APP_AUDIENCE } from "@/config/appAudience";
 import { useEffect, useState, useRef } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +21,7 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
   const hasChecked = useRef(false);
   
   // Check if admin access is blocked on native app
-  const isAdminBlockedOnNative = requiredRole === "admin" && Capacitor.isNativePlatform();
+  const isAdminBlockedOnNative = requiredRole === "admin" && APP_AUDIENCE !== "admin" && Capacitor.isNativePlatform();
 
   useEffect(() => {
     // Skip auth check if admin is blocked on native
