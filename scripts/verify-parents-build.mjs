@@ -15,6 +15,7 @@ assert.equal(manifest.name, 'همزة وصل – الأولياء');
 assert.equal(manifest.dir, 'rtl');
 const serviceWorker = read('dist-parent/sw.js');
 assert.ok(!serviceWorker.includes('api-cache'), 'Parent service worker must not cache Supabase API responses');
+assert.ok(!serviceWorker.includes('images-cache'), 'Parent service worker must not cache student images');
 assert.ok(audience.includes('buildMode === "parent"'), 'Explicit parent build mode is required');
 assert.ok(app.includes('isAudienceEnabled("parent")'), 'Parent routes must be present');
 assert.ok(app.includes('isAudienceEnabled("teacher")'), 'Staff routes must be audience gated');
