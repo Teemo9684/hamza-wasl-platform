@@ -21,6 +21,13 @@ source = source.replace(
     // Use the same CSS text sizes as the original school app,
     // regardless of WebView/system font-boosting settings.
     getBridge().getWebView().getSettings().setTextZoom(100);
+    // Match the upper Android system bar: white bottom navigation surface
+    // with dark back/home/recents indicators.
+    getWindow().setNavigationBarColor(android.graphics.Color.rgb(248, 250, 252));
+    getWindow().getDecorView().setSystemUiVisibility(
+      getWindow().getDecorView().getSystemUiVisibility() |
+      android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+    );
   }`
 );
 assert.ok(source.includes('setTextZoom(100)'), 'Native font zoom patch failed');
