@@ -30,7 +30,7 @@ try {
     if (!html.includes('parents-initial-white-surface')) {
       const initialStyle = '<style id="parents-initial-white-surface">html,body,#root{background-color:#fff}</style>';
       if (!html.includes('</head>')) throw new Error('HTML head missing');
-      html = html.replace('</head>', initialStyle + '\\n  </head>');
+      html = html.replace('</head>', initialStyle + '\n  </head>');
       writeFileSync(htmlPath, html);
     }
     copy('icon-192.png', 'public/icon-192.png');
