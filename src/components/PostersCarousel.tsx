@@ -492,9 +492,8 @@ export const PostersCarousel = () => {
       <div className="w-full py-6 overflow-hidden">
         <div className="relative group">
           {/* Parent app uses swipes and dot indicators only; no arrows. */}
-          {APP_AUDIENCE !== 'parent' && (
           {/* Navigation Arrows */}
-          {posters.length > 1 && (
+          {APP_AUDIENCE !== 'parent' && posters.length > 1 && (
             <>
               <button
                 onClick={() => { goToNext(); pauseAndResume(); }}
@@ -511,8 +510,6 @@ export const PostersCarousel = () => {
                 <ChevronLeft className="h-5 w-5" />
               </button>
             </>
-          )}
-
           )}
 
           {/* 3D Carousel Container */}
