@@ -105,6 +105,8 @@ jobs:
         run: node scripts/apply-parents-icon.mjs android
       - name: Match native parent WebView typography to main app
         run: node scripts/patch-parents-android.mjs
+      - name: Use school portrait on white native Android launch screen
+        run: node scripts/patch-parents-native-splash.mjs
       - name: Verify Android identity and disabled OTA
         run: |
           grep -q 'app.hamzawasl.parents' android/app/build.gradle
