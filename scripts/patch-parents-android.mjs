@@ -24,10 +24,38 @@ source = source.replace(
     // Match the upper Android system bar: white bottom navigation surface
     // with dark back/home/recents indicators.
     getWindow().setNavigationBarColor(android.graphics.Color.rgb(248, 250, 252));
-    getWindow().getDecorView().setSystemUiVisibility(
-      getWindow().getDecorView().getSystemUiVisibility() |
+    applyDarkNavigationButtons();
+  }
+
+  private void applyDarkNavigationButtons() {
+    getWindow().setNavigationBarColor(android.graphics.Color.rgb(248, 250, 252));
+    // The LIGHT_NAVIGATION_BAR flag means *dark* Android navigation buttons.
+    android.view.View decor = getWindow().getDecorView();
+    decor.setSystemUiVisibility(
+      decor.getSystemUiVisibility() |
       android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
     );
+    if (android.os.Build.VERSION.SDK_INT >= 30) {
+      android.view.WindowInsetsController controller = getWindow().getInsetsController();
+      if (controller != null) {
+        controller.setSystemBarsAppearance(
+          android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+          android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+        );
+      }
+    }
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    applyDarkNavigationButtons();
+  }
+
+  @Override
+  public void onWindowFocusChanged(boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    if (hasFocus) applyDarkNavigationButtons();
   }`
 );
 assert.ok(source.includes('setTextZoom(100)'), 'Native font zoom patch failed');
