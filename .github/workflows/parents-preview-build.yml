@@ -52,7 +52,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      - name: Verify hosted Android SDK
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=${ANDROID_HOME:-}"
+          test -d "${ANDROID_HOME:?Android SDK must be available on runner}"
+          command -v sdkmanager
+          sdkmanager --version
+          java -version
       - name: Install dependencies
         run: npm ci
       - name: Build parent-only assets
