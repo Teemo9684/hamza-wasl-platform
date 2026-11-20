@@ -17,7 +17,13 @@ source = source.replace(
   `public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    // A white native window must be present before the Capacitor WebView
+    // exists: otherwise Android may briefly paint its default black surface.
+    getWindow().setBackgroundDrawable(
+      new android.graphics.drawable.ColorDrawable(android.graphics.Color.WHITE)
+    );
     super.onCreate(savedInstanceState);
+    getBridge().getWebView().setBackgroundColor(android.graphics.Color.WHITE);
     // Use the same CSS text sizes as the original school app,
     // regardless of WebView/system font-boosting settings.
     getBridge().getWebView().getSettings().setTextZoom(100);
@@ -60,4 +66,25 @@ source = source.replace(
 );
 assert.ok(source.includes('setTextZoom(100)'), 'Native font zoom patch failed');
 writeFileSync(javaFile, source);
-console.log('Parent-only Android WebView text zoom fixed at 100%.');
+
+// Capacitor's post-splash theme can still reveal a black Android window
+// between the system splash and the first WebView paint. This is distinct
+// from the React welcome screen and from the launcher icon.
+const stylesFile = 'android/app/src/main/res/values/styles.xml';
+assert.ok(existsSync(stylesFile), 'Expected generated Android styles.xml');
+let styles = readFileSync(stylesFile, 'utf8');
+for (const style of ['AppTheme', 'AppTheme.NoActionBar', 'AppTheme.NoActionBarLaunch']) {
+  const opening = new RegExp('<style\\\\s+name="' + style.replaceAll('.', '\\\\.') + '"[^>]*>');
+  const match = opening.exec(styles);
+  assert.ok(match, 'Missing generated Android theme: ' + style);
+  const start = match.index + match[0].length;
+  const end = styles.indexOf('</style>', start);
+  assert.ok(end >= 0, 'Unclosed Android theme: ' + style);
+  let body = styles.slice(start, end);
+  body = body.replace(/<item\\s+name="android:windowBackground"[^>]*>[\\s\\S]*?<\\/item>/g, '');
+  body += '\\n        <item name="android:windowBackground">#FFFFFF</item>\\n    ';
+  styles = styles.slice(0, start) + body + styles.slice(end);
+}
+writeFileSync(stylesFile, styles);
+assert.ok(styles.includes('<item name="android:windowBackground">#FFFFFF</item>'));
+console.log('Parents Android native window, launch themes, and WebView are white; original welcome is untouched.');
