@@ -148,6 +148,10 @@ const Index = () => {
 
 
   const handleCardClick = (userType: UserType) => {
+    // The parent-only application must never route to staff authentication,
+    // even if a future UI change accidentally calls this handler.
+    if (userType && !isAudienceEnabled(userType)) return;
+
     // Standalone staff apps reuse their established, role-specific auth flows:
     // admin-login invokes the verified admin-login Edge Function,
     // and teacher-login verifies approval plus teacher role.
