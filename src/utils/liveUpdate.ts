@@ -132,26 +132,37 @@ const logUpdateCheck = async (version: string, serverVersion: string | undefined
   }
 };
 
-const pilotFeed = "https://raw.githubusercontent.com/Teemo9684/hamza-wasl-platform/pilot-updates";
+const otaBase = "https://raw.githubusercontent.com/Teemo9684/hamza-wasl-platform";
+const pilotFeed = `${otaBase}/pilot-updates`;
+const parentsFeed = `${otaBase}/parents-updates`;
 
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
-  // Standalone apps must never consume the combined pilot OTA bundle.
-  // Their feed and native update channel are enabled only after verification.
-  if (APP_AUDIENCE !== "combined") {
-    return { hasUpdate: false };
+  // Prevent cross-app updates. Parent updates stay disabled until tested.
+  const feed = APP_AUDIENCE === "combined"
+    ? pilotFeed
+    : APP_AUDIENCE === "parent" && import.meta.env.VITE_PARENT_OTA_ENABLED === "true"
+      ? parentsFeed
+      : null;
+  if (!feed) return { hasUpdate: false };
+
+  const response = await fetch(`${feed}/latest.json`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Update check failed (${response.status})`);
+
+  const manifest: unknown = await response.json();
+  if (!manifest || typeof manifest !== "object" || !("version" in manifest)) {
+    throw new Error("Invalid OTA manifest");
   }
-
-  const response = await fetch(`${pilotFeed}/latest.json`, { cache: "no-store" });
-  if (!response.ok) throw new Error(`Pilot update check failed (${response.status})`);
-
-  const { version } = await response.json();
-  if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/.test(version)) {
-    throw new Error("Invalid pilot version");
+  const { version } = manifest as { version: unknown; audience?: unknown };
+  if (typeof version !== "string" || !/^\\d+\\.\\d+\\.\\d+$/.test(version)) {
+    throw new Error("Invalid OTA version");
+  }
+  if (APP_AUDIENCE === "parent" && (manifest as { audience?: unknown }).audience !== "parent") {
+    throw new Error("Incorrect OTA audience");
   }
   const hasUpdate = compareVersions(version, APP_VERSION) > 0;
   await logUpdateCheck(APP_VERSION, version, hasUpdate ? "update_available" : "already_up_to_date");
   return hasUpdate
-    ? { hasUpdate, version, bundleUrl: `${pilotFeed}/bundles/${version}.zip`, isMandatory: false }
+    ? { hasUpdate, version, bundleUrl: `${feed}/bundles/${version}.zip`, isMandatory: false }
     : { hasUpdate };
 };
 
