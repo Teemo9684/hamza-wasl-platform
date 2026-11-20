@@ -1226,3 +1226,14 @@
 }
 .ed-rule { background: linear-gradient(90deg, transparent, hsl(var(--ed-gold) / 0.7), transparent); height: 1px; }
 .ed-icon { background: hsl(var(--ed-gold) / 0.12); color: hsl(var(--ed-gold)); border: 1px solid hsl(var(--ed-gold) / 0.3); }
+
+
+/* Parent-only landing appearance: match the approved purple pilot design.
+   Keep all other app modes and dashboard layouts unchanged. */
+.parent-landing > .animated-gradient-bg {
+  background: linear-gradient(165deg, #9533df 0%, #7924ea 46%, #613be3 100%);
+  animation: none;
+}
+.parent-landing .ticker-animation {
+  max-width: none;
+}
