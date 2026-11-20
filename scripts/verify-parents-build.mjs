@@ -22,6 +22,7 @@ assert.ok(capacitor.includes("audience === 'parent' && process.env.PARENT_OTA_EN
 assert.ok(updater.includes('APP_AUDIENCE === "parent" && import.meta.env.VITE_PARENT_OTA_ENABLED === "true"'), 'Parent OTA feed must be opt-in');
 assert.ok(updater.includes('bundleUrl !== `${parentsFeed}/bundles/${version}.zip`'), 'Parent OTA installer must reject other feeds');
 assert.ok(protectedRoute.includes('profile?.is_approved === true'), 'Parent restored sessions must check approval');
+assert.ok(protectedRoute.includes('APP_AUDIENCE !== "parent" && cached'), 'Parent authorization must not reuse stale approval cache');
 assert.ok(protectedRoute.includes('APP_AUDIENCE === "parent" && requiredRole !== "parent"'), 'Parent app must reject cross-audience protected screens');
 
 console.log('Parent isolation checks passed. These are source/build checks, not Android runtime or database RLS tests.');
