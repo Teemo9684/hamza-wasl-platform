@@ -1,5 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import { APP_VERSION } from "@/config/version";
+import { APP_AUDIENCE } from "@/config/appAudience";
 import { setItem, removeItem, getItem } from "@/utils/nativeStorage";
 
 export interface UpdateInfo {
@@ -134,6 +135,12 @@ const logUpdateCheck = async (version: string, serverVersion: string | undefined
 const pilotFeed = "https://raw.githubusercontent.com/Teemo9684/hamza-wasl-platform/pilot-updates";
 
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
+  // Standalone apps must never consume the combined pilot OTA bundle.
+  // Their feed and native update channel are enabled only after verification.
+  if (APP_AUDIENCE !== "combined") {
+    return { hasUpdate: false };
+  }
+
   const response = await fetch(`${pilotFeed}/latest.json`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Pilot update check failed (${response.status})`);
 
