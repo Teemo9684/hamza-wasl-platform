@@ -1,0 +1,23 @@
+name: Verify three independent web builds
+on:
+  push:
+    branches: [planning/three-apps-separation]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        audience: [parent, teacher, admin]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build:${{ matrix.audience }}
+      - run: test -s dist-${{ matrix.audience }}/index.html
