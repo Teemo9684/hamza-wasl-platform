@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { APP_AUDIENCE } from '@/config/appAudience';
 import { Skeleton } from '@/components/ui/skeleton';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -158,6 +159,7 @@ FullscreenPreview.displayName = 'FullscreenPreview';
 export const PostersCarousel = () => {
   const [posters, setPosters] = useState<Poster[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [selectedPoster, setSelectedPoster] = useState<Poster | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -214,6 +216,7 @@ export const PostersCarousel = () => {
         .order('display_order', { ascending: true });
 
       if (error) {
+        setLoadError(true);
         console.error('Error fetching posters:', error);
         // Try to load from cache on error
         const cachedData = await loadFromCache();
@@ -223,6 +226,7 @@ export const PostersCarousel = () => {
           setPosters([]);
         }
       } else {
+        setLoadError(false);
         setPosters(data || []);
         // Save to cache for offline use
         if (data && data.length > 0) {
@@ -230,6 +234,7 @@ export const PostersCarousel = () => {
         }
       }
     } catch (err) {
+      setLoadError(true);
       console.error('Fetch error:', err);
       // Try to load from cache on network error
       const cachedData = await loadFromCache();
@@ -398,10 +403,12 @@ export const PostersCarousel = () => {
     };
 
     window.addEventListener('online', handleOnline);
+    window.addEventListener('focus', handleOnline);
 
     return () => {
       cleanup();
       window.removeEventListener('online', handleOnline);
+      window.removeEventListener('focus', handleOnline);
     };
   }, [fetchPosters]);
 
@@ -466,7 +473,18 @@ export const PostersCarousel = () => {
   }
 
   if (posters.length === 0) {
-    return null;
+    if (APP_AUDIENCE !== 'parent') return null;
+    return (
+      <div className="w-full px-4 py-5 text-center" dir="rtl">
+        <div className="rounded-xl border border-white/20 bg-white/10 py-5 px-4 text-white/90 font-cairo text-sm">
+          <p>{loadError ? 'تعذر تحميل ملصقات المدرسة حالياً' : 'لا توجد ملصقات منشورة حالياً'}</p>
+          <button type="button" onClick={() => { setLoading(true); void fetchPosters(); }}
+            className="mt-3 rounded-lg bg-white/15 hover:bg-white/25 px-4 py-2 text-white text-sm">
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
