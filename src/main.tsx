@@ -41,6 +41,10 @@ const configureStatusBar = async () => {
       await StatusBar.setStyle({ style: Style.Light });
       await StatusBar.setBackgroundColor({ color: '#f8fafc' });
       await StatusBar.setOverlaysWebView({ overlay: false });
+      // Parents Android app keeps the OS clock, signal and battery bar visible.
+      if (APP_AUDIENCE === "parent") {
+        await StatusBar.show();
+      }
     } catch (e) {
       console.log('StatusBar configuration error:', e);
     }
