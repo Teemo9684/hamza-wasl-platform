@@ -12,6 +12,9 @@ import { registerSW } from 'virtual:pwa-register';
 if (Capacitor.isNativePlatform()) {
   const platform = Capacitor.getPlatform();
   document.documentElement.classList.add(`capacitor-${platform}`);
+  if (APP_AUDIENCE === "parent") {
+    document.documentElement.classList.add("parent-audience");
+  }
 }
 
 // CRITICAL: Mark bundle as ready IMMEDIATELY on native platforms
