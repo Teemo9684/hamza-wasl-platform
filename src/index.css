@@ -1235,7 +1235,22 @@ html.capacitor-android.parent-audience::before {
   content: "";
   position: fixed;
   inset: 0 0 auto 0;
-  height: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  height: max(24px, env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  background: #f8fafc;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* In the parent Android WebView, the system bars remain opaque and fixed
+   while the page and its news/date header can scroll beneath them. */
+html.capacitor-android.parent-audience .parents-sticky-header {
+  top: max(24px, env(safe-area-inset-top, 0px));
+}
+html.capacitor-android.parent-audience::after {
+  content: "";
+  position: fixed;
+  inset: auto 0 0 0;
+  height: max(24px, env(safe-area-inset-bottom, 0px));
   background: #f8fafc;
   pointer-events: none;
   z-index: 9999;
