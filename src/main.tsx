@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { Capacitor } from "@capacitor/core";
 import { SplashScreen as CapacitorSplashScreen } from "@capacitor/splash-screen";
 import App from "./App.tsx";
+import { APP_AUDIENCE } from "./config/appAudience";
 import "./index.css";
 import { registerSW } from 'virtual:pwa-register';
 
@@ -84,6 +85,15 @@ const restoreNativeSettings = async () => {
     console.log('[main] Failed to restore native settings:', e);
   }
 };
+
+// Remove legacy API response cache from the standalone parent PWA.
+// Earlier combined-mode builds cached Supabase network responses, which may
+// include personal school data and must not survive into the parent app.
+if (APP_AUDIENCE === "parent" && !Capacitor.isNativePlatform() && "caches" in window) {
+  void window.caches.delete("api-cache").catch((error) => {
+    console.warn("[Parents] Could not clear legacy API cache", error);
+  });
+}
 
 // Register service worker only for web/PWA (not native)
 if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
