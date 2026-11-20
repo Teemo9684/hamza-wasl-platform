@@ -38,13 +38,13 @@ for (const [name, value] of [
 xml = xml.slice(0, start) + body + '\n    ' + xml.slice(end);
 // The app window behind Android's splash must share the same dark navy
 // background. Otherwise some Android versions briefly expose a black frame.
-const mainStyle = /<style\\s+name="AppTheme\\.NoActionBar"[^>]*>/.exec(xml);
+const mainStyle = /<style\s+name="AppTheme\.NoActionBar"[^>]*>/.exec(xml);
 if (!mainStyle) throw new Error('Missing parent app theme style');
 const mainStart = mainStyle.index + mainStyle[0].length;
 const mainEnd = xml.indexOf('</style>', mainStart);
 if (mainEnd < 0) throw new Error('Main app theme not closed');
 let mainBody = xml.slice(mainStart, mainEnd);
-mainBody = mainBody.replace(/<item\\s+name="android:windowBackground"[^>]*>[\\s\\S]*?<\\/item>/g, '');
+mainBody = mainBody.replace(/<item\s+name="android:windowBackground"[^>]*>[\s\S]*?<\/item>/g, '');
 mainBody += '\n        <item name="android:windowBackground">#14243A</item>\n    ';
 xml = xml.slice(0, mainStart) + mainBody + xml.slice(mainEnd);
 writeFileSync(stylesFile, xml);
