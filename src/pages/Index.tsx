@@ -455,7 +455,7 @@ const Index = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <div className="flex justify-center items-center gap-3 sm:gap-6 text-white/90 font-cairo text-xs sm:text-sm">
+          <div className="flex justify-center items-center gap-6 text-white/90 font-cairo text-sm">
             {/* Date */}
             <div className="font-medium">
               {formatDateWithWeekday(currentTime)}
@@ -481,10 +481,10 @@ const Index = () => {
       >
         {/* Logo and Title */}
         <motion.div className="text-center mb-8" variants={headerVariants}>
-          <div className="parent-hero-logo relative h-36 sm:h-48 mb-5 sm:mb-6">
+          <div className="parent-hero-logo relative h-48 mb-6">
             {/* همزة وصل */}
             <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-1">
-              <h1 className="text-5xl sm:text-6xl font-bold text-white font-ruqaa leading-[0.9]">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
                 <div>همزة</div>
                 <div>وصل</div>
               </h1>
@@ -492,7 +492,7 @@ const Index = () => {
             
             {/* العربي التبسي */}
             <div className="absolute inset-0 flex flex-col items-center justify-center magic-rotate-2">
-              <h1 className="text-5xl sm:text-6xl font-bold text-white font-ruqaa leading-[0.9]">
+              <h1 className="text-6xl font-bold text-white font-ruqaa leading-[0.9]">
                 <div>العربي</div>
                 <div>التبسي</div>
               </h1>
@@ -500,13 +500,13 @@ const Index = () => {
           </div>
           
           <motion.div variants={itemVariants}>
-            <p className="parent-hero-title text-lg sm:text-2xl text-white/90 font-cairo mb-2">
+            <p className="parent-hero-title text-2xl text-white/90 font-cairo mb-2">
               {APP_AUDIENCE === "teacher" ? "فضاء الأساتذة" : APP_AUDIENCE === "admin" ? "فضاء الإدارة" : "جسر التواصل بين المدرسة والبيت"}
             </p>
-            <p className="parent-hero-description text-sm sm:text-lg text-white/80 font-cairo mb-3 max-w-3xl mx-auto leading-relaxed">
+            <p className="parent-hero-description text-lg text-white/80 font-cairo mb-3 max-w-3xl mx-auto leading-relaxed">
               {APP_AUDIENCE === "teacher" ? "إدارة الأقسام والواجبات والغيابات والتواصل مع أولياء التلاميذ" : APP_AUDIENCE === "admin" ? "لوحة إدارة المدرسة والتحكم في الحسابات والإعلانات والبيانات المدرسية" : "منصة تعليمية متكاملة تربط بين الإدارة والمعلمين وأولياء الأمور لمتابعة شاملة للعملية التعليمية"}
             </p>
-            <p className="parent-school-name text-base sm:text-lg text-white/70 font-ruqaa">
+            <p className="parent-school-name text-lg text-white/70 font-ruqaa">
               المدرسة الابتدائية العربي التبسي
             </p>
           </motion.div>
