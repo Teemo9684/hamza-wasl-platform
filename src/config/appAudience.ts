@@ -5,7 +5,13 @@
  */
 export type AppAudience = "combined" | "parent" | "teacher" | "admin";
 
-const configured = import.meta.env.VITE_APP_AUDIENCE || import.meta.env.MODE;
+// Explicit build modes take precedence over deployment environment variables,
+// ensuring each PWA manifest matches the routes that are actually bundled.
+const buildMode = import.meta.env.MODE;
+const configured =
+  buildMode === "parent" || buildMode === "teacher" || buildMode === "admin"
+    ? buildMode
+    : import.meta.env.VITE_APP_AUDIENCE;
 
 export const APP_AUDIENCE: AppAudience =
   configured === "parent" || configured === "teacher" || configured === "admin"
