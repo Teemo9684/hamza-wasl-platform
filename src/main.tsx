@@ -133,15 +133,16 @@ const startApp = async () => {
   // before React renders, so ThemeContext reads the correct initial value.
   await restoreNativeSettings();
 
+  if (APP_AUDIENCE === "parent" && Capacitor.isNativePlatform()) {
+    window.addEventListener('parents-welcome-ready', () => {
+      requestAnimationFrame(() => hideNativeSplash());
+    }, { once: true });
+  }
   createRoot(document.getElementById("root")!).render(<App />);
 
-  // On the standalone parents app, do not expose an empty Android WebView
-  // before React paints the school emblem. The original welcome remains.
-  if (APP_AUDIENCE === "parent" && Capacitor.isNativePlatform()) {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => hideNativeSplash());
-    });
-  } else {
+  // Parent Android: keep the system emblem visible until the actual
+  // React welcome screen has committed. Never expose an empty WebView.
+  if (!(APP_AUDIENCE === "parent" && Capacitor.isNativePlatform())) {
     hideNativeSplash();
   }
 };
