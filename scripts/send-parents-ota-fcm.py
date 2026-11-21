@@ -47,8 +47,13 @@ def main():
     payload = {
         "message": {
             "token": target,
-            # Data-only for foreground OTA refresh; no unwanted school-wide
-            # notification banner. Background delivery is OS-dependent.
+            # Notification + data: Android displays a system notification
+            # while the app is backgrounded. Tapping it brings the app
+            # foreground, where the existing OTA mechanism checks latest.json.
+            "notification": {
+                "title": "همزة وصل – الأولياء",
+                "body": "يتوفر تحديث جديد للتطبيق. افتح التطبيق لتثبيته.",
+            },
             "data": {
                 "type": "parents_ota_update",
                 "audience": "parent",
