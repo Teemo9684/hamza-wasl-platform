@@ -98,3 +98,7 @@ With the test app closed on the owner's phone and notification permission enable
 ## Approved isolated 1.0.11 remediation test release
 
 The owner requested correcting all currently identified parents-app security and behavior issues. After source verification, the parents preview's web-only fixes are staged for private OTA 1.0.11. This does not publish to families or modify any source branch other than apps/parents-preview. The independent parents-updates feed and the existing one-test-device FCM sender are used; native Android code remains unchanged. Shared Lovable database RLS fixes were applied separately and verified by read-only policy inspection. Live behavior with at least one approved and one pending test parent still requires human validation. The secure additional-child workflow requires administrator verification; no unauthorized self-link is allowed.
+
+## 1.0.12 parents-only attachment preview
+
+Approved user-requested parents-app UI fix: homework attachments now open in a fullscreen in-app preview above all fixed news and school date/header UI. The underlying header remains unchanged and returns on close. Includes image/PDF rendering where Android WebView supports it and external-open fallback for other file types. Includes source/build test assertions. Web/OTA-only; no native plugin, database, official app, teachers app, or admin app modifications.
