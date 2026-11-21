@@ -101,6 +101,29 @@ jobs:
         run: |
           npx cap add android
           npx cap sync android
+      - name: Configure Firebase for the isolated parents Android package
+        env:
+          PARENTS_GOOGLE_SERVICES_JSON: ${{ secrets.PARENTS_GOOGLE_SERVICES_JSON }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${PARENTS_GOOGLE_SERVICES_JSON}" ]]; then
+            echo "::error::Missing PARENTS_GOOGLE_SERVICES_JSON repository secret; refusing to ship an APK with a nonfunctional FCM integration."
+            exit 1
+          fi
+          printf '%s' "$PARENTS_GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('android/app/google-services.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          assert data['project_info']['project_id'] == 'hamza-wasl-app', 'Firebase project does not match official Hamza Wasl'
+          clients = [c['client_info']['android_client_info']['package_name'] for c in data['client']]
+          assert clients.count('app.hamzawasl.parents') == 1, 'Firebase config must contain exactly one registered parent package'
+          print('Validated Firebase configuration for the isolated parents Android app')
+          PY
+          grep -q '@capacitor/push-notifications' capacitor.config.ts
+          grep -q 'com.google.gms.google-services' android/app/build.gradle
       - name: Apply parents Android launcher icons if uploaded
         run: node scripts/apply-parents-icon.mjs android
       - name: Match native parent WebView typography to main app
