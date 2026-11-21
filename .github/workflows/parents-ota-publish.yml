@@ -1,0 +1,123 @@
+name: Publish approved parents OTA bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Standalone parents OTA version (e.g. 1.0.1)'
+        required: true
+        type: string
+      approval:
+        description: 'Type PUBLISH-PARENTS-OTA to explicitly authorize this publication'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: parents-ota-publisher
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/apps/parents-preview'
+    runs-on: ubuntu-latest
+    env:
+      APP_AUDIENCE: parent
+      VITE_PARENT_OTA_ENABLED: 'true'
+      VITE_PARENT_APP_VERSION: ${{ inputs.version }}
+      OTA_APPROVAL: ${{ inputs.approval }}
+    steps:
+      - name: Validate explicit publication approval
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$OTA_APPROVAL" = "PUBLISH-PARENTS-OTA"
+          [[ "$VITE_PARENT_APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$VITE_PARENT_APP_VERSION" != "0.0.0"
+
+      - name: Checkout isolated parent source
+        uses: actions/checkout@v4
+        with:
+          ref: apps/parents-preview
+          path: parent-source
+          persist-credentials: false
+
+      - name: Checkout independent OTA release channel
+        uses: actions/checkout@v4
+        with:
+          ref: parents-updates
+          path: parents-channel
+
+      - name: Prevent rollback or duplicate OTA publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          current = json.loads(Path('parents-channel/latest.json').read_text())
+          assert current.get('audience') == 'parent', 'Wrong OTA channel'
+          proposed = tuple(int(x) for x in os.environ['VITE_PARENT_APP_VERSION'].split('.'))
+          previous = tuple(int(x) for x in current['version'].split('.'))
+          assert proposed > previous, 'Version must strictly increase'
+          assert proposed > (1,0,0), 'Initial APK baseline is 1.0.0'
+          print('Validated parent-only OTA release', os.environ['VITE_PARENT_APP_VERSION'])
+          PY
+
+      - name: Build standalone parents frontend
+        working-directory: parent-source
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          node scripts/apply-parents-icon.mjs web
+          npm run build:parent
+          node scripts/verify-parents-build.mjs
+          test -s dist-parent/index.html
+          test -s dist-parent/manifest.webmanifest
+
+      - name: Prepare versioned immutable OTA bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p parents-channel/bundles
+          test ! -e "parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip"
+          (cd parent-source/dist-parent && zip -q -r "$GITHUB_WORKSPACE/parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip" .)
+          unzip -t "parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip" >/dev/null
+          unzip -Z -1 "parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip" | grep -qx 'index.html'
+          sha256sum "parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip" | tee parents-ota-checksum.txt
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          channel = Path('parents-channel')
+          version = os.environ['VITE_PARENT_APP_VERSION']
+          (channel / 'latest.json').write_text(
+            json.dumps({'version':version, 'audience':'parent'}, ensure_ascii=False, indent=2) + '\n',
+            encoding='utf8'
+          )
+          PY
+
+      - name: Publish to parents-updates only
+        working-directory: parents-channel
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add latest.json "bundles/${VITE_PARENT_APP_VERSION}.zip"
+          git commit -m "parents OTA ${VITE_PARENT_APP_VERSION} (approved manual release)"
+          git push origin HEAD:parents-updates
+
+      - name: Summarize release
+        shell: bash
+        run: |
+          {
+            echo '### Parents OTA published'
+            echo "Version: \`${VITE_PARENT_APP_VERSION}\`"
+            echo 'Audience: parent only; channel: parents-updates'
+            echo 'APK launcher/native code does NOT update over OTA.'
+            echo 'Native changes require an Android APK rebuild.'
+            cat parents-ota-checksum.txt
+          } >> "$GITHUB_STEP_SUMMARY"
