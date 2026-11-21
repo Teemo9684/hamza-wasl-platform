@@ -116,11 +116,12 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
       if (error) throw error;
 
       // Send notification to admins
-      await sendNewDocumentRequestNotification(
+      // Keep the saved request successful even when notifying admins fails.
+      sendNewDocumentRequestNotification(
         documentType,
         studentName,
         parentProfile?.full_name || 'ولي الأمر'
-      );
+      ).catch(err => console.warn('Document request saved; admin notification failed:', err));
 
       toast.success("تم إرسال طلب الوثيقة بنجاح");
       setDocumentType("");
@@ -135,12 +136,14 @@ export const ParentDocumentRequests = ({ selectedChild, children }: ParentDocume
 
   const handleDeleteRequest = async (requestId: string) => {
     try {
-      const { error } = await supabase
+      const { data: deleted, error } = await supabase
         .from('document_requests')
         .delete()
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .select('id');
 
       if (error) throw error;
+      if (!deleted?.length) throw new Error('لم يتم حذف الطلب');
 
       toast.success("تم حذف الطلب بنجاح");
       fetchRequests();
