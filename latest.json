@@ -1,4 +1,5 @@
 {
-  "version": "1.0.1",
-  "audience": "teacher"
+  "version": "1.0.2",
+  "audience": "teacher",
+  "source_sha": "0eec5ba558ab75b1a3bdd0324090dfba70847ba9"
 }
