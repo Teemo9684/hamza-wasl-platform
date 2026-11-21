@@ -83,7 +83,24 @@ const LoginParent = () => {
       }
 
       if (data.user) {
-        
+        // For email-confirmation flows, complete the pending pre-approval
+        // parent/student link on the first authenticated sign-in. The server
+        // refuses any new parent link once the account has been approved.
+        const schoolId = data.user.user_metadata?.national_school_id;
+        if (typeof schoolId === "string" && /^\\d{16}$/.test(schoolId)) {
+          const { data: profile } = await supabase.from("profiles")
+            .select("is_approved").eq("id", data.user.id).maybeSingle();
+          if (profile && !profile.is_approved) {
+            const { error: pendingLinkError } = await supabase.rpc("link_parent_to_student", {
+              _parent_id: data.user.id,
+              _national_school_id: schoolId,
+            });
+            if (pendingLinkError) {
+              showWarning("تعذر ربط التلميذ", "تحقق من الرقم المدرسي مع إدارة المدرسة قبل اعتماد الحساب.");
+            }
+          }
+        }
+
         // Check if user is approved
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
