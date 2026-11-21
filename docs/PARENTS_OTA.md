@@ -31,3 +31,7 @@ Do not edit the live Lovable Cloud database or the admin/teacher apps through th
 ## Initial approved version test
 
 User authorized first isolated parents OTA release `1.0.1` with an official-style `v1.0.1` label on the initial parent login page. No school data, native files, or staff apps are part of this web OTA bundle. Further releases continue to require explicit approval.
+
+## Approved 1.0.1 release retry after YAML validation
+
+Initial GitHub workflow attempts failed before starting jobs due to a YAML parsing problem in the guarded release condition. The fixed workflow is used for this same explicitly approved 1.0.1 test; no changes to the real school database.
