@@ -43,3 +43,7 @@ User approved publishing 1.0.2 for a visible, high-contrast version marker on th
 ## Approved 1.0.3 official-style version footer
 
 User approved parents-only OTA release 1.0.3 to change the version indicator from a white pill into unobtrusive semi-transparent white text at the bottom left, matching the official app. The version remains visible on parent landing and dedicated login screens. No native APK changes or changes to the school database.
+
+## 1.0.4 native-viewport version label
+
+The screenshot after 1.0.3 shows the version still hidden although 1.0.2's white pill was visible. The parent version text is now portaled to document.body, outside Framer Motion's scaled app wrapper and the landing page's clipping. Its typography remains identical to the official small semitransparent bottom-left text. The OTA is web-only and parents-only.
