@@ -122,7 +122,7 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
       return;
     }
 
-    if (passwords.newPassword.length < 6) {
+    if (passwords.newPassword.length < 8) {
       errorHaptic();
       showError("password should be at least");
       return;
