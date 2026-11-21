@@ -71,3 +71,14 @@ FCM build verification requested after the repository secret was added; no produ
 ## Private 1.0.7 FCM token-copy test
 
 The installed parents-only debug APK already contains native FCM; 1.0.7 enables a temporary web-only tester by tapping the version number on the initial parents screen. The dialog copies the in-memory device token to the phone clipboard, without logging or rendering it in UI. The feature is gated by `VITE_PARENT_FCM_TEST_ENABLED`, set only for the explicitly approved 1.0.7 OTA push. Future normal OTA releases leave it disabled. The token is sensitive and should be used only via Firebase Console test-message tooling, not posted in public GitHub or chats. No notification is sent and no school data is changed by this release.
+
+## Parent-only automatic FCM signal after an approved OTA release (private test stage)
+
+The GitHub Actions publisher now has a post-publication-only FCM HTTP v1 step. It runs **after** `parents-updates/latest.json` and its bundle are pushed, and it targets exactly one test device. There is no broadcast to parent users, no database access, and no effect on `main`, `pilot-updates`, teachers or admin apps. It remains disabled (cleanly skipped) until **both** repository Actions secrets are configured:
+
+- `PARENTS_FCM_SERVICE_ACCOUNT_JSON`: a *server-side* Firebase/Google Cloud service-account credential JSON from the `hamza-wasl-app` project, dedicated to FCM sending with minimal permissions. This is different from the client `google-services.json`; never send the service-account JSON in chat, put it in OTA bundles or commit it to Git.
+- `PARENTS_FCM_TEST_TOKEN`: the FCM registration token copied from the tester's phone. Do not share it in public logs or chat.
+
+Use GitHub Settings → Secrets and variables → Actions → New repository secret for both. The sender validates the Firebase project, approved parent audience and OTA version, requests a short-lived OAuth2 token, and posts one `data`-only `parents_ota_update` message with `audience=parent` and `version` to the FCM HTTP v1 API. The native app checks the canonical parents manifest when the signal is received in foreground; background delivery and automatic application are **not guaranteed** by Android.
+
+**Never test this by sending a campaign to all devices.** For an end-to-end check, explicitly approve a *new* parent OTA version after configuring secrets; source workflow edits alone do not publish the next OTA. The `1.0.7` release remains the latest approved release until then. The GitHub workflow publishes OTA independently of the FCM test: missing FCM secrets skip just that step, and an FCM send error fails the step after OTA has already published (no rollback).
