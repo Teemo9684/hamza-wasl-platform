@@ -1,10 +1,11 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
 export const BackButtonHandler = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const locationRef = useRef(location.pathname + location.hash);
 
   // تحديث المرجع عند تغير المسار أو الـ hash
@@ -27,6 +28,12 @@ export const BackButtonHandler = () => {
     // Close teacher inline login before navigating or exiting the native app.
     if (currentPath === "/" && document.documentElement.dataset.teacherLoginOpen === "true") {
       window.dispatchEvent(new Event("teachers-close-embedded-login"));
+      return;
+    }
+
+    // A legacy deep link must return to landing, never show another login.
+    if (currentPath === "/login/teacher") {
+      navigate("/", { replace: true });
       return;
     }
 
@@ -56,7 +63,7 @@ export const BackButtonHandler = () => {
       console.log('BackButton: Other page, going back');
       window.history.back();
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     // فقط في التطبيق الأصلي (Native App)
