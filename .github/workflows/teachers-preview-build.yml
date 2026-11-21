@@ -89,6 +89,8 @@ jobs:
           grep -q 'com.google.gms.google-services' android/app/build.gradle
       - name: Match teacher Android typography and system bars to parents app
         run: node scripts/patch-teachers-android.mjs
+      - name: Use the same official school portrait as parents native launch screen
+        run: node scripts/patch-teachers-native-splash.mjs
       - name: Build test-only APK
         working-directory: android
         run: chmod +x ./gradlew && ./gradlew assembleDebug --no-daemon
