@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { Capacitor } from "@capacitor/core";
 import { SplashScreen as CapacitorSplashScreen } from "@capacitor/splash-screen";
 import App from "./App.tsx";
+import { APP_AUDIENCE } from "./config/appAudience";
 import "./index.css";
 import { registerSW } from 'virtual:pwa-register';
 
@@ -11,6 +12,9 @@ import { registerSW } from 'virtual:pwa-register';
 if (Capacitor.isNativePlatform()) {
   const platform = Capacitor.getPlatform();
   document.documentElement.classList.add(`capacitor-${platform}`);
+  if (APP_AUDIENCE === "teacher") {
+    document.documentElement.classList.add("teacher-audience");
+  }
 }
 
 // CRITICAL: Mark bundle as ready IMMEDIATELY on native platforms
@@ -40,6 +44,7 @@ const configureStatusBar = async () => {
       await StatusBar.setStyle({ style: Style.Light });
       await StatusBar.setBackgroundColor({ color: '#f8fafc' });
       await StatusBar.setOverlaysWebView({ overlay: false });
+      if (APP_AUDIENCE === "teacher") await StatusBar.show();
     } catch (e) {
       console.log('StatusBar configuration error:', e);
     }
