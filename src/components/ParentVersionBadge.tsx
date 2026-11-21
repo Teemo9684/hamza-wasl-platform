@@ -2,18 +2,20 @@ import { createPortal } from "react-dom";
 import { APP_VERSION } from "@/config/version";
 
 /**
- * The root app uses Framer Motion transforms, which make CSS position:fixed
- * relative to an animated ancestor instead of the Android viewport.
- * Mount on document.body, outside those transforms and overflow clipping.
- * Keep the official application's original unboxed footer typography.
+ * Mirror the official Index.tsx footer markup. The separated parents APK has
+ * an additional 24px Android bottom-bar overlay absent from the official app:
+ * shift this footer clear of that surface and render outside motion transforms.
  */
 export function ParentVersionBadge() {
   return createPortal(
     <div
+      className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono"
       dir="ltr"
-      aria-label={`إصدار تطبيق الأولياء ${APP_VERSION}`}
-      className="fixed bottom-4 left-4 text-white/50 text-xs font-mono pointer-events-none"
-      style={{ zIndex: 2147483000 }}
+      style={{
+        bottom: "calc(max(24px, env(safe-area-inset-bottom, 0px)) + 16px)",
+        zIndex: 10020,
+        pointerEvents: "none",
+      }}
     >
       v{APP_VERSION}
     </div>,
