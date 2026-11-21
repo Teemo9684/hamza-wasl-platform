@@ -101,23 +101,30 @@ const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [newsUnavailable, setNewsUnavailable] = useState(false);
 
   const fetchNewsItems = useCallback(async () => {
-    const { data } = await supabase
-      .from("news_ticker")
-      .select("*")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true });
-
-    if (data) {
-      console.log('Index: Fetched', data.length, 'news items');
-      setNewsItems(data);
+    try {
+      const { data, error } = await supabase
+        .from("news_ticker")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      setNewsItems(data ?? []);
+      setNewsUnavailable(false);
+    } catch (error) {
+      console.warn("[Teachers] News could not be fetched", error);
+      setNewsUnavailable(true);
     }
   }, []);
 
   useEffect(() => {
     fetchNewsItems();
-    
+    const refreshNews = () => { if (navigator.onLine) fetchNewsItems(); };
+    window.addEventListener("online", refreshNews);
+    window.addEventListener("focus", refreshNews);
+
     // Re-fetch news items when auth state changes (e.g., after logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       fetchNewsItems();
@@ -136,6 +143,8 @@ const Index = () => {
     return () => {
       subscription.unsubscribe();
       cleanup();
+      window.removeEventListener("online", refreshNews);
+      window.removeEventListener("focus", refreshNews);
     };
   }, [fetchNewsItems]);
 
@@ -422,7 +431,7 @@ const Index = () => {
           <div className={`absolute inset-x-0 ${APP_AUDIENCE === "teacher" ? "top-0" : "top-[env(safe-area-inset-top)]"} bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]`}>
             <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
               {newsItems.length === 0 && APP_AUDIENCE === "teacher" ? (
-                <span className="inline-block px-4 text-white/85 font-cairo text-sm">لا توجد أخبار منشورة حالياً</span>
+                <span className="inline-block px-4 text-white/85 font-cairo text-sm">{newsUnavailable ? "تعذر تحميل أخبار المدرسة حالياً" : "لا توجد أخبار منشورة حالياً"}</span>
               ) : [...Array(3)].map((_, repeatIndex) => (
                 newsItems.map((item, itemIndex) => (
                   <div key={`${repeatIndex}-${item.id}`} className="flex items-center gap-8">
