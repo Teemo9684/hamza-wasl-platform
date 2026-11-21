@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { App } from "@capacitor/app";
+import { APP_AUDIENCE } from "@/config/appAudience";
 import { Capacitor } from "@capacitor/core";
 import {
   isNativeApp,
@@ -19,7 +20,7 @@ const PENDING_UPDATE_KEY = "smart_update_pending";
 const UPDATE_APPLIED_KEY = "smart_update_applied";
 
 // Configuration
-const MIN_CHECK_INTERVAL = 60 * 1000; // 1 minute minimum between checks
+const MIN_CHECK_INTERVAL = APP_AUDIENCE === "teacher" ? 5 * 1000 : 60 * 1000; // 1 minute minimum between checks
 const MAX_RETRY_COUNT = 5;
 const RETRY_DELAYS = [5000, 15000, 30000, 60000, 120000]; // Exponential backoff
 
@@ -314,6 +315,13 @@ export const useSmartUpdate = () => {
     };
 
     initialize();
+  }, [isNative, checkUpdate]);
+
+  useEffect(() => {
+    if (!isNative || APP_AUDIENCE !== "teacher") return;
+    const onSignal = () => { if (document.visibilityState === "visible" && navigator.onLine) void checkUpdate(true); };
+    window.addEventListener("teachers-ota-update-available", onSignal);
+    return () => window.removeEventListener("teachers-ota-update-available", onSignal);
   }, [isNative, checkUpdate]);
 
   // الاستماع لأحداث التطبيق (العودة من الخلفية)
