@@ -409,20 +409,21 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-clip">
+    <div className={`min-h-screen w-full relative ${APP_AUDIENCE === "teacher" ? "teacher-landing overflow-x-clip" : "overflow-clip"}`}>
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 animated-gradient-bg" />
 
       {/* Theme Decorations */}
       <ThemeDecorations />
 
-      <header className="sticky top-0 z-30 flow-root pt-[env(safe-area-inset-top)]">
+      <header className={`sticky top-0 z-30 flow-root ${APP_AUDIENCE === "teacher" ? "teachers-sticky-header pt-0" : "pt-[env(safe-area-inset-top)]"}`}>
         {/* News Ticker */}
-        {newsItems.length > 0 && (
-          <div className="absolute inset-x-0 top-[env(safe-area-inset-top)] bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]">
+        {(newsItems.length > 0 || APP_AUDIENCE === "teacher") && (
+          <div className={`absolute inset-x-0 ${APP_AUDIENCE === "teacher" ? "top-0" : "top-[env(safe-area-inset-top)]"} bg-white/10 backdrop-blur-md border-b border-white/20 overflow-hidden animate-[slideDown_0.5s_ease-out]`}>
             <div className="ticker-animation py-3 inline-flex min-w-max items-center gap-8 whitespace-nowrap">
-              {/* Repeat items 3 times for seamless scrolling */}
-              {[...Array(3)].map((_, repeatIndex) => (
+              {newsItems.length === 0 && APP_AUDIENCE === "teacher" ? (
+                <span className="inline-block px-4 text-white/85 font-cairo text-sm">لا توجد أخبار منشورة حالياً</span>
+              ) : [...Array(3)].map((_, repeatIndex) => (
                 newsItems.map((item, itemIndex) => (
                   <div key={`${repeatIndex}-${item.id}`} className="flex items-center gap-8">
                     <span className="text-white font-cairo flex items-center gap-2">
