@@ -90,7 +90,7 @@ jobs:
           test ! -e "parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip"
           (cd parent-source/dist-parent && zip -q -r "$GITHUB_WORKSPACE/parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip" .)
           unzip -t "parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip" >/dev/null
-          unzip -Z -1 "parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip" | grep -qx 'index.html'
+          unzip -Z -1 "parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip" | grep -x 'index.html' >/dev/null
           sha256sum "parents-channel/bundles/${VITE_PARENT_APP_VERSION}.zip" | tee parents-ota-checksum.txt
           python3 - <<'PY'
           import json, os
