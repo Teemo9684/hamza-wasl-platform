@@ -145,7 +145,12 @@ export const checkForUpdate = async (): Promise<UpdateInfo> => {
       : null;
   if (!feed) return { hasUpdate: false };
 
-  const response = await fetch(`${feed}/latest.json`, { cache: "no-store" });
+  // GitHub raw CDN can cache latest.json despite a no-store browser request.
+  // Bust only the standalone parent manifest URL; bundle URLs stay immutable.
+  const manifestUrl = APP_AUDIENCE === "parent"
+    ? `${feed}/latest.json?check=${Date.now()}`
+    : `${feed}/latest.json`;
+  const response = await fetch(manifestUrl, { cache: "no-store" });
   if (!response.ok) throw new Error(`Update check failed (${response.status})`);
 
   const manifest: unknown = await response.json();
