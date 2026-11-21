@@ -1,0 +1,31 @@
+name: Teachers FCM private device test
+on:
+  workflow_dispatch:
+    inputs:
+      approval:
+        description: 'Type TEST-TEACHERS-FCM to send ONE private test notification'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  send-test:
+    if: github.ref == 'refs/heads/apps/teachers-preview'
+    runs-on: ubuntu-latest
+    env:
+      APPROVAL: ${{ inputs.approval }}
+      TEACHERS_FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.TEACHERS_FCM_SERVICE_ACCOUNT_JSON }}
+      TEACHERS_FCM_TEST_TOKEN: ${{ secrets.TEACHERS_FCM_TEST_TOKEN }}
+    steps:
+      - name: Validate explicit one-device consent
+        run: test "$APPROVAL" = "TEST-TEACHERS-FCM"
+      - uses: actions/checkout@v4
+        with:
+          ref: apps/teachers-preview
+      - name: Send one teacher-only private FCM test message
+        run: |
+          set -euo pipefail
+          test -n "$TEACHERS_FCM_SERVICE_ACCOUNT_JSON"
+          test -n "$TEACHERS_FCM_TEST_TOKEN"
+          python3 -m pip install --quiet 'google-auth>=2,<3' 'requests>=2,<3'
+          python3 scripts/send-teachers-fcm-test.py
