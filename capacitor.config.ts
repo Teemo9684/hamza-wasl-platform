@@ -30,6 +30,7 @@ const config: CapacitorConfig = {
       '@capacitor/app',
       '@capacitor/haptics',
       '@capacitor/local-notifications',
+      ...(audience === 'teacher' ? ['@capacitor/push-notifications'] : []),
       '@capacitor/preferences',
       '@capacitor/splash-screen',
       '@capacitor/status-bar',
@@ -77,7 +78,7 @@ const config: CapacitorConfig = {
     },
     LiveUpdate: {
       // Only the existing pilot has a verified OTA feed.
-      enabled: audience === 'combined',
+      enabled: audience === 'combined' || (audience === 'teacher' && process.env.TEACHER_OTA_ENABLED === 'true'),
       autoDeleteBundles: true,
       readyTimeout: 10000
     }
