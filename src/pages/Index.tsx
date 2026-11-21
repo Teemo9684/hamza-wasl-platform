@@ -1,5 +1,5 @@
 import { APP_AUDIENCE, isAudienceEnabled } from "@/config/appAudience";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
@@ -85,6 +85,8 @@ type UserType = "parent" | "teacher" | "admin" | null;
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isStandaloneTeacherLogin = APP_AUDIENCE === "teacher" && location.pathname === "/login/teacher";
   const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -147,12 +149,21 @@ const Index = () => {
   }, []);
 
 
+  useEffect(() => {
+    if (!isStandaloneTeacherLogin) return;
+    setSelectedUserType("teacher");
+    const savedEmail = localStorage.getItem("teacher_email");
+    if (savedEmail) { setEmail(savedEmail); setRememberMe(true); }
+    const frame = requestAnimationFrame(() => loginSectionRef.current?.scrollIntoView({ behavior: "instant", block: "start" }));
+    return () => cancelAnimationFrame(frame);
+  }, [isStandaloneTeacherLogin]);
+
   const handleCardClick = (userType: UserType) => {
     // Standalone staff apps reuse their established, role-specific auth flows:
     // admin-login invokes the verified admin-login Edge Function,
     // and teacher-login verifies approval plus teacher role.
     // The combined pilot and the parent landing interaction stay unchanged.
-    if (APP_AUDIENCE !== "combined" && (userType === "teacher" || userType === "admin")) {
+    if (APP_AUDIENCE !== "combined" && (userType === "admin" || (userType === "teacher" && APP_AUDIENCE !== "teacher"))) {
       navigate(`/login/${userType}`);
       return;
     }
@@ -178,6 +189,10 @@ const Index = () => {
   };
 
   const handleBackToTop = () => {
+    if (isStandaloneTeacherLogin) {
+      navigate("/", { replace: true });
+      return;
+    }
     setIsExiting(true);
     
     // After exit animation, scroll to top and hide section
@@ -192,6 +207,17 @@ const Index = () => {
       });
     }, 400);
   };
+
+  useEffect(() => {
+    if (APP_AUDIENCE !== "teacher" || location.pathname !== "/") return;
+    document.documentElement.dataset.teacherLoginOpen = selectedUserType === "teacher" ? "true" : "false";
+    const closeLogin = () => { if (selectedUserType === "teacher") handleBackToTop(); };
+    window.addEventListener("teachers-close-embedded-login", closeLogin);
+    return () => {
+      delete document.documentElement.dataset.teacherLoginOpen;
+      window.removeEventListener("teachers-close-embedded-login", closeLogin);
+    };
+  }, [selectedUserType, location.pathname]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
