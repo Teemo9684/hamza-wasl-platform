@@ -39,3 +39,7 @@ Initial GitHub workflow attempts failed before starting jobs due to a YAML parsi
 ## Approved 1.0.2 version visibility release
 
 User approved publishing 1.0.2 for a visible, high-contrast version marker on the standalone parents landing and login pages. This OTA is web-only and restricted to the isolated parents-updates channel. No school records or staff applications were modified.
+
+## Approved 1.0.3 official-style version footer
+
+User approved parents-only OTA release 1.0.3 to change the version indicator from a white pill into unobtrusive semi-transparent white text at the bottom left, matching the official app. The version remains visible on parent landing and dedicated login screens. No native APK changes or changes to the school database.
