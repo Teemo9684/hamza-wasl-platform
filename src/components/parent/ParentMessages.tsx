@@ -163,11 +163,13 @@ export const ParentMessages = ({
         .eq('id', user.id)
         .single();
 
-      await sendMessageNotification(
+      // The message is already persisted: a push delivery problem must not
+      // be reported as failure to send the message itself.
+      sendMessageNotification(
         [newMessage.recipient_id],
         profile?.full_name || 'ولي أمر',
         newMessage.subject
-      );
+      ).catch(err => console.warn('Push notification failed after message was saved:', err));
 
       toast({
         title: "تم إرسال الرسالة",
