@@ -74,8 +74,11 @@ const parentIndex = read('src/pages/Index.tsx');
 const backHandler = read('src/components/BackButtonHandler.tsx');
 assert.ok(app.includes('APP_AUDIENCE === "parent" ? <Index key="parent-login" /> : <LoginParent />'), 'Standalone parents login must reuse the landing-page card and news ticker');
 assert.ok(parentIndex.includes('location.pathname === "/login/parent"'), 'Parent login route must activate embedded login section');
-assert.ok(parentIndex.includes('navigate("/login/parent")'), 'Parent card must navigate to the unified login route');
+assert.ok(parentIndex.includes('loginSectionRef.current?.scrollIntoView({ behavior: "smooth"'), 'Parent card must keep its original smooth in-page scroll');
+assert.ok(!parentIndex.includes('navigate("/login/parent");'), 'Parent card must not open a separate login route');
 assert.ok(backHandler.includes("currentPath === '/login/parent'"), 'Android back must explicitly leave unified parent login');
 assert.ok(backHandler.includes("navigate('/', { replace: true })"), 'Android back must land on main parent homepage');
+assert.ok(backHandler.includes("parents-close-embedded-login"), 'Android back must collapse embedded parent login');
+assert.ok(parentIndex.includes('data.parentLoginOpen') || parentIndex.includes('dataset.parentLoginOpen'), 'Landing page must expose embedded login state for Android back');
 
 console.log('Parent isolation checks passed. These are source/build checks, not Android runtime or database RLS tests.');
