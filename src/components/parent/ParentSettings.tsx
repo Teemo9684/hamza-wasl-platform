@@ -163,13 +163,15 @@ export const ParentSettings = ({ children, onChildRemoved }: ParentSettingsProps
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("غير مسجل الدخول");
 
-      const { error } = await supabase
+      const { data: removed, error } = await supabase
         .from('parent_students')
         .delete()
         .eq('parent_id', user.id)
-        .eq('student_id', childId);
+        .eq('student_id', childId)
+        .select('id');
 
       if (error) throw error;
+      if (!removed?.length) throw new Error('لم يتم حذف الربط. يرجى مراجعة الإدارة.');
 
       successHaptic();
       showSuccess("تم إلغاء الربط", `تم إلغاء ربط "${childName}" من حسابك`);
