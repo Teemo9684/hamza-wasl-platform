@@ -418,7 +418,11 @@ const setupPushNotificationListeners = () => {
     
     // Handle navigation based on notification type using history API
     // This maintains proper navigation stack for Capacitor
-    if (data?.type === 'message') {
+    if (data?.type === 'message' && APP_AUDIENCE === 'teacher') {
+      // Teacher notifications open the actual teacher messaging route.
+      window.history.pushState(null, '', '/dashboard/teacher/messages');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } else if (data?.type === 'message') {
       // Navigate to messages section
       window.history.pushState(null, '', '#messages');
       window.dispatchEvent(new HashChangeEvent('hashchange'));
