@@ -43,4 +43,19 @@ assert.ok(protectedRoute.includes('profile?.is_approved === true'), 'Parent rest
 assert.ok(protectedRoute.includes('APP_AUDIENCE !== "parent" && cached'), 'Parent authorization must not reuse stale approval cache');
 assert.ok(protectedRoute.includes('APP_AUDIENCE === "parent" && requiredRole !== "parent"'), 'Parent app must reject cross-audience protected screens');
 
+const parentCache = read('src/hooks/useOfflineCache.ts');
+const parentSignup = read('src/pages/RegisterParent.tsx');
+const parentLogin = read('src/pages/LoginParent.tsx');
+const parentChildDialog = read('src/components/parent/AddChildDialog.tsx');
+const parentSettings = read('src/components/parent/ParentSettings.tsx');
+const parentDocs = read('src/components/parent/ParentDocumentRequests.tsx');
+const parentMessages = read('src/components/parent/ParentMessages.tsx');
+assert.ok(parentCache.includes('session.user.id + "_" + cacheKey'), 'Offline cache must be partitioned by parent account');
+assert.ok(parentSignup.includes('national_school_id: formData.nationalSchoolId.trim()'), 'Parent signup must preserve school number for verified linking');
+assert.ok(parentLogin.includes('pendingLinkError'), 'Parent confirmed-login path must handle pending link errors');
+assert.ok(!parentChildDialog.includes("rpc('link_parent_to_student'"), 'Approved parent must not self-link a child by school number alone');
+assert.ok(parentSettings.includes(".select('id')"), 'Unlink must verify an actual deleted record');
+assert.ok(parentDocs.includes("if (!deleted?.length)"), 'Document delete must verify actual deletion');
+assert.ok(parentMessages.includes("Push notification failed after message was saved"), 'FCM failure must not claim that persisted messages were lost');
+
 console.log('Parent isolation checks passed. These are source/build checks, not Android runtime or database RLS tests.');
