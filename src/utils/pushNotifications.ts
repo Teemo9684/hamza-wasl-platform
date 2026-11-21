@@ -6,6 +6,10 @@ import { toast } from 'sonner';
 // Store the current token for re-registration
 let currentPushToken: string | null = null;
 
+/** In-memory token for private test builds. Never log or persist it in the UI. */
+export const getCurrentPushTokenForTest = (): string | null => currentPushToken;
+
+
 // Get platform info
 const getPlatform = (): string => {
   if (Capacitor.isNativePlatform()) {
