@@ -27,3 +27,7 @@ Do not use this action to ship unreviewed changes. Publishes to this channel aff
 **Native Android code and resources cannot be replaced by web OTA.** Launcher icons, Android launch splash, Capacitor plugins and permissions require a newly built APK, even when web OTA is enabled.
 
 Do not edit the live Lovable Cloud database or the admin/teacher apps through this release process.
+
+## Initial approved version test
+
+User authorized first isolated parents OTA release `1.0.1` with an official-style `v1.0.1` label on the initial parent login page. No school data, native files, or staff apps are part of this web OTA bundle. Further releases continue to require explicit approval.
