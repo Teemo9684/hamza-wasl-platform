@@ -1,7 +1,13 @@
 // ملف إدارة رقم الإصدار
 // قم بتحديث هذا الرقم مع كل تحديث جديد للتطبيق
 
-export const APP_VERSION = "1.2.75";
+import { APP_AUDIENCE } from "./appAudience";
+
+// The parents APK has its own version track. Combined/pilot stays 1.2.75.
+// OTA release builds inject VITE_PARENT_APP_VERSION; native baseline is 1.0.0.
+export const APP_VERSION = APP_AUDIENCE === "parent"
+  ? (import.meta.env.VITE_PARENT_APP_VERSION || "1.0.0")
+  : "1.2.75";
 
 // سجل التحديثات
 export const VERSION_HISTORY = [
