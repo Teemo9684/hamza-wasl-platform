@@ -66,4 +66,8 @@ assert.ok(attachmentPreview.includes('aria-modal="true"'), 'Attachment preview m
 assert.ok(parentHomework.includes('setPreviewAttachment({ url, label:'), 'Parent homework attachments must open the foreground viewer');
 assert.ok(parentHomework.includes('<ParentAttachmentPreview'), 'Parent homework page must mount the viewer');
 
+const postersCarousel = read('src/components/PostersCarousel.tsx');
+assert.ok(postersCarousel.includes("createPortal(preview, document.body)"), 'Parent landing poster preview must escape the sticky header stacking context');
+assert.ok(postersCarousel.includes("APP_AUDIENCE === 'parent' && typeof document !== 'undefined'"), 'Portal change must remain parents-only');
+assert.ok(postersCarousel.includes('aria-modal="true"'), 'Parent poster fullscreen preview must be identified as a dialog');
 console.log('Parent isolation checks passed. These are source/build checks, not Android runtime or database RLS tests.');
