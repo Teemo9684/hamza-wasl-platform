@@ -1,5 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import { APP_VERSION } from "@/config/version";
+import { APP_AUDIENCE } from "@/config/appAudience";
 import { setItem, removeItem, getItem } from "@/utils/nativeStorage";
 
 export interface UpdateInfo {
@@ -131,20 +132,38 @@ const logUpdateCheck = async (version: string, serverVersion: string | undefined
   }
 };
 
-const pilotFeed = "https://raw.githubusercontent.com/Teemo9684/hamza-wasl-platform/pilot-updates";
+const otaBase = "https://raw.githubusercontent.com/Teemo9684/hamza-wasl-platform";
+const pilotFeed = `${otaBase}/pilot-updates`;
+const teachersFeed = `${otaBase}/teachers-updates`;
 
 export const checkForUpdate = async (): Promise<UpdateInfo> => {
-  const response = await fetch(`${pilotFeed}/latest.json`, { cache: "no-store" });
-  if (!response.ok) throw new Error(`Pilot update check failed (${response.status})`);
+  const feed = APP_AUDIENCE === "combined"
+    ? pilotFeed
+    : APP_AUDIENCE === "teacher" && import.meta.env.VITE_TEACHER_OTA_ENABLED === "true"
+      ? teachersFeed
+      : null;
+  if (!feed) return { hasUpdate: false };
 
-  const { version } = await response.json();
+  const url = APP_AUDIENCE === "teacher"
+    ? `${feed}/latest.json?check=${Date.now()}`
+    : `${feed}/latest.json`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Update manifest unavailable (${response.status})`);
+  const manifest: unknown = await response.json();
+  if (!manifest || typeof manifest !== "object" || !("version" in manifest)) {
+    throw new Error("Invalid OTA manifest");
+  }
+  const { version, audience } = manifest as {version: unknown; audience?: unknown};
   if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/.test(version)) {
-    throw new Error("Invalid pilot version");
+    throw new Error("Invalid OTA version");
+  }
+  if (APP_AUDIENCE === "teacher" && audience !== "teacher") {
+    throw new Error("Incorrect teacher OTA audience");
   }
   const hasUpdate = compareVersions(version, APP_VERSION) > 0;
   await logUpdateCheck(APP_VERSION, version, hasUpdate ? "update_available" : "already_up_to_date");
   return hasUpdate
-    ? { hasUpdate, version, bundleUrl: `${pilotFeed}/bundles/${version}.zip`, isMandatory: false }
+    ? { hasUpdate, version, bundleUrl: `${feed}/bundles/${version}.zip`, isMandatory: false }
     : { hasUpdate };
 };
 
@@ -156,6 +175,15 @@ export const downloadAndApplyUpdate = async (
 ): Promise<boolean> => {
   if (!isNativeApp()) {
     console.log("[LiveUpdate] Live updates only work in native apps");
+    return false;
+  }
+
+  if (APP_AUDIENCE === "teacher" && (
+    import.meta.env.VITE_TEACHER_OTA_ENABLED !== "true" ||
+    !/^\d+\.\d+\.\d+$/.test(version) ||
+    bundleUrl !== `${teachersFeed}/bundles/${version}.zip`
+  )) {
+    console.error("[LiveUpdate] Refused non-teacher OTA bundle");
     return false;
   }
 
