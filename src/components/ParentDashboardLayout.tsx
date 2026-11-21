@@ -84,11 +84,11 @@ export const ParentDashboardLayout = () => {
       if (childrenError) throw childrenError;
       setChildren(childrenData || []);
       
-      if (childrenData && childrenData.length > 0) {
-        setChildIds(childrenData.map(c => c.id));
-        if (!selectedChild) {
-          setSelectedChild(childrenData[0].id);
-        }
+      const availableChildren = childrenData || [];
+      setChildIds(availableChildren.map(c => c.id));
+      // An unlinked child must not stay selected after the list refreshes.
+      if (!availableChildren.some(c => c.id === selectedChild)) {
+        setSelectedChild(availableChildren[0]?.id || "");
       }
     } catch (error: any) {
       console.error("Error fetching parent data:", error.message);
