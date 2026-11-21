@@ -90,3 +90,7 @@ The owner confirmed both GitHub Actions secrets for the one-device send have bee
 ## Approved 1.0.9 foreground FCM integration test
 
 The owner explicitly approved a standalone parent OTA 1.0.9 test while the app remains visible on the phone. Publish parent-only assets, then send the private single-token FCM data signal using the existing secure post-publish workflow step. The foreground 5-second polling fallback remains enabled; seeing 1.0.9 alone does not prove that FCM (rather than polling) caused the refresh. No Firebase or school database changes.
+
+## Approved 1.0.10 closed-app notification test
+
+With the test app closed on the owner's phone and notification permission enabled, publish the isolated parent OTA 1.0.10 and send a private FCM notification+data message to the single configured test token. Expected outcome: Android notification appears before opening the app, and upon opening the app the existing parents OTA update applies 1.0.10. The user explicitly confirmed the app was closed before this release. No school data modifications or other audience changes.
