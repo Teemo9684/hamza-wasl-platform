@@ -30,13 +30,13 @@ jobs:
       github.ref == 'refs/heads/apps/parents-preview' &&
       (github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'push' &&
-      github.event.head_commit.message == 'release(parents): publish approved OTA 1.0.16'))
+      github.event.head_commit.message == 'release(parents): publish approved OTA 1.0.17'))
     runs-on: ubuntu-latest
     env:
       APP_AUDIENCE: parent
       VITE_PARENT_OTA_ENABLED: 'true'
       VITE_PARENT_FCM_TEST_ENABLED: ${{ github.event_name == 'push' && 'true' || 'false' }}
-      VITE_PARENT_APP_VERSION: ${{ github.event_name == 'push' && '1.0.16' || inputs.version }}
+      VITE_PARENT_APP_VERSION: ${{ github.event_name == 'push' && '1.0.17' || inputs.version }}
       OTA_APPROVAL: ${{ github.event_name == 'push' && 'PUBLISH-PARENTS-OTA' || inputs.approval }}
     steps:
       - name: Validate explicit publication approval
