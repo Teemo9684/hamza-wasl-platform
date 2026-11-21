@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { APP_AUDIENCE } from "@/config/appAudience";
 import {
   isNativeApp,
   checkForUpdate,
@@ -19,7 +20,8 @@ const PENDING_UPDATE_KEY = "smart_update_pending";
 const UPDATE_APPLIED_KEY = "smart_update_applied";
 
 // Configuration
-const MIN_CHECK_INTERVAL = 60 * 1000; // 1 minute minimum between checks
+const MIN_CHECK_INTERVAL = APP_AUDIENCE === "parent" ? 5 * 1000 : 60 * 1000;
+// Parents: foreground polling every 5s; other apps keep the previous 60s gate.
 const MAX_RETRY_COUNT = 5;
 const RETRY_DELAYS = [5000, 15000, 30000, 60000, 120000]; // Exponential backoff
 
@@ -199,7 +201,7 @@ export const useSmartUpdate = () => {
       return null;
     }
 
-    if (checkInProgress.current && !force) {
+    if (checkInProgress.current) {
       console.log("[SmartUpdate] Check already in progress");
       return null;
     }
