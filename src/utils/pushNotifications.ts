@@ -357,11 +357,9 @@ export const initializePushNotifications = async () => {
       return false;
     }
 
-    // Register with Apple / Google to receive push via APNS/FCM
-    await PushNotifications.register();
-
-    // Set up listeners
+    // Install registration/notification handlers before requesting the FCM token.
     setupPushNotificationListeners();
+    await PushNotifications.register();
     
     // Push notifications initialized successfully
     return true;
@@ -444,6 +442,13 @@ const saveTokenToDatabase = async (token: string) => {
       console.log('No token to save');
       return false;
     }
+
+    // Never register a parent/admin account token as a teachers notification target.
+    const [{ data: profile }, { data: role }] = await Promise.all([
+      supabase.from("profiles").select("is_approved").eq("id", user.id).maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "teacher").maybeSingle(),
+    ]);
+    if (!profile?.is_approved || !role) return false;
 
     // Upsert token (insert or update based on token)
     const { error } = await supabase
