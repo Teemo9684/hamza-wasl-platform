@@ -318,6 +318,20 @@ export const useSmartUpdate = () => {
     initialize();
   }, [isNative, checkUpdate]);
 
+  // When an authenticated parent FCM OTA signal arrives in the foreground,
+  // immediately query the canonical parents-updates manifest. Polling remains
+  // as fallback when FCM delivery is delayed or unavailable.
+  useEffect(() => {
+    if (!isNative || APP_AUDIENCE !== "parent") return;
+    const handleOtaSignal = () => {
+      if (document.visibilityState === "visible" && navigator.onLine) {
+        void checkUpdate(true);
+      }
+    };
+    window.addEventListener("parents-ota-update-available", handleOtaSignal);
+    return () => window.removeEventListener("parents-ota-update-available", handleOtaSignal);
+  }, [isNative, checkUpdate]);
+
   // الاستماع لأحداث التطبيق (العودة من الخلفية)
   useEffect(() => {
     if (!isNative) return;
