@@ -27,6 +27,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: Apply original official icon to teachers web assets
+        run: node scripts/apply-teachers-icon.mjs web
       - run: npm run build:teacher
       - name: Validate standalone teacher web build
         run: |
@@ -59,8 +61,12 @@ jobs:
           distribution: temurin
           java-version: '21'
       - run: npm ci
+      - name: Apply original official icon to teachers web assets
+        run: node scripts/apply-teachers-icon.mjs web
       - run: npm run build:teacher
       - run: npx cap add android && npx cap sync android
+      - name: Apply official icon to teacher Android launcher densities
+        run: node scripts/apply-teachers-icon.mjs android
       - name: Validate teacher-specific Firebase client secret
         env:
           TEACHERS_GOOGLE_SERVICES_JSON: ${{ secrets.TEACHERS_GOOGLE_SERVICES_JSON }}
@@ -173,6 +179,7 @@ jobs:
         run: |
           set -euo pipefail
           npm ci
+          node scripts/apply-teachers-icon.mjs web
           npm run build:teacher
           test -s dist-teacher/index.html
           test -s dist-teacher/manifest.webmanifest
