@@ -55,3 +55,13 @@ The official main application's version footer is a transparent text-only div. T
 ## Approved 1.0.6: foreground update checks every five seconds
 
 The parent-only app now polls the isolated parents-updates manifest every 5 seconds while the WebView is online and visible, with a 5-second minimum interval. Manifest requests use a cache-busting query to reduce stale GitHub raw CDN results. Checks do not overlap. The user requested near-immediate updates while the app stays open; this is near-real-time polling, not server-initiated push delivery and is not guaranteed instantaneous. Android closed/background push delivery requires an additional native APK and push infrastructure. The combined pilot and staff apps retain their previous polling behavior; the live Lovable Cloud database was not changed.
+
+## Firebase Cloud Messaging — parent APK integration (staged)
+
+- Firebase project: `hamza-wasl-app`, verified that uploaded `google-services.json` registers `app.hamzawasl.parents` exactly once.
+- The existing school app and its `app.hamzawasl.app` identity are not modified.
+- The independent parent Capacitor build includes `@capacitor/push-notifications` and handles `data.type=parents_ota_update`, `data.audience=parent` by checking the existing independent `parents-updates` manifest. Fast foreground polling remains as a fallback.
+- **Required before building a parent APK with FCM:** In GitHub repository Settings → Secrets and variables → Actions → New repository secret, create `PARENTS_GOOGLE_SERVICES_JSON` containing the exact text of the Firebase `google-services.json` from the Firebase Console. The workflow validates the Firebase project and parent package. The JSON must never be committed to the public source tree.
+- The native APK build is configured to fail clearly until this secret exists; ordinary parent web verification does not depend on it.
+- For server-triggered push, a trusted sender must additionally be implemented with FCM HTTP v1 credentials stored server-side, and targeted to the registered parent devices only. The Firebase client config is **not** a sender credential. Do not broadcast school notifications or write to production `push_tokens` as part of setup.
+- After the secret and trusted sender are configured, test with a dedicated parent APK and a safe test device, then approve a release. Neither the GitHub web source updates nor existing OTA bundles can add native Firebase capabilities to an already-installed APK.
