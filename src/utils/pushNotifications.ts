@@ -373,7 +373,7 @@ export const initializePushNotifications = async () => {
 const setupPushNotificationListeners = () => {
   // Called when registration is successful
   PushNotifications.addListener('registration', async (token) => {
-    console.log('Push registration success, token:', token.value);
+    console.log('Teachers push registration successful');
     currentPushToken = token.value;
     
     // Save the token to the push_tokens table
