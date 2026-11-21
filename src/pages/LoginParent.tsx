@@ -87,7 +87,7 @@ const LoginParent = () => {
         // parent/student link on the first authenticated sign-in. The server
         // refuses any new parent link once the account has been approved.
         const schoolId = data.user.user_metadata?.national_school_id;
-        if (typeof schoolId === "string" && /^\\d{16}$/.test(schoolId)) {
+        if (typeof schoolId === "string" && /^\d{16}$/.test(schoolId)) {
           const { data: profile } = await supabase.from("profiles")
             .select("is_approved").eq("id", data.user.id).maybeSingle();
           if (profile && !profile.is_approved) {
