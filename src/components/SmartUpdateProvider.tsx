@@ -98,8 +98,10 @@ export const SmartUpdateProvider = ({
     console.log("[SmartUpdateProvider] Setting up periodic check every", checkInterval / 1000 / 60, "minutes");
 
     const intervalId = setInterval(() => {
+      // Native OTA polling runs in the foreground only. A resumed app is checked separately.
+      if (document.visibilityState !== "visible" || !navigator.onLine) return;
       console.log("[SmartUpdateProvider] Periodic update check, version:", currentVersion);
-      checkUpdate();
+      void checkUpdate();
     }, checkInterval);
 
     return () => clearInterval(intervalId);
