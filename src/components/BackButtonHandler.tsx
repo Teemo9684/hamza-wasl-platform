@@ -24,6 +24,12 @@ export const BackButtonHandler = () => {
       '/dashboard/admin'
     ];
     
+    // Close teacher inline login before navigating or exiting the native app.
+    if (currentPath === "/" && document.documentElement.dataset.teacherLoginOpen === "true") {
+      window.dispatchEvent(new Event("teachers-close-embedded-login"));
+      return;
+    }
+
     // إذا كان هناك hash، استخدم history.back للرجوع
     if (currentHash) {
       console.log('BackButton: Has hash, going back');
