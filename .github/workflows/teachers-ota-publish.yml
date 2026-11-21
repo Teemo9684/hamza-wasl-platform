@@ -1,0 +1,90 @@
+name: Publish approved teachers OTA bundle
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Teacher OTA version greater than 1.0.0, e.g. 1.0.1'
+        required: true
+        type: string
+      approval:
+        description: 'Type PUBLISH-TEACHERS-OTA'
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: teachers-ota-publisher
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/apps/teachers-preview'
+    runs-on: ubuntu-latest
+    env:
+      APP_AUDIENCE: teacher
+      VITE_TEACHER_OTA_ENABLED: 'true'
+      VITE_TEACHER_APP_VERSION: ${{ inputs.version }}
+      OTA_APPROVAL: ${{ inputs.approval }}
+    steps:
+      - name: Enforce manual explicit approval
+        run: |
+          set -euo pipefail
+          test "$OTA_APPROVAL" = 'PUBLISH-TEACHERS-OTA'
+          [[ "$VITE_TEACHER_APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+      - uses: actions/checkout@v4
+        with:
+          ref: apps/teachers-preview
+          path: teacher-source
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: teachers-updates
+          path: teachers-channel
+      - name: Strict separate channel and monotonic versions
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=json.loads(Path('teachers-channel/latest.json').read_text())
+          assert d['audience']=='teacher'
+          new=tuple(map(int,os.environ['VITE_TEACHER_APP_VERSION'].split('.')))
+          old=tuple(map(int,d['version'].split('.')))
+          assert new>old and new>(1,0,0)
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: teacher-source/package-lock.json
+      - name: Build teacher frontend
+        working-directory: teacher-source
+        run: |
+          npm ci
+          npm run build:teacher
+          test -s dist-teacher/index.html
+          test -s dist-teacher/manifest.webmanifest
+      - name: Pack immutable bundle and update teacher manifest
+        run: |
+          set -euo pipefail
+          mkdir -p teachers-channel/bundles
+          test ! -e "teachers-channel/bundles/$VITE_TEACHER_APP_VERSION.zip"
+          (cd teacher-source/dist-teacher && zip -q -r "$GITHUB_WORKSPACE/teachers-channel/bundles/$VITE_TEACHER_APP_VERSION.zip" .)
+          unzip -t "teachers-channel/bundles/$VITE_TEACHER_APP_VERSION.zip" >/dev/null
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          Path('teachers-channel/latest.json').write_text(json.dumps({'version':os.environ['VITE_TEACHER_APP_VERSION'],'audience':'teacher'},indent=2)+'\n')
+          PY
+      - name: Publish to teachers-updates only
+        working-directory: teachers-channel
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add latest.json "bundles/$VITE_TEACHER_APP_VERSION.zip"
+          git commit -m "approved teachers OTA $VITE_TEACHER_APP_VERSION"
+          git push origin HEAD:teachers-updates
+      - name: Summary
+        run: |
+          echo "Teachers OTA approved version: $VITE_TEACHER_APP_VERSION" >> "$GITHUB_STEP_SUMMARY"
+          echo "An Android push signal is not sent by this workflow; Firebase sender is separate." >> "$GITHUB_STEP_SUMMARY"
