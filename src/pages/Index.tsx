@@ -180,10 +180,6 @@ const Index = () => {
     // The parent-only application must never route to staff authentication,
     // even if a future UI change accidentally calls this handler.
     if (userType && !isAudienceEnabled(userType)) return;
-    if (APP_AUDIENCE === "parent" && userType === "parent") {
-      navigate("/login/parent");
-      return;
-    }
 
     // Standalone staff apps reuse their established, role-specific auth flows:
     // admin-login invokes the verified admin-login Edge Function,
@@ -215,9 +211,10 @@ const Index = () => {
   };
 
   const handleBackToTop = () => {
-    if (APP_AUDIENCE === "parent") {
+    // Only legacy deep links navigate; the ordinary parent card uses
+    // in-page scrolling and must stay on the original landing route.
+    if (APP_AUDIENCE === "parent" && location.pathname === "/login/parent") {
       navigate("/", { replace: true });
-      window.scrollTo({ top: 0, behavior: "instant" });
       return;
     }
     setIsExiting(true);
@@ -234,6 +231,22 @@ const Index = () => {
       });
     }, 400);
   };
+
+  // Android back closes the same in-page parent login instead of
+  // navigating to a duplicate login screen or exiting the application.
+  useEffect(() => {
+    if (APP_AUDIENCE !== "parent" || location.pathname !== "/") return;
+    document.documentElement.dataset.parentLoginOpen = selectedUserType === "parent" ? "true" : "false";
+    const onAndroidBack = () => {
+      if (selectedUserType !== "parent") return;
+      handleBackToTop();
+    };
+    window.addEventListener("parents-close-embedded-login", onAndroidBack);
+    return () => {
+      delete document.documentElement.dataset.parentLoginOpen;
+      window.removeEventListener("parents-close-embedded-login", onAndroidBack);
+    };
+  }, [selectedUserType, location.pathname]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
