@@ -30,6 +30,8 @@ const config: CapacitorConfig = {
       '@capacitor/app',
       '@capacitor/haptics',
       '@capacitor/local-notifications',
+      // This registered Android package uses the existing Firebase project.
+      ...(audience === 'parent' ? ['@capacitor/push-notifications'] : []),
       '@capacitor/preferences',
       '@capacitor/splash-screen',
       '@capacitor/status-bar',
