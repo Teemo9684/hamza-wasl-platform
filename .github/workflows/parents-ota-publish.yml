@@ -120,6 +120,22 @@ jobs:
           git commit -m "parents OTA ${VITE_PARENT_APP_VERSION} (approved manual release)"
           git push origin HEAD:parents-updates
 
+      - name: Send parent-only FCM signal to private test device after publication
+        shell: bash
+        env:
+          PARENTS_FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.PARENTS_FCM_SERVICE_ACCOUNT_JSON }}
+          PARENTS_FCM_TEST_TOKEN: ${{ secrets.PARENTS_FCM_TEST_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$PARENTS_FCM_SERVICE_ACCOUNT_JSON" || -z "$PARENTS_FCM_TEST_TOKEN" ]]; then
+            echo "::notice::FCM test notification skipped: configure both PARENTS_FCM_SERVICE_ACCOUNT_JSON and PARENTS_FCM_TEST_TOKEN"
+            echo "FCM test send: not configured" >> "$GITHUB_STEP_SUMMARY"
+          else
+            python3 -m pip install --quiet --disable-pip-version-check 'google-auth>=2,<3' 'requests>=2,<3'
+            python3 parent-source/scripts/send-parents-ota-fcm.py
+            echo "FCM test signal sent to one registered test token only" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Summarize release
         shell: bash
         run: |
