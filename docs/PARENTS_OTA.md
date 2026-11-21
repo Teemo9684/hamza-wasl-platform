@@ -86,3 +86,7 @@ Use GitHub Settings → Secrets and variables → Actions → New repository sec
 ## Approved private 1.0.8 OTA / FCM integration verification
 
 The owner confirmed both GitHub Actions secrets for the one-device send have been configured and approved running the test. Version 1.0.8 is an isolated parent-only test release, using the temporary FCM token-copy dialog and same native APK. The workflow publishes a versioned OTA bundle to `parents-updates` first, then sends a single high-priority FCM data signal to the configured test device. A separate foreground 5-second polling loop remains an independent fallback and can also trigger the update; receipt of an updated version alone does not prove FCM was the transport. No other app or production school data is changed.
+
+## Approved 1.0.9 foreground FCM integration test
+
+The owner explicitly approved a standalone parent OTA 1.0.9 test while the app remains visible on the phone. Publish parent-only assets, then send the private single-token FCM data signal using the existing secure post-publish workflow step. The foreground 5-second polling fallback remains enabled; seeing 1.0.9 alone does not prove that FCM (rather than polling) caused the refresh. No Firebase or school database changes.
