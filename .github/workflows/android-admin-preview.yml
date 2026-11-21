@@ -1,0 +1,44 @@
+name: Admin preview Android APK
+on:
+  push:
+    branches: [apps/admin-preview]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    env:
+      APP_AUDIENCE: admin
+      VITE_APP_AUDIENCE: admin
+      VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://caeltaubipulyrdyqsjn.supabase.co' }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build:admin
+      - run: node scripts/verify-app-build.mjs admin
+      - run: |
+          if [ ! -f android/build.gradle ]; then
+            rm -rf android
+            npx cap add android
+          fi
+          npx cap sync android
+      - uses: ./.github/actions/android-display
+        with:
+          app-package: app.hamzawasl.admin
+      - run: bash gradlew assembleDebug
+        working-directory: android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hamza-wasl-admin-preview-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
