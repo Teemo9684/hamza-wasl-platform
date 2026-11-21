@@ -1,10 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { APP_AUDIENCE } from '@/config/appAudience';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
 export const BackButtonHandler = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const locationRef = useRef(location.pathname + location.hash);
 
   // تحديث المرجع عند تغير المسار أو الـ hash
@@ -15,6 +17,14 @@ export const BackButtonHandler = () => {
   const handleBackButton = useCallback(() => {
     const currentPath = window.location.pathname;
     const currentHash = window.location.hash;
+
+    // Parent-only login is rendered in the landing page, never go back to
+    // the removed standalone login screen or stale browser history.
+    if (APP_AUDIENCE === 'parent' && currentPath === '/login/parent' && !currentHash) {
+      navigate('/', { replace: true });
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
     
     // قائمة الصفحات الرئيسية
     const mainPages = [
@@ -50,7 +60,7 @@ export const BackButtonHandler = () => {
       console.log('BackButton: Other page, going back');
       window.history.back();
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     // فقط في التطبيق الأصلي (Native App)
