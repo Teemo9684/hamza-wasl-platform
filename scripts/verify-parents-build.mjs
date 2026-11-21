@@ -58,4 +58,12 @@ assert.ok(parentSettings.includes(".select('id')"), 'Unlink must verify an actua
 assert.ok(parentDocs.includes("if (!deleted?.length)"), 'Document delete must verify actual deletion');
 assert.ok(parentMessages.includes("Push notification failed after message was saved"), 'FCM failure must not claim that persisted messages were lost');
 
+const attachmentPreview = read('src/components/parent/ParentAttachmentPreview.tsx');
+const parentHomework = read('src/components/parent/ParentHomework.tsx');
+assert.ok(attachmentPreview.includes('createPortal(') && attachmentPreview.includes('document.body'), 'Attachment preview must escape news ticker stacking context');
+assert.ok(attachmentPreview.includes('fixed inset-0 z-[100]'), 'Attachment preview must cover fixed header and ticker');
+assert.ok(attachmentPreview.includes('aria-modal="true"'), 'Attachment preview must remain accessible');
+assert.ok(parentHomework.includes('setPreviewAttachment({ url, label:'), 'Parent homework attachments must open the foreground viewer');
+assert.ok(parentHomework.includes('<ParentAttachmentPreview'), 'Parent homework page must mount the viewer');
+
 console.log('Parent isolation checks passed. These are source/build checks, not Android runtime or database RLS tests.');
