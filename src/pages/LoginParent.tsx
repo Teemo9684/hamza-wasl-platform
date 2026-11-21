@@ -10,6 +10,7 @@ import { Users, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/errorMessages";
+import { ParentVersionBadge } from "@/components/ParentVersionBadge";
 
 const LoginParent = () => {
   const navigate = useNavigate();
@@ -173,6 +174,7 @@ const LoginParent = () => {
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute inset-0 animated-bg opacity-90" />
+      <ParentVersionBadge />
       
       <div className="relative z-10 w-full max-w-md slide-in-up">
         <Button
