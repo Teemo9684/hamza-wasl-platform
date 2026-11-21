@@ -106,3 +106,7 @@ Approved user-requested parents-app UI fix: homework attachments now open in a f
 ## 1.0.13 actual landing-page poster preview fix
 
 Screenshot of 1.0.12 showed the real issue: parent landing page poster fullscreen overlay remained behind its sticky news/date header because the preview lived inside a nested CSS stacking context. The isolated parents-only PostersCarousel preview now uses React createPortal into document.body with higher z-index and accessible dialog labeling. The fullscreen viewer preserves close/image behavior and ensures the header appears again after close. Source/build regression assertion added; no changes to teacher/admin source branches or shared data.
+
+## 1.0.14 single parent login navigation
+
+The standalone parents app now renders the existing embedded login inside the landing page, with the news ticker and date/time header, for the /login/parent route. It no longer renders the separate green LoginParent screen in the standalone parent audience. Tapping the parent card goes to /login/parent; the Android system Back button and the in-page Back button return to the landing page. Other audiences retain their original login components. This only changes parents preview code and OTA; no database writes or school-record changes.
