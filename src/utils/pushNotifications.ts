@@ -1,5 +1,6 @@
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
+import { APP_AUDIENCE } from '@/config/appAudience';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
