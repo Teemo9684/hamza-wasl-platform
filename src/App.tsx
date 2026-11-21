@@ -63,7 +63,7 @@ const AnimatedRoutes = () => {
       {APP_AUDIENCE === "combined" && <Route path="/register" element={<PageTransition><Register /></PageTransition>} />}
       {isAudienceEnabled("parent") && <Route path="/register/parent" element={<PageTransition><RegisterParent /></PageTransition>} />}
       {APP_AUDIENCE === "combined" && <Route path="/register/teacher" element={<PageTransition><RegisterTeacher /></PageTransition>} />}
-      {isAudienceEnabled("parent") && <Route path="/login/parent" element={<PageTransition><LoginParent /></PageTransition>} />}
+      {isAudienceEnabled("parent") && <Route path="/login/parent" element={<PageTransition>{APP_AUDIENCE === "parent" ? <Index /> : <LoginParent />}</PageTransition>} />}
       {isAudienceEnabled("teacher") && <Route path="/login/teacher" element={<PageTransition><LoginTeacher /></PageTransition>} />}
       {isAudienceEnabled("admin") && <Route path="/login/admin" element={<PageTransition><LoginAdmin /></PageTransition>} />}
       
