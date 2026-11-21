@@ -1,5 +1,5 @@
 import { APP_AUDIENCE, isAudienceEnabled } from "@/config/appAudience";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Users, GraduationCap, Shield, ArrowRight, Clock, Calendar } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
@@ -86,6 +86,8 @@ type UserType = "parent" | "teacher" | "admin" | null;
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isStandaloneParentLogin = APP_AUDIENCE === "parent" && location.pathname === "/login/parent";
   const [selectedUserType, setSelectedUserType] = useState<UserType>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -158,10 +160,30 @@ const Index = () => {
   }, []);
 
 
+  // Only one parent login: the embedded login below the landing page.
+  // Both tapping the parent card and navigating to /login/parent use it.
+  useEffect(() => {
+    if (!isStandaloneParentLogin) return;
+    setSelectedUserType("parent");
+    const savedEmail = localStorage.getItem("parent_email");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+    const frame = requestAnimationFrame(() => {
+      loginSectionRef.current?.scrollIntoView({ behavior: "instant", block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isStandaloneParentLogin]);
+
   const handleCardClick = (userType: UserType) => {
     // The parent-only application must never route to staff authentication,
     // even if a future UI change accidentally calls this handler.
     if (userType && !isAudienceEnabled(userType)) return;
+    if (APP_AUDIENCE === "parent" && userType === "parent") {
+      navigate("/login/parent");
+      return;
+    }
 
     // Standalone staff apps reuse their established, role-specific auth flows:
     // admin-login invokes the verified admin-login Edge Function,
@@ -193,6 +215,11 @@ const Index = () => {
   };
 
   const handleBackToTop = () => {
+    if (APP_AUDIENCE === "parent") {
+      navigate("/", { replace: true });
+      window.scrollTo({ top: 0, behavior: "instant" });
+      return;
+    }
     setIsExiting(true);
     
     // After exit animation, scroll to top and hide section
@@ -280,6 +307,22 @@ const Index = () => {
       if (error) throw error;
 
       if (data.user) {
+        // Complete a registration-time pending child link once the email is
+        // confirmed. The database rejects linking after administrative approval.
+        if (APP_AUDIENCE === "parent") {
+          const schoolId = data.user.user_metadata?.national_school_id;
+          if (typeof schoolId === "string" && /^[0-9]{16}$/.test(schoolId)) {
+            const { data: pending } = await supabase.from("profiles")
+              .select("is_approved").eq("id", data.user.id).maybeSingle();
+            if (pending && !pending.is_approved) {
+              const { error: pendingLinkError } = await supabase.rpc("link_parent_to_student", {
+                _parent_id: data.user.id,
+                _national_school_id: schoolId,
+              });
+              if (pendingLinkError) toast.warning("تعذر ربط التلميذ، يرجى مراجعة إدارة المدرسة");
+            }
+          }
+        }
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('is_approved')
