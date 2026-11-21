@@ -67,3 +67,7 @@ The parent-only app now polls the isolated parents-updates manifest every 5 seco
 - After the secret and trusted sender are configured, test with a dedicated parent APK and a safe test device, then approve a release. Neither the GitHub web source updates nor existing OTA bundles can add native Firebase capabilities to an already-installed APK.
 
 FCM build verification requested after the repository secret was added; no production changes or Firebase credentials are committed.
+
+## Private 1.0.7 FCM token-copy test
+
+The installed parents-only debug APK already contains native FCM; 1.0.7 enables a temporary web-only tester by tapping the version number on the initial parents screen. The dialog copies the in-memory device token to the phone clipboard, without logging or rendering it in UI. The feature is gated by `VITE_PARENT_FCM_TEST_ENABLED`, set only for the explicitly approved 1.0.7 OTA push. Future normal OTA releases leave it disabled. The token is sensitive and should be used only via Firebase Console test-message tooling, not posted in public GitHub or chats. No notification is sent and no school data is changed by this release.
