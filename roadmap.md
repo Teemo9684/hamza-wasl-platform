@@ -6,3 +6,9 @@
 - [x] Check Android 1.2.69 receives hasUpdate=true, version 1.2.70 and the exact uploaded URL.
 - [x] Verify parent app_versions rows remain unchanged; do not publish the parent app.
 - [x] Run saved read-only release tests (3 passed).
+
+# Admin password recovery
+
+- [x] Authorize the specific admin account and collect its new password securely.
+- [x] Reset only that account and verify password authentication and the admin dashboard (no runtime errors).
+- [ ] Remove the temporary recovery function and secret.
