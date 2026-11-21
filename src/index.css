@@ -1226,3 +1226,27 @@
 }
 .ed-rule { background: linear-gradient(90deg, transparent, hsl(var(--ed-gold) / 0.7), transparent); height: 1px; }
 .ed-icon { background: hsl(var(--ed-gold) / 0.12); color: hsl(var(--ed-gold)); border: 1px solid hsl(var(--ed-gold) / 0.3); }
+
+
+/* Standalone teachers Android UI: keep system bars readable while scrolling. */
+html.capacitor-android.teacher-audience::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: max(24px, env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  background: #f8fafc;
+  pointer-events: none;
+  z-index: 9999;
+}
+html.capacitor-android.teacher-audience .teachers-sticky-header {
+  top: max(24px, env(safe-area-inset-top, 0px));
+}
+html.capacitor-android.teacher-audience::after {
+  content: "";
+  position: fixed;
+  inset: auto 0 0 0;
+  height: max(24px, env(safe-area-inset-bottom, 0px));
+  background: #f8fafc;
+  pointer-events: none;
+  z-index: 9999;
+}
