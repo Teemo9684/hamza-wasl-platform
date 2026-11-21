@@ -17,6 +17,7 @@ import { PostersCarousel } from "@/components/PostersCarousel";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { APP_VERSION } from "@/config/version";
+import { ParentVersionBadge } from "@/components/ParentVersionBadge";
 import { ThemeDecorations, ThemeBanner } from "@/components/ThemeDecorations";
 
 // Stagger animation variants
@@ -826,10 +827,14 @@ const Index = () => {
         </div>
       )}
       
-      {/* App Version Display */}
-      <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
-        v{APP_VERSION}
-      </div>
+      {/* App Version Display — same appearance as official main; lifted clear of parents Android bottom overlay */}
+      {APP_AUDIENCE === "parent" ? (
+        <ParentVersionBadge />
+      ) : (
+        <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
+          v{APP_VERSION}
+        </div>
+      )}
 
       {/* Teacher Warning Dialog */}
       <AlertDialog open={showTeacherWarning} onOpenChange={setShowTeacherWarning}>
