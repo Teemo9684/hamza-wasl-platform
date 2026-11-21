@@ -35,3 +35,7 @@ User authorized first isolated parents OTA release `1.0.1` with an official-styl
 ## Approved 1.0.1 release retry after YAML validation
 
 Initial GitHub workflow attempts failed before starting jobs due to a YAML parsing problem in the guarded release condition. The fixed workflow is used for this same explicitly approved 1.0.1 test; no changes to the real school database.
+
+## Approved 1.0.2 version visibility release
+
+User approved publishing 1.0.2 for a visible, high-contrast version marker on the standalone parents landing and login pages. This OTA is web-only and restricted to the isolated parents-updates channel. No school records or staff applications were modified.
