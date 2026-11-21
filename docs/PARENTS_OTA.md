@@ -110,3 +110,7 @@ Screenshot of 1.0.12 showed the real issue: parent landing page poster fullscree
 ## 1.0.14 single parent login navigation
 
 The standalone parents app now renders the existing embedded login inside the landing page, with the news ticker and date/time header, for the /login/parent route. It no longer renders the separate green LoginParent screen in the standalone parent audience. Tapping the parent card goes to /login/parent; the Android system Back button and the in-page Back button return to the landing page. Other audiences retain their original login components. This only changes parents preview code and OTA; no database writes or school-record changes.
+
+## v1.0.15 restored original parents-card scroll
+
+The standalone parents home now keeps its original smooth animated in-page scroll when the parents card is tapped, revealing the sole login card beneath the news ticker and date/time. The legacy /login/parent deep-link continues to render the same embedded form (never the separate green login). Android Back while that in-page login is open closes the section and scrolls to the landing top; no duplicate login. Parents audience only, no shared database, admin, or teacher changes. Automated parents bundle and behavioral source assertions passed before release.
