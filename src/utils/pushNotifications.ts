@@ -389,6 +389,10 @@ const setupPushNotificationListeners = () => {
 
   // Called when a notification is received (app in foreground)
   PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    if (notification.data?.type === "teachers_ota_update" && notification.data?.audience === "teacher") {
+      window.dispatchEvent(new Event("teachers-ota-update-available"));
+      return;
+    }
     // Push notification received
     console.log('Push notification received in foreground:', notification);
     
@@ -408,6 +412,10 @@ const setupPushNotificationListeners = () => {
     console.log('Push notification tapped:', notification);
     
     const data = notification.notification.data;
+    if (data?.type === "teachers_ota_update" && data?.audience === "teacher") {
+      window.dispatchEvent(new Event("teachers-ota-update-available"));
+      return;
+    }
     
     // Handle navigation based on notification type using history API
     // This maintains proper navigation stack for Capacitor
