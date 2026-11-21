@@ -102,3 +102,7 @@ The owner requested correcting all currently identified parents-app security and
 ## 1.0.12 parents-only attachment preview
 
 Approved user-requested parents-app UI fix: homework attachments now open in a fullscreen in-app preview above all fixed news and school date/header UI. The underlying header remains unchanged and returns on close. Includes image/PDF rendering where Android WebView supports it and external-open fallback for other file types. Includes source/build test assertions. Web/OTA-only; no native plugin, database, official app, teachers app, or admin app modifications.
+
+## 1.0.13 actual landing-page poster preview fix
+
+Screenshot of 1.0.12 showed the real issue: parent landing page poster fullscreen overlay remained behind its sticky news/date header because the preview lived inside a nested CSS stacking context. The isolated parents-only PostersCarousel preview now uses React createPortal into document.body with higher z-index and accessible dialog labeling. The fullscreen viewer preserves close/image behavior and ensures the header appears again after close. Source/build regression assertion added; no changes to teacher/admin source branches or shared data.
