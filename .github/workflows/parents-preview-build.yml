@@ -42,8 +42,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_AUDIENCE: parent
-      PARENT_OTA_ENABLED: 'false'
-      VITE_PARENT_OTA_ENABLED: 'false'
+      PARENT_OTA_ENABLED: 'true'
+      VITE_PARENT_OTA_ENABLED: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -111,8 +111,9 @@ jobs:
         run: |
           grep -q 'app.hamzawasl.parents' android/app/build.gradle
           grep -q "enabled: audience === 'combined' ||" capacitor.config.ts
-          test "${PARENT_OTA_ENABLED}" = 'false'
-          test "${VITE_PARENT_OTA_ENABLED}" = 'false'
+          test "${PARENT_OTA_ENABLED}" = 'true'
+          test "${VITE_PARENT_OTA_ENABLED}" = 'true'
+          grep -q 'parents-updates' src/utils/liveUpdate.ts
       - name: Build debug APK (testing only)
         working-directory: android
         run: |
@@ -148,8 +149,9 @@ jobs:
             echo ''
             echo "Debug APK and SHA-256: [GitHub Actions artifact](${ARTIFACT_URL})"
             echo ''
-            echo 'هذه ليست نسخة إنتاجية، والتحديث التلقائي معطّل.'
+            echo 'نسخة اختبارية فقط؛ تحديثات الويب تأتي حصرياً من parents-updates بعد نشر يدوي معتمد.'
           } >> "$GITHUB_STEP_SUMMARY"
 
-# No production deployment, no live updates, and no release publication.
-# Android debug APKs are test artifacts, not installs for school users.
+# OTA checks are enabled ONLY for standalone parents test APKs.
+# The parents-updates feed remains 0.0.0 until an explicitly authorized manual publication.
+# No production deployment; native feature updates still require a new APK.
