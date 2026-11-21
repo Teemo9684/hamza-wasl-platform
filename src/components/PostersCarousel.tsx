@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { APP_AUDIENCE } from '@/config/appAudience';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -89,11 +90,17 @@ const FullscreenPreview = memo(({
   poster: Poster | null; 
   onClose: () => void;
 }) => {
-  return (
+  // The parent landing page uses a sticky header with its own stacking
+  // context. Render preview into document.body so the news ticker/date-time
+  // remain *behind* the fullscreen photo instead of covering it.
+  const preview = (
     <AnimatePresence>
       {poster && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md"
+          role="dialog"
+          aria-modal="true"
+          aria-label={poster.title}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -106,7 +113,8 @@ const FullscreenPreview = memo(({
               e.stopPropagation();
               onClose();
             }}
-            className="absolute top-4 right-4 z-10 p-3 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors backdrop-blur-sm"
+            className="absolute right-4 z-10 p-3 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors backdrop-blur-sm"
+            style={{ top: APP_AUDIENCE === 'parent' ? 'max(40px, calc(env(safe-area-inset-top, 0px) + 16px))' : '16px' }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
@@ -152,6 +160,9 @@ const FullscreenPreview = memo(({
       )}
     </AnimatePresence>
   );
+  return APP_AUDIENCE === 'parent' && typeof document !== 'undefined'
+    ? createPortal(preview, document.body)
+    : preview;
 });
 
 FullscreenPreview.displayName = 'FullscreenPreview';
