@@ -25,7 +25,12 @@ concurrency:
 
 jobs:
   publish:
-    if: github.ref == 'refs/heads/apps/parents-preview' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'release(parents): publish approved OTA 1.0.1'))
+    # YAML block string avoids parsing the colon in the exact release message.
+    if: >-
+      github.ref == 'refs/heads/apps/parents-preview' &&
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+      github.event.head_commit.message == 'release(parents): publish approved OTA 1.0.1'))
     runs-on: ubuntu-latest
     env:
       APP_AUDIENCE: parent
