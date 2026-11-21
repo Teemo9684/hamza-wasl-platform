@@ -104,7 +104,7 @@ const AnimatedRoutes = () => {
 const AppUpdateBoundary = ({ children }: { children: React.ReactNode }) =>
   (APP_AUDIENCE === "combined" ||
     (APP_AUDIENCE === "parent" && import.meta.env.VITE_PARENT_OTA_ENABLED === "true"))
-    ? <SmartUpdateProvider autoCheck={true} checkInterval={30 * 60 * 1000}>{children}</SmartUpdateProvider>
+    ? <SmartUpdateProvider autoCheck={true} checkInterval={APP_AUDIENCE === "parent" ? 5 * 1000 : 30 * 60 * 1000}>{children}</SmartUpdateProvider>
     : <>{children}</>;
 
 const App = () => {
