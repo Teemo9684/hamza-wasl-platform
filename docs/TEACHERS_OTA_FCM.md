@@ -56,3 +56,9 @@ test notification was accepted by FCM; phone delivery must be checked separately
 Existing Supabase Realtime notifications cover live foreground in-app messages, but
 guaranteed delivery while the app is not running requires a trusted backend sender
 connected to authorized teacher events. That production sender is not enabled here.
+
+## Approved continuous preview publication (2026-11-21)
+
+The project owner explicitly authorized publishing each teachers preview update automatically **after a successful build**, without per-release approval. The `Teachers preview build and publish OTA` workflow now builds and verifies the teachers web bundle, builds and uploads a test Android APK, and *only after both jobs pass* generates the next patch version and publishes a web-only bundle to `teachers-updates`. The publisher checks the latest source SHA and skips superseded runs; the release manifest records `source_sha` to avoid duplicate releases. Workflow concurrency supersedes queued older builds and serializes channel publication.
+
+This replaces the earlier manual-only policy **for teachers preview OTA**, not for parent/admin/production releases. Existing separately defined manual teacher publisher remains available for deliberate recovery, but routine teacher changes use the automatic build pipeline. No school database writes or FCM broadcast are part of automatic OTA publication. Native code/permissions/Firebase resources still require installing a new APK and are never delivered by web OTA.
