@@ -94,3 +94,7 @@ The owner explicitly approved a standalone parent OTA 1.0.9 test while the app r
 ## Approved 1.0.10 closed-app notification test
 
 With the test app closed on the owner's phone and notification permission enabled, publish the isolated parent OTA 1.0.10 and send a private FCM notification+data message to the single configured test token. Expected outcome: Android notification appears before opening the app, and upon opening the app the existing parents OTA update applies 1.0.10. The user explicitly confirmed the app was closed before this release. No school data modifications or other audience changes.
+
+## Approved isolated 1.0.11 remediation test release
+
+The owner requested correcting all currently identified parents-app security and behavior issues. After source verification, the parents preview's web-only fixes are staged for private OTA 1.0.11. This does not publish to families or modify any source branch other than apps/parents-preview. The independent parents-updates feed and the existing one-test-device FCM sender are used; native Android code remains unchanged. Shared Lovable database RLS fixes were applied separately and verified by read-only policy inspection. Live behavior with at least one approved and one pending test parent still requires human validation. The secure additional-child workflow requires administrator verification; no unauthorized self-link is allowed.
