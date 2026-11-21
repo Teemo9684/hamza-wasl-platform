@@ -18,6 +18,12 @@ export const BackButtonHandler = () => {
     const currentPath = window.location.pathname;
     const currentHash = window.location.hash;
 
+    if (APP_AUDIENCE === 'parent' && currentPath === '/' &&
+        document.documentElement.dataset.parentLoginOpen === 'true') {
+      window.dispatchEvent(new Event('parents-close-embedded-login'));
+      return;
+    }
+
     // Parent-only login is rendered in the landing page, never go back to
     // the removed standalone login screen or stale browser history.
     if (APP_AUDIENCE === 'parent' && currentPath === '/login/parent' && !currentHash) {
