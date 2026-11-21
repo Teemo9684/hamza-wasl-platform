@@ -51,3 +51,7 @@ The screenshot after 1.0.3 shows the version still hidden although 1.0.2's white
 ## 1.0.5 official-footer Android bottom overlay fix
 
 The official main application's version footer is a transparent text-only div. The parents APK adds a fixed pseudo-element `html.capacitor-android.parent-audience::after` at the bottom of the screen with height at least 24px and z-index 9999; a footer just 16px from the bottom can be covered. The parents footer retains official classes and renders above and clear of that bar via a body portal, while no appearance changes are made to the official app. The user requested applying the official solution to the isolated parents app.
+
+## Approved 1.0.6: foreground update checks every five seconds
+
+The parent-only app now polls the isolated parents-updates manifest every 5 seconds while the WebView is online and visible, with a 5-second minimum interval. Manifest requests use a cache-busting query to reduce stale GitHub raw CDN results. Checks do not overlap. The user requested near-immediate updates while the app stays open; this is near-real-time polling, not server-initiated push delivery and is not guaranteed instantaneous. Android closed/background push delivery requires an additional native APK and push infrastructure. The combined pilot and staff apps retain their previous polling behavior; the live Lovable Cloud database was not changed.
