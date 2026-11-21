@@ -7,6 +7,9 @@ import { toast } from 'sonner';
 // Store the current token for re-registration
 let currentPushToken: string | null = null;
 
+// Private device diagnostics: never display or log the registration token.
+export const getCurrentPushTokenForTest = (): string | null => APP_AUDIENCE === 'teacher' ? currentPushToken : null;
+
 // Get platform info
 const getPlatform = (): string => {
   if (Capacitor.isNativePlatform()) {
