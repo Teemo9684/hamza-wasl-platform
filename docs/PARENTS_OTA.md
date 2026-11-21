@@ -114,3 +114,7 @@ The standalone parents app now renders the existing embedded login inside the la
 ## v1.0.15 restored original parents-card scroll
 
 The standalone parents home now keeps its original smooth animated in-page scroll when the parents card is tapped, revealing the sole login card beneath the news ticker and date/time. The legacy /login/parent deep-link continues to render the same embedded form (never the separate green login). Android Back while that in-page login is open closes the section and scrolls to the landing top; no duplicate login. Parents audience only, no shared database, admin, or teacher changes. Automated parents bundle and behavioral source assertions passed before release.
+
+## 1.0.16 original logo chrome treatment (owner-approved)
+
+The original landing-page rotating Ruqaa wordmark switches between «همزة وصل» and «العربي التبسي», retaining exactly the same text, structure, font, placement, and 6-second magicRotate1/magicRotate2 animations. The only change is a parent-audience-scoped silver chrome text gradient and slow reflective sheen on the existing letters (with reduced-motion fallback). No new logo image or changes to teachers/admin/production database. Source verification passed before release.
