@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { ParentAttachmentPreview } from "@/components/parent/ParentAttachmentPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,7 @@ interface Student {
 
 export const ParentHomework = () => {
   const [homework, setHomework] = useState<Homework[]>([]);
+  const [previewAttachment, setPreviewAttachment] = useState<{ url: string; label: string } | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
@@ -275,29 +277,27 @@ export const ParentHomework = () => {
                             <p className="text-sm font-cairo text-muted-foreground">المرفقات ({hw.attachments.length}):</p>
                             <div className="flex flex-wrap gap-2">
                               {hw.attachments.map((url, index) => (
-                                <a
+                                <button
                                   key={index}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                  type="button"
+                                  onClick={() => setPreviewAttachment({ url, label: `مرفق ${index + 1}` })}
                                   className="inline-flex items-center gap-1 text-primary hover:underline font-cairo text-sm"
                                 >
                                   <FileText className="w-4 h-4" />
                                   مرفق {index + 1}
-                                </a>
+                                </button>
                               ))}
                             </div>
                           </div>
                         ) : hw.attachment_url && (
-                          <a
-                            href={hw.attachment_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={() => setPreviewAttachment({ url: hw.attachment_url!, label: "عرض المرفق" })}
                             className="inline-flex items-center gap-1 text-primary hover:underline font-cairo"
                           >
                             <FileText className="w-4 h-4" />
                             عرض المرفق
-                          </a>
+                          </button>
                         )}
                       </div>
                     </CardContent>
@@ -308,6 +308,11 @@ export const ParentHomework = () => {
           )}
         </CardContent>
       </Card>
+      <ParentAttachmentPreview
+        url={previewAttachment?.url || null}
+        label={previewAttachment?.label || "معاينة المرفق"}
+        onClose={() => setPreviewAttachment(null)}
+      />
     </div>
   );
 };
