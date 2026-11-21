@@ -127,7 +127,7 @@ const RegisterParent = () => {
   // Check only the format before sign-up; the student lookup is restricted
   // to authenticated parents to avoid exposing pupils' names anonymously.
   useEffect(() => {
-    const validFormat = /^\\d{16}$/.test(formData.nationalSchoolId);
+    const validFormat = /^\d{16}$/.test(formData.nationalSchoolId);
     setStudentValidation({
       isChecking: false,
       isValid: null,
