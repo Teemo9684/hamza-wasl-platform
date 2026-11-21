@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { APP_VERSION } from "@/config/version";
+import { TeacherVersionBadge } from "@/components/TeacherVersionBadge";
 import { ThemeDecorations, ThemeBanner } from "@/components/ThemeDecorations";
 
 // Stagger animation variants
@@ -840,10 +841,14 @@ const Index = () => {
         </div>
       )}
       
-      {/* App Version Display */}
-      <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
-        {APP_AUDIENCE === "combined" ? "تجريبي" : APP_AUDIENCE === "parent" ? "الأولياء" : APP_AUDIENCE === "teacher" ? "الأساتذة" : "الإدارة"} · {APP_VERSION}
-      </div>
+      {/* Standalone teachers: same safe-area version badge placement as parents */}
+      {APP_AUDIENCE === "teacher" ? (
+        <TeacherVersionBadge />
+      ) : (
+        <div className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono">
+          {APP_AUDIENCE === "combined" ? "تجريبي" : APP_AUDIENCE === "parent" ? "الأولياء" : "الإدارة"} · {APP_VERSION}
+        </div>
+      )}
 
       {/* Teacher Warning Dialog */}
       <AlertDialog open={showTeacherWarning} onOpenChange={setShowTeacherWarning}>
