@@ -8,6 +8,13 @@ const capacitor = read('capacitor.config.ts');
 const updater = read('src/utils/liveUpdate.ts');
 const protectedRoute = read('src/components/ProtectedRoute.tsx');
 const manifestPath = 'dist-parent/manifest.webmanifest';
+const versionBadge = read('src/components/ParentVersionBadge.tsx');
+const indexCss = read('src/index.css');
+assert.ok(versionBadge.includes('createPortal(') && versionBadge.includes('document.body'), 'Parent version marker must escape transformed app wrapper');
+assert.ok(versionBadge.includes('max(24px, env(safe-area-inset-bottom'), 'Parent version marker must clear native bottom overlay');
+assert.ok(versionBadge.includes('text-white/50 text-xs font-mono'), 'Parent version marker must match official unboxed footer');
+assert.ok(indexCss.includes('html.capacitor-android.parent-audience::after'), 'Bottom native overlay requires version marker offset');
+assert.ok(app.includes('SmartUpdateProvider'), 'Native OTA update provider must remain mounted');
 
 assert.ok(existsSync(manifestPath), 'Parent web manifest must exist');
 const manifest = JSON.parse(read(manifestPath));
