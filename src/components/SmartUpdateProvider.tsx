@@ -98,7 +98,9 @@ export const SmartUpdateProvider = ({
     console.log("[SmartUpdateProvider] Setting up periodic check every", checkInterval / 1000 / 60, "minutes");
 
     const intervalId = setInterval(() => {
-      console.log("[SmartUpdateProvider] Periodic update check, version:", currentVersion);
+      // Android foreground only: do not poll or interrupt users while the
+      // WebView is suspended, offline, or already installing a bundle.
+      if (document.visibilityState !== "visible" || !navigator.onLine) return;
       checkUpdate();
     }, checkInterval);
 
