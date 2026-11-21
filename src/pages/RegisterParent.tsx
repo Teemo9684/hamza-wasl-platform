@@ -124,76 +124,19 @@ const RegisterParent = () => {
   const passwordStrength = checkPasswordStrength(formData.password);
   const passwordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword.length > 0;
 
-  // Debounced student ID validation
-  const validateStudentId = useCallback(async (schoolId: string) => {
-    if (!schoolId || schoolId.length < 10) {
-      setStudentValidation({
-        isChecking: false,
-        isValid: null,
-        studentName: null,
-        error: schoolId.length > 0 && schoolId.length < 10 ? "الرقم المدرسي يجب أن يكون 16 رقم" : null,
-      });
-      return;
-    }
-
-    setStudentValidation(prev => ({ ...prev, isChecking: true, error: null }));
-
-    try {
-      const { data: studentData, error: studentError } = await supabase
-        .rpc('check_student_exists', { _national_school_id: schoolId.trim() });
-
-      if (studentError) {
-        setStudentValidation({
-          isChecking: false,
-          isValid: false,
-          studentName: null,
-          error: "حدث خطأ أثناء التحقق",
-        });
-        return;
-      }
-
-      if (!studentData || studentData.length === 0) {
-        setStudentValidation({
-          isChecking: false,
-          isValid: false,
-          studentName: null,
-          error: "لم يتم العثور على تلميذ بهذا الرقم",
-        });
-      } else {
-        setStudentValidation({
-          isChecking: false,
-          isValid: true,
-          studentName: studentData[0].student_name,
-          error: null,
-        });
-      }
-    } catch (error) {
-      setStudentValidation({
-        isChecking: false,
-        isValid: false,
-        studentName: null,
-        error: "حدث خطأ أثناء التحقق",
-      });
-    }
-  }, []);
-
-  // Debounce effect for student ID validation
+  // Check only the format before sign-up; the student lookup is restricted
+  // to authenticated parents to avoid exposing pupils' names anonymously.
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (formData.nationalSchoolId) {
-        validateStudentId(formData.nationalSchoolId);
-      } else {
-        setStudentValidation({
-          isChecking: false,
-          isValid: null,
-          studentName: null,
-          error: null,
-        });
-      }
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [formData.nationalSchoolId, validateStudentId]);
+    const validFormat = /^\\d{16}$/.test(formData.nationalSchoolId);
+    setStudentValidation({
+      isChecking: false,
+      isValid: null,
+      studentName: null,
+      error: formData.nationalSchoolId && !validFormat
+        ? "الرقم المدرسي يجب أن يتكون من 16 رقماً"
+        : null,
+    });
+  }, [formData.nationalSchoolId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,6 +165,7 @@ const RegisterParent = () => {
           data: {
             full_name: formData.fullName,
             phone: formData.phone,
+            national_school_id: formData.nationalSchoolId.trim(),
           },
           emailRedirectTo: `${window.location.origin}/dashboard/parent`,
         },
@@ -229,7 +173,13 @@ const RegisterParent = () => {
 
       if (error) throw error;
 
-      if (data.user) {
+      if (data.user && !data.session) {
+        showSuccess("تم إنشاء الحساب", "يرجى تأكيد بريدك الإلكتروني ثم تسجيل الدخول لربط التلميذ وانتظار اعتماد الإدارة.");
+        navigate("/login/parent");
+        return;
+      }
+
+      if (data.user && data.session) {
         // First check if the student exists using RPC function (bypasses RLS for new users)
         const { data: studentData, error: studentError } = await supabase
           .rpc('check_student_exists', { _national_school_id: formData.nationalSchoolId.trim() });
