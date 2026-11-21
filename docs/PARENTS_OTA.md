@@ -65,3 +65,5 @@ The parent-only app now polls the isolated parents-updates manifest every 5 seco
 - The native APK build is configured to fail clearly until this secret exists; ordinary parent web verification does not depend on it.
 - For server-triggered push, a trusted sender must additionally be implemented with FCM HTTP v1 credentials stored server-side, and targeted to the registered parent devices only. The Firebase client config is **not** a sender credential. Do not broadcast school notifications or write to production `push_tokens` as part of setup.
 - After the secret and trusted sender are configured, test with a dedicated parent APK and a safe test device, then approve a release. Neither the GitHub web source updates nor existing OTA bundles can add native Firebase capabilities to an already-installed APK.
+
+FCM build verification requested after the repository secret was added; no production changes or Firebase credentials are committed.
