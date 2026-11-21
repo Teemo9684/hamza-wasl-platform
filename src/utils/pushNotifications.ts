@@ -358,10 +358,9 @@ export const initializePushNotifications = async () => {
     }
 
     // Register with Apple / Google to receive push via APNS/FCM
-    await PushNotifications.register();
-
-    // Set up listeners
+    // Attach listeners before calling register() so fast FCM registration events aren't lost.
     setupPushNotificationListeners();
+    await PushNotifications.register();
     
     // Push notifications initialized successfully
     return true;
@@ -374,7 +373,7 @@ export const initializePushNotifications = async () => {
 const setupPushNotificationListeners = () => {
   // Called when registration is successful
   PushNotifications.addListener('registration', async (token) => {
-    console.log('Push registration success, token:', token.value);
+    console.log('Push registration successful');
     currentPushToken = token.value;
     
     // Save the token to the push_tokens table
@@ -389,6 +388,10 @@ const setupPushNotificationListeners = () => {
 
   // Called when a notification is received (app in foreground)
   PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    if (notification.data?.type === 'parents_ota_update' && notification.data?.audience === 'parent') {
+      window.dispatchEvent(new Event('parents-ota-update-available'));
+      return;
+    }
     // Push notification received
     console.log('Push notification received in foreground:', notification);
     
@@ -408,6 +411,10 @@ const setupPushNotificationListeners = () => {
     console.log('Push notification tapped:', notification);
     
     const data = notification.notification.data;
+    if (data?.type === 'parents_ota_update' && data?.audience === 'parent') {
+      window.dispatchEvent(new Event('parents-ota-update-available'));
+      return;
+    }
     
     // Handle navigation based on notification type using history API
     // This maintains proper navigation stack for Capacitor
