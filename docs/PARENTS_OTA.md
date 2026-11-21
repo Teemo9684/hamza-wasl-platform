@@ -118,3 +118,7 @@ The standalone parents home now keeps its original smooth animated in-page scrol
 ## 1.0.16 original logo chrome treatment (owner-approved)
 
 The original landing-page rotating Ruqaa wordmark switches between «همزة وصل» and «العربي التبسي», retaining exactly the same text, structure, font, placement, and 6-second magicRotate1/magicRotate2 animations. The only change is a parent-audience-scoped silver chrome text gradient and slow reflective sheen on the existing letters (with reduced-motion fallback). No new logo image or changes to teachers/admin/production database. Source verification passed before release.
+
+## 1.0.17 restore original white Ruqaa wordmark
+
+At the owner's request, revert exclusively the chrome effect introduced in v1.0.16. Restore the exact original white Ruqaa text for the alternating «همزة وصل» / «العربي التبسي» hero logo, retaining the original 6-second rotation, dimensions, layout, and all unrelated v1.0.15 improvements. Chrome CSS and styling have been removed, and parent build verification passed. Parent OTA test channel only; no database changes.
