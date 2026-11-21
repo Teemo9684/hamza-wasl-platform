@@ -1,0 +1,83 @@
+name: Teachers preview build (manual only)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-web:
+    runs-on: ubuntu-latest
+    env:
+      APP_AUDIENCE: teacher
+      VITE_TEACHER_OTA_ENABLED: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: apps/teachers-preview
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:teacher
+      - name: Validate standalone teacher web build
+        run: |
+          test -s dist-teacher/index.html
+          test -s dist-teacher/manifest.webmanifest
+          grep -q 'teachers-updates' src/utils/liveUpdate.ts
+          grep -q 'app.hamzawasl.teachers' capacitor.config.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: teachers-preview-web
+          path: dist-teacher/
+          retention-days: 7
+  android:
+    runs-on: ubuntu-latest
+    needs: verify-web
+    env:
+      APP_AUDIENCE: teacher
+      TEACHER_OTA_ENABLED: 'true'
+      VITE_TEACHER_OTA_ENABLED: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: apps/teachers-preview
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npm run build:teacher
+      - run: npx cap add android && npx cap sync android
+      - name: Validate teacher-specific Firebase client secret
+        env:
+          TEACHERS_GOOGLE_SERVICES_JSON: ${{ secrets.TEACHERS_GOOGLE_SERVICES_JSON }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$TEACHERS_GOOGLE_SERVICES_JSON" ]]; then
+            echo "::error::Set TEACHERS_GOOGLE_SERVICES_JSON; cannot build functional teachers FCM APK"
+            exit 1
+          fi
+          printf '%s' "$TEACHERS_GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('android/app/google-services.json').read_text())
+          assert data['project_info']['project_id']=='hamza-wasl-app'
+          packages=[x['client_info']['android_client_info']['package_name'] for x in data['client']]
+          assert packages.count('app.hamzawasl.teachers')==1
+          print('Validated independent teachers Firebase Android identity')
+          PY
+          grep -q 'com.google.gms.google-services' android/app/build.gradle
+      - name: Build test-only APK
+        working-directory: android
+        run: chmod +x ./gradlew && ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: teachers-preview-android-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
