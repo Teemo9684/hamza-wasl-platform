@@ -11,4 +11,4 @@
 
 - [x] Authorize the specific admin account and collect its new password securely.
 - [x] Reset only that account and verify password authentication and the admin dashboard (no runtime errors).
-- [ ] Remove the temporary recovery function and secret.
+- [x] Remove the temporary recovery function and secret.
