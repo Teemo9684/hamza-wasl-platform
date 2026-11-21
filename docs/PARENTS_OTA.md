@@ -47,3 +47,7 @@ User approved parents-only OTA release 1.0.3 to change the version indicator fro
 ## 1.0.4 native-viewport version label
 
 The screenshot after 1.0.3 shows the version still hidden although 1.0.2's white pill was visible. The parent version text is now portaled to document.body, outside Framer Motion's scaled app wrapper and the landing page's clipping. Its typography remains identical to the official small semitransparent bottom-left text. The OTA is web-only and parents-only.
+
+## 1.0.5 official-footer Android bottom overlay fix
+
+The official main application's version footer is a transparent text-only div. The parents APK adds a fixed pseudo-element `html.capacitor-android.parent-audience::after` at the bottom of the screen with height at least 24px and z-index 9999; a footer just 16px from the bottom can be covered. The parents footer retains official classes and renders above and clear of that bar via a body portal, while no appearance changes are made to the official app. The user requested applying the official solution to the isolated parents app.
