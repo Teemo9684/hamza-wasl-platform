@@ -1,5 +1,8 @@
-name: Teachers preview build (manual only)
+name: Teachers preview build
 on:
+  push:
+    branches:
+      - 'apps/teachers-preview'
   workflow_dispatch:
 permissions:
   contents: read
