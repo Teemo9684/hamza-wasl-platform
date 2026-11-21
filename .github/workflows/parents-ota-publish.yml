@@ -1,6 +1,10 @@
 name: Publish approved parents OTA bundle
 
 on:
+  # One-time user-approved initial rollout; subsequent pushes never publish.
+  push:
+    branches:
+      - 'apps/parents-preview'
   workflow_dispatch:
     inputs:
       version:
@@ -21,13 +25,13 @@ concurrency:
 
 jobs:
   publish:
-    if: github.ref == 'refs/heads/apps/parents-preview'
+    if: github.ref == 'refs/heads/apps/parents-preview' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'release(parents): publish approved OTA 1.0.1'))
     runs-on: ubuntu-latest
     env:
       APP_AUDIENCE: parent
       VITE_PARENT_OTA_ENABLED: 'true'
-      VITE_PARENT_APP_VERSION: ${{ inputs.version }}
-      OTA_APPROVAL: ${{ inputs.approval }}
+      VITE_PARENT_APP_VERSION: ${{ github.event_name == 'push' && '1.0.1' || inputs.version }}
+      OTA_APPROVAL: ${{ github.event_name == 'push' && 'PUBLISH-PARENTS-OTA' || inputs.approval }}
     steps:
       - name: Validate explicit publication approval
         shell: bash
