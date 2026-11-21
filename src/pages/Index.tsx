@@ -13,7 +13,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { PostersCarousel } from "@/components/PostersCarousel";
 import { formatDateWithWeekday } from "@/utils/formatters";
 import { realtimeManager } from "@/utils/realtimeManager";
 import { APP_VERSION } from "@/config/version";
@@ -534,10 +533,6 @@ const Index = () => {
         {/* Theme Welcome Banner */}
         <ThemeBanner />
 
-        {/* Posters Carousel */}
-        <motion.div variants={itemVariants} className="w-full">
-          <PostersCarousel />
-        </motion.div>
 
 
 
