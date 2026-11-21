@@ -1,5 +1,8 @@
 name: Publish approved teachers OTA bundle
 on:
+  push:
+    branches:
+      - 'apps/teachers-preview'
   workflow_dispatch:
     inputs:
       version:
@@ -17,13 +20,17 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
-    if: github.ref == 'refs/heads/apps/teachers-preview'
+    if: >-
+      github.ref == 'refs/heads/apps/teachers-preview' &&
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+      github.event.head_commit.message == 'release(teachers): publish approved OTA 1.0.1'))
     runs-on: ubuntu-latest
     env:
       APP_AUDIENCE: teacher
       VITE_TEACHER_OTA_ENABLED: 'true'
-      VITE_TEACHER_APP_VERSION: ${{ inputs.version }}
-      OTA_APPROVAL: ${{ inputs.approval }}
+      VITE_TEACHER_APP_VERSION: ${{ github.event_name == 'push' && '1.0.1' || inputs.version }}
+      OTA_APPROVAL: ${{ github.event_name == 'push' && 'PUBLISH-TEACHERS-OTA' || inputs.approval }}
     steps:
       - name: Enforce manual explicit approval
         run: |
