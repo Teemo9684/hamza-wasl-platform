@@ -81,4 +81,10 @@ assert.ok(backHandler.includes("navigate('/', { replace: true })"), 'Android bac
 assert.ok(backHandler.includes("parents-close-embedded-login"), 'Android back must collapse embedded parent login');
 assert.ok(parentIndex.includes('data.parentLoginOpen') || parentIndex.includes('dataset.parentLoginOpen'), 'Landing page must expose embedded login state for Android back');
 
+const chromeStyles = read('src/index.css');
+assert.ok(parentIndex.includes('parent-chrome-original-logo'), 'Original two-sided parent wordmark must receive chrome styling');
+assert.ok(parentIndex.includes('magic-rotate-1') && parentIndex.includes('magic-rotate-2'), 'Original rotating logo animation must remain intact');
+assert.ok(chromeStyles.includes('@keyframes parent-chrome-glint'), 'Chrome reflective highlight must be present');
+assert.ok(chromeStyles.includes('.parent-landing .parent-hero-logo .parent-chrome-original-logo'), 'Chrome must be scoped to parents landing wordmark');
+
 console.log('Parent isolation checks passed. These are source/build checks, not Android runtime or database RLS tests.');
