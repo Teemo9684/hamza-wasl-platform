@@ -70,4 +70,12 @@ const postersCarousel = read('src/components/PostersCarousel.tsx');
 assert.ok(postersCarousel.includes("createPortal(preview, document.body)"), 'Parent landing poster preview must escape the sticky header stacking context');
 assert.ok(postersCarousel.includes("APP_AUDIENCE === 'parent' && typeof document !== 'undefined'"), 'Portal change must remain parents-only');
 assert.ok(postersCarousel.includes('aria-modal="true"'), 'Parent poster fullscreen preview must be identified as a dialog');
+const parentIndex = read('src/pages/Index.tsx');
+const backHandler = read('src/components/BackButtonHandler.tsx');
+assert.ok(app.includes('APP_AUDIENCE === "parent" ? <Index key="parent-login" /> : <LoginParent />'), 'Standalone parents login must reuse the landing-page card and news ticker');
+assert.ok(parentIndex.includes('location.pathname === "/login/parent"'), 'Parent login route must activate embedded login section');
+assert.ok(parentIndex.includes('navigate("/login/parent")'), 'Parent card must navigate to the unified login route');
+assert.ok(backHandler.includes("currentPath === '/login/parent'"), 'Android back must explicitly leave unified parent login');
+assert.ok(backHandler.includes("navigate('/', { replace: true })"), 'Android back must land on main parent homepage');
+
 console.log('Parent isolation checks passed. These are source/build checks, not Android runtime or database RLS tests.');
