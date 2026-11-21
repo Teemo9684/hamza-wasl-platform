@@ -18,6 +18,7 @@ jobs:
     env:
       APP_AUDIENCE: teacher
       VITE_TEACHER_OTA_ENABLED: 'true'
+      VITE_TEACHER_FCM_TEST_ENABLED: 'true'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,6 +49,7 @@ jobs:
       APP_AUDIENCE: teacher
       TEACHER_OTA_ENABLED: 'true'
       VITE_TEACHER_OTA_ENABLED: 'true'
+      VITE_TEACHER_FCM_TEST_ENABLED: 'true'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -114,6 +116,7 @@ jobs:
     env:
       APP_AUDIENCE: teacher
       VITE_TEACHER_OTA_ENABLED: 'true'
+      VITE_TEACHER_FCM_TEST_ENABLED: 'true'
     steps:
       - name: Checkout exactly the source commit that passed both builds
         uses: actions/checkout@v4
