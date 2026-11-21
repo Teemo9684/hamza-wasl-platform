@@ -1,13 +1,15 @@
 import { APP_VERSION } from "@/config/version";
 
-/** Parents-only build/version marker, visible on both the landing and login pages. */
+/**
+ * Match the official application's small, unobtrusive version text
+ * at the bottom-left of the landing and parent-login screens.
+ */
 export function ParentVersionBadge() {
   return (
     <div
       dir="ltr"
       aria-label={`إصدار تطبيق الأولياء ${APP_VERSION}`}
-      className="fixed left-3 z-[100] rounded-full border border-slate-300/70 bg-white/95 px-3 py-1.5 text-xs font-mono font-bold tracking-wide text-slate-800 shadow-md"
-      style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
+      className="fixed bottom-4 left-4 z-50 text-white/50 text-xs font-mono"
     >
       v{APP_VERSION}
     </div>
