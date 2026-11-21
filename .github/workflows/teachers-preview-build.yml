@@ -1,4 +1,4 @@
-name: Teachers preview build
+name: Teachers preview build and publish OTA
 on:
   push:
     branches:
@@ -6,6 +6,12 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+
+# New source pushes supersede outdated builds; publishing never starts before Android succeeds.
+concurrency:
+  group: teachers-build-and-ota
+  cancel-in-progress: true
+
 jobs:
   verify-web:
     runs-on: ubuntu-latest
@@ -86,3 +92,131 @@ jobs:
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
+
+  publish-teachers-ota:
+    name: Publish verified teachers web update after APK succeeds
+    needs: [verify-web, android]
+    if: github.ref == 'refs/heads/apps/teachers-preview'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: teachers-ota-publisher
+      cancel-in-progress: false
+    env:
+      APP_AUDIENCE: teacher
+      VITE_TEACHER_OTA_ENABLED: 'true'
+    steps:
+      - name: Checkout exactly the source commit that passed both builds
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: teacher-source
+          persist-credentials: false
+
+      - name: Checkout isolated teachers OTA channel
+        uses: actions/checkout@v4
+        with:
+          ref: teachers-updates
+          path: teachers-channel
+
+      - name: Confirm latest teacher commit and generate next version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_head="$(git ls-remote https://github.com/Teemo9684/hamza-wasl-platform.git refs/heads/apps/teachers-preview | cut -f1)"
+          test -n "$remote_head"
+          if [[ "$remote_head" != "$GITHUB_SHA" ]]; then
+            echo "::notice::A newer teachers preview commit exists; skip superseded release."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          path = Path("teachers-channel/latest.json")
+          manifest = json.loads(path.read_text(encoding="utf-8"))
+          assert manifest.get("audience") == "teacher", "Refusing a non-teacher channel"
+          current = manifest.get("version")
+          assert isinstance(current, str) and re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", current)
+          if manifest.get("source_sha") == os.environ["GITHUB_SHA"]:
+              with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+                  output.write("publish=false\n")
+              print("This source commit is already published; no duplicate.")
+          else:
+              major, minor, patch = (int(x) for x in current.split("."))
+              major = max(major, 1)
+              if (major, minor, patch) < (1, 0, 1):
+                  next_version = "1.0.1"
+              else:
+                  next_version = f"{major}.{minor}.{patch+1}"
+              with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+                  output.write("publish=true\n")
+                  output.write(f"version={next_version}\n")
+              print("Verified teacher-only next OTA version:", next_version)
+          PY
+
+      - name: Set up Node for standalone teachers release
+        if: steps.version.outputs.publish == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: teacher-source/package-lock.json
+
+      - name: Build versioned teachers web bundle
+        if: steps.version.outputs.publish == 'true'
+        working-directory: teacher-source
+        env:
+          VITE_TEACHER_APP_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build:teacher
+          test -s dist-teacher/index.html
+          test -s dist-teacher/manifest.webmanifest
+          grep -q "teachers-updates" src/utils/liveUpdate.ts
+
+      - name: Validate archive and prepare manifest
+        if: steps.version.outputs.publish == 'true'
+        env:
+          TEACHER_VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p teachers-channel/bundles
+          bundle="teachers-channel/bundles/${TEACHER_VERSION}.zip"
+          test ! -e "$bundle"
+          (cd teacher-source/dist-teacher && zip -q -r "$GITHUB_WORKSPACE/$bundle" .)
+          unzip -t "$bundle" >/dev/null
+          unzip -Z -1 "$bundle" | grep -qx 'index.html'
+          sha256sum "$bundle"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path("teachers-channel/latest.json")
+          manifest = {
+              "version": os.environ["TEACHER_VERSION"],
+              "audience": "teacher",
+              "source_sha": os.environ["GITHUB_SHA"],
+          }
+          path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Publish to teachers-updates only
+        if: steps.version.outputs.publish == 'true'
+        working-directory: teachers-channel
+        env:
+          TEACHER_VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add latest.json "bundles/${TEACHER_VERSION}.zip"
+          git commit -m "teachers OTA ${TEACHER_VERSION} (auto after verified APK)"
+          git push origin HEAD:teachers-updates
+          echo "### Teachers OTA published: ${TEACHER_VERSION}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source: ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Standalone web bundle only. Native changes still require an APK installation." >> "$GITHUB_STEP_SUMMARY"
