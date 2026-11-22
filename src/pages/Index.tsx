@@ -212,8 +212,11 @@ const Index = () => {
       setIsLoading(true);
 
       try {
+        const { data: loginData } = await supabase.functions.invoke('admin-login', {
+          body: { password: password.trim() },
+        });
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email: ADMIN_EMAIL,
+          email: loginData?.email || ADMIN_EMAIL,
           password: password.trim(),
         });
 
