@@ -70,21 +70,11 @@ const LoginAdmin = () => {
     setIsLoading(true);
 
     try {
-      // استدعاء edge function للتحقق من كلمة المرور والحصول على البريد الإلكتروني
-      const { data: loginData, error: loginError } = await supabase.functions.invoke('admin-login', {
-        body: { password: pin.trim() }
-      });
-
-      if (loginError || !loginData?.success) {
-        showError("invalid login credentials");
-        setIsLoading(false);
-        return;
-      }
-
-      // تسجيل الدخول باستخدام البريد الإلكتروني المرجع
+      // Verify the existing administrator account directly via Supabase Auth.
+      // Authorization still requires the server-side admin role below.
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: loginData.email,
-        password: pin.trim(),
+        email: "admin@arbit.local",
+        password: pin,
       });
 
       if (authError) {
