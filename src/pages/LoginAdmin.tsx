@@ -75,10 +75,22 @@ const LoginAdmin = () => {
     let stage = "AUTH";
 
     try {
-      // Verify the existing administrator account directly via Supabase Auth.
-      // Authorization still requires the server-side admin role below.
+      // Restore the login flow used by the first, working admin APK.
+      // The Edge Function performs the server-side admin account selection.
+      stage = "ADMIN_LOGIN";
+      const { data: loginData, error: loginError } = await supabase.functions.invoke('admin-login', {
+        body: { password: pin }
+      });
+      if (loginError || !loginData?.success || typeof loginData.email !== "string") {
+        const diagnosticError = new Error("ADMIN_LOGIN_REJECTED") as Error & { code?: string; status?: number };
+        diagnosticError.code = "ADMIN_LOGIN_REJECTED";
+        diagnosticError.status = typeof loginError?.context?.status === "number" ? loginError.context.status : undefined;
+        throw diagnosticError;
+      }
+
+      stage = "AUTH";
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: "admin@arbit.local",
+        email: loginData.email,
         password: pin,
       });
 
