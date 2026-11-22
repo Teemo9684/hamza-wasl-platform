@@ -1,3 +1,5 @@
+import { APP_VERSION } from "@/config/version";
+import { APP_AUDIENCE } from "@/config/appAudience";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ import { showError, showSuccess, showWarning, ErrorMessages } from "@/utils/erro
 const LoginAdmin = () => {
   const navigate = useNavigate();
   const [pin, setPin] = useState("");
+  const [diagnostic, setDiagnostic] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingUp, setIsSettingUp] = useState(false);
   
@@ -68,6 +71,8 @@ const LoginAdmin = () => {
     }
 
     setIsLoading(true);
+    setDiagnostic("");
+    let stage = "AUTH";
 
     try {
       // Verify the existing administrator account directly via Supabase Auth.
@@ -85,6 +90,7 @@ const LoginAdmin = () => {
         throw new Error("لم يتم العثور على المستخدم");
       }
 
+      stage = "ROLE";
       // التحقق من صلاحية المسؤول
       const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
@@ -99,14 +105,23 @@ const LoginAdmin = () => {
 
       if (!roleData) {
         await supabase.auth.signOut();
+        setDiagnostic("ROLE / ADMIN_ROLE_MISSING");
         ErrorMessages.PERMISSION_DENIED();
         setIsLoading(false);
         return;
       }
 
+      stage = "SESSION";
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!sessionData.session) throw new Error("SESSION_MISSING");
       showSuccess("تم تسجيل الدخول بنجاح", "مرحباً بك في لوحة التحكم");
       navigate("/dashboard/admin", { replace: true });
     } catch (error: any) {
+      const rawCode = typeof error?.code === "string" ? error.code : "";
+      const code = /^[a-zA-Z0-9_]{1,80}$/.test(rawCode) ? rawCode : (error?.name === "AuthRetryableFetchError" || error instanceof TypeError ? "NETWORK_ERROR" : "UNKNOWN");
+      const status = typeof error?.status === "number" ? ` / HTTP ${error.status}` : "";
+      setDiagnostic(`${stage} / ${code}${status}`);
       showError(error);
     } finally {
       setIsLoading(false);
@@ -173,7 +188,7 @@ const LoginAdmin = () => {
                 <ArrowRight className="mr-2 h-5 w-5" />
               </Button>
               
-              <Button
+              {APP_AUDIENCE !== "admin" && <Button
                 type="button"
                 variant="outline"
                 className="w-full font-cairo"
@@ -183,7 +198,11 @@ const LoginAdmin = () => {
               >
                 {isSettingUp ? "جاري الإعداد..." : "إعداد حساب المسؤول"}
                 <Settings className="mr-2 h-5 w-5" />
-              </Button>
+              </Button>}
+              {APP_AUDIENCE === "admin" && <div className="w-full text-center text-xs text-muted-foreground space-y-2" dir="ltr">
+                <p>Admin v{APP_VERSION}</p>
+                {diagnostic && <p role="alert" className="p-3 rounded border border-destructive text-destructive break-all select-all font-mono">{diagnostic}</p>}
+              </div>}
             </CardFooter>
           </form>
         </Card>
