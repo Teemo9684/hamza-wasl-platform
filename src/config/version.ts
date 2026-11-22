@@ -2,7 +2,7 @@
 // قم بتحديث هذا الرقم مع كل تحديث جديد للتطبيق
 
 import { APP_AUDIENCE } from "@/config/appAudience";
-export const APP_VERSION = APP_AUDIENCE === "admin" ? "1.0.2" : "1.2.75";
+export const APP_VERSION = APP_AUDIENCE === "admin" ? "1.0.3" : "1.2.75";
 
 // سجل التحديثات
 export const VERSION_HISTORY = [
