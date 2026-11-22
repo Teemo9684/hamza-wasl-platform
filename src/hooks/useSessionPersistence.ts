@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { saveSupabaseSession, loadSupabaseSession, clearSupabaseSession } from "@/utils/nativeStorage";
@@ -9,6 +9,7 @@ import { saveSupabaseSession, loadSupabaseSession, clearSupabaseSession } from "
  */
 export const useSessionPersistence = () => {
   const initialized = useRef(false);
+  const [ready, setReady] = useState(!Capacitor.isNativePlatform());
 
   useEffect(() => {
     if (initialized.current) return;
@@ -54,7 +55,7 @@ export const useSessionPersistence = () => {
       }
     };
 
-    initSession();
+    void initSession().finally(() => setReady(true));
 
     // Listen for auth state changes and save session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -73,4 +74,5 @@ export const useSessionPersistence = () => {
       subscription.unsubscribe();
     };
   }, []);
+  return ready;
 };

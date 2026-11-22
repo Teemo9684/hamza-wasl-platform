@@ -111,7 +111,7 @@ const App = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   
   // Ensure session persistence on native platforms
-  useSessionPersistence();
+  const sessionReady = useSessionPersistence();
 
   useEffect(() => {
     // Trigger entrance animation immediately after splash finishes
@@ -224,6 +224,10 @@ const App = () => {
   // Show splash screen first
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
+  if (APP_AUDIENCE === "admin" && !sessionReady) {
+    return <div className="min-h-screen bg-background flex items-center justify-center font-cairo" role="status">جاري استعادة جلسة الإدارة...</div>;
   }
 
   return (

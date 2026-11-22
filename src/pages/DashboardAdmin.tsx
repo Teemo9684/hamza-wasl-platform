@@ -1,3 +1,5 @@
+import { APP_AUDIENCE } from "@/config/appAudience";
+import { APP_VERSION } from "@/config/version";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -285,7 +287,7 @@ const DashboardAdmin = () => {
               <Shield className="w-6 h-6 md:w-8 md:h-8 text-accent flex-shrink-0" />
               <h1 className="text-lg md:text-2xl font-bold font-cairo truncate">لوحة التحكم</h1>
             </div>
-            <Button 
+            {APP_AUDIENCE === "admin" ? <span className="text-xs text-muted-foreground font-mono" dir="ltr">v{APP_VERSION}</span> : <Button 
               onClick={handleLogout} 
               variant="ghost" 
               className="font-cairo h-10 px-3 text-sm active:scale-95 touch-feedback"
@@ -294,7 +296,7 @@ const DashboardAdmin = () => {
               <LogOut className="ml-1.5 h-4 w-4" />
               <span className="hidden sm:inline">تسجيل الخروج</span>
               <span className="sm:hidden">خروج</span>
-            </Button>
+            </Button>}
           </div>
         </header>
 

@@ -1,7 +1,8 @@
 // ملف إدارة رقم الإصدار
 // قم بتحديث هذا الرقم مع كل تحديث جديد للتطبيق
 
-export const APP_VERSION = "1.2.75";
+import { APP_AUDIENCE } from "@/config/appAudience";
+export const APP_VERSION = APP_AUDIENCE === "admin" ? "1.0.1" : "1.2.75";
 
 // سجل التحديثات
 export const VERSION_HISTORY = [
